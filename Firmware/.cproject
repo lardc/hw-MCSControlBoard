@@ -56,6 +56,7 @@
 									<listOptionValue builtIn="false" value="../Source"/>
 									<listOptionValue builtIn="false" value="../Source/Platform"/>
 									<listOptionValue builtIn="false" value="../Source/Controller"/>
+									<listOptionValue builtIn="false" value="../Source/CustomInterfaces"/>
 								</option>
 								<option id="com.atollic.truestudio.common_options.target.endianess.664965281" name="Endianess" superClass="com.atollic.truestudio.common_options.target.endianess" useByScannerDiscovery="false"/>
 								<option id="com.atollic.truestudio.common_options.target.mcpu.835254585" name="Microcontroller" superClass="com.atollic.truestudio.common_options.target.mcpu" useByScannerDiscovery="false" value="STM32F303CB" valueType="enumerated"/>

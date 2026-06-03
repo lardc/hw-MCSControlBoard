@@ -1,83 +1,76 @@
-﻿#ifndef __CONSTRAINTS_H
+﻿// -----------------------------------------
+// Global definitions
+// ----------------------------------------
+
+#ifndef __CONSTRAINTS_H
 #define __CONSTRAINTS_H
 
 // Include
 #include "stdinc.h"
+//
 #include "DataTable.h"
 #include "Global.h"
-
-//Definitions
-//
-#define ADPTR_REF_MIN				1		// в мВ
-#define ADPTR_REF_MAX				3000	// в мВ
-
-#define ADPTR_MCDA_REF_DEF			2400	// в мВ
-#define ADPTR_MIAA_REF_DEF			2035	// в мВ
-#define ADPTR_MIDA_REF_DEF			2750	// в мВ
-#define ADPTR_MIFA_REF_DEF			29		// в мВ
-#define ADPTR_MIHA_REF_DEF			1140	// в мВ
-#define ADPTR_MIHM_REF_DEF			70		// в мВ
-#define ADPTR_MIHV_REF_DEF			137		// в мВ
-#define ADPTR_MISM_REF_DEF			286		// в мВ
-#define ADPTR_MISM2_REF_DEF			567		// в мВ
-#define ADPTR_MISV_REF_DEF			440		// в мВ
-#define ADPTR_MIXM_REF_DEF			810		// в мВ
-#define ADPTR_MIXV_REF_DEF			1374	// в мВ
-
-#define PRESSURE_OFFSET_MIN			0
-#define PRESSURE_OFFSET_MAX			4095
-#define PRESSURE_OFFSET_DEF			0
-
-#define PRESSURE_K_MIN				0
-#define PRESSURE_K_MAX				10
-#define PRESSURE_K_DEF				1
-
-#define PRESSURE_P2_MIN				0
-#define PRESSURE_P2_MAX				10
-#define PRESSURE_P2_DEF				0
-
-#define PRESSURE_P1_MIN				0
-#define PRESSURE_P1_MAX				10
-#define PRESSURE_P1_DEF				1
-
-#define PRESSURE_P0_MIN				0
-#define PRESSURE_P0_MAX				10
-#define PRESSURE_P0_DEF				0
-
-#define SET_PRESSURE_VALUE_MIN		1		// в Бар
-#define SET_PRESSURE_VALUE_MAX		8		// в Бар
-#define SET_PRESSURE_VALUE_DEF		5		// в Бар
-
-#define PRESS_COUNTER_MAX			10
-#define	PRESS_COUNTER_DEF			3
-//
-#define NO							0
-#define YES							1
-//
-#define TOP_ADAPTER					0
-#define BOT_ADAPTER					1
-
-#define AVG_SAMPLES_MIN				1
-#define AVG_SAMPLES_MAX				1000
-#define AVG_SAMPLES_DEF				100
-
-#define LABEL_ABS_ERR_MIN			1
-#define LABEL_ABS_ERR_MAX			1000
-#define LABEL_ABS_ERR_DEF			50
-
-#define LABEL_REL_ERR_MIN			0.001f
-#define LABEL_REL_ERR_MAX			1.0f
-#define LABEL_REL_ERR_DEF			0.15f
+#include "StepperMotor.h"
 
 // Types
+//
 typedef struct __TableItemConstraint
 {
-	float Min;
-	float Max;
-	float Default;
+	Int16U Min;
+	Int16U Max;
+	Int16U Default;
 } TableItemConstraint;
 
+// Параметры позиционирования (мм)
+#define POS_MAX						180
+
+#define CASE_MIN					1
+#define CASE_MAX					POS_MAX
+#define CASE_A2_DEF					122
+#define CASE_B0_DEF					122
+#define CASE_C1_DEF					122
+#define CASE_D_DEF					93
+#define CASE_E_DEF					82
+#define CASE_F_DEF					144
+#define CASE_ADAP_DEF				50
+//
+#define CASE_MIAA_DEF				180
+#define CASE_MIDA_DEF				180
+#define CASE_MIFA_DEF				180
+#define CASE_MIHA_DEF				180
+#define CASE_MIHM_DEF				180
+#define CASE_MIHV_DEF				180
+#define CASE_MISM_DEF				180
+#define CASE_MISM2_CH_DEF			180
+#define CASE_MISM2_SS_SD_DEF		180
+#define CASE_MISV_DEF				180
+#define CASE_MIXM_DEF				180
+#define CASE_MIXV_DEF				180
+#define CASE_MADAP_DEF				180
+
+// Расстояние замедления (мм)
+#define SLOW_DOWN_MIN				0
+#define SLOW_DOWN_MAX				50
+#define SLOW_DOWN_DEF				10
+
+// Оффсет хоуминга (мм)
+#define HOMING_OFFS_MIN				1
+#define HOMING_OFFS_MAX				20
+#define HOMING_OFFS_DEF				5
+
+// Параметры скорости (мм/сек)
+#define SPEED_MIN					1
+#define SPEED_MAX					100
+#define SPEED_DEF					5
+
+// Температура (С х10)
+#define TRM_TEMP_MIN				0		// in C x10
+#define TRM_TEMP_MAX				2000	// in C x10
+#define TRM_TEMP_DEF				0		// in C x10
+
 // Variables
-extern const TableItemConstraint Constraint[];
+//
+extern const TableItemConstraint NVConstraint[DATA_TABLE_NV_SIZE];
+extern const TableItemConstraint VConstraint[DATA_TABLE_WP_START - DATA_TABLE_WR_START];
 
 #endif // __CONSTRAINTS_H
