@@ -11,14 +11,6 @@
 
 
 // Constants
-//
-// Password to unlock non-volatile area for write
-#define ENABLE_LOCKING				FALSE
-#define UNLOCK_PWD_1				1
-#define UNLOCK_PWD_2				1
-#define UNLOCK_PWD_3				1
-#define UNLOCK_PWD_4				1
-
 #define DT_EPROM_ADDRESS			0
 #define	SCCI_TIMEOUT_TICKS  		1000
 #define SC_FILTER_T					100
