@@ -1,6 +1,7 @@
 ﻿#ifndef __SYSCONFIG_H
 #define __SYSCONFIG_H
 
+#include "BCCIxParams.h"
 
 // Flash loader options
 #define BOOT_LOADER_VARIABLE			(*((volatile uint32_t *)0x20000000))
@@ -27,8 +28,18 @@
 // ----------------------------------------------
 
 // ADC
-#define ADC_ID_TOP_CHANNEL				3			// Номер канала оцифровки напряжения на делителе верхнего адаптера
-#define ADC_ID_BOT_CHANNEL				2			// Номер канала оцифровки напряжения на делителе нижнего адаптера
-#define ADC_PRESSURE_CHANNEL			1			// Номер канала оцифровки напряжения датчика давления
+#define ADC_PRESSURE_CHANNEL			1
+// ----------------------------------------------
+
+// TRM
+#define TRM_CH1_ADDR					0
+#define TRM_TEMP_THR					500
+#define TRM_TIMEOUT_TICKS				100
+#define FAN_TIMEOUT						30000
+// ----------------------------------------------
+
+// SPI mux (stub)
+#define SPIMUX_EPROM					4
+// ----------------------------------------------
 
 #endif // __SYSCONFIG_H
