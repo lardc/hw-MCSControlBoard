@@ -1,21 +1,17 @@
-// Header
-//
 #include "DS18B20.h"
+#include "Board.h"
+#include "DataTable.h"
+#include "ZbBoard.h"
 
 // Definitions
 //
-#define DQ_WRITE_INVERSION			TRUE
-#define DQ_READ_INVERSION			FALSE
-#define DQ_STRONG_PULLUP_INVERSION	TRUE
-#define DS18B20_USE_PARASITE_POWER	TRUE
+#define DQ_WRITE_INVERSION			true
+#define DQ_READ_INVERSION			false
+#define DQ_STRONG_PULLUP_INVERSION	true
+#define DS18B20_USE_PARASITE_POWER	true
 //
 #define DS18B20_REGISTERS			9
 #define DS18B20_WRITE_TIMEOUT		5
-
-// Include
-//
-#include "BoardConfig.h"
-#include "DataTable.h"
 
 // Function prototypes
 //
@@ -29,13 +25,24 @@ void DS18B20_StrongPullUpDQ(Boolean State);
 
 // Functions
 //
+void DS18B20_Init()
+{
+	GPIO_InitPushPullOutput(GPIO_ADAPTER_ID_PWR);
+	GPIO_InitPushPullOutput(GPIO_ADAPTER_ID_CTRL);
+	GPIO_InitInput(GPIO_ADAPTER_ID_DATA, NoPull);
+
+	GPIO_SetState(GPIO_ADAPTER_ID_CTRL, false);
+	GPIO_SetState(GPIO_ADAPTER_ID_PWR, true);
+}
+//-------------------
+
 Boolean DS18B20_Reset()
 {
 	Boolean InitState;
 
-	DS18B20_SetDQ(FALSE);
+	DS18B20_SetDQ(false);
 	DELAY_US(700);
-	DS18B20_SetDQ(TRUE);
+	DS18B20_SetDQ(true);
 	DELAY_US(90);
 
 	InitState = !DS18B20_ReadDQ();
@@ -57,17 +64,15 @@ Boolean DS18B20_ReadROM(pInt16U Data)
 		for(i = 0; i < 8; i++)
 			*(Data + i) = DS18B20_ReadByte();
 
-		return 1;
+		return true;
 	}
 
-	return 0;
+	return false;
 }
 //-------------------
 
 Boolean DS18B20_WriteReg(pInt16U Data)
 {
-	Int16U TimeoutCounter = 0;
-
 	if(DS18B20_Reset())
 	{
 		DS18B20_WriteByte(DS18B20_SKIP_ROM);
@@ -82,26 +87,26 @@ Boolean DS18B20_WriteReg(pInt16U Data)
 			DS18B20_WriteByte(DS18B20_COPY_SCRATCHPAD);
 
 #ifdef DS18B20_USE_PARASITE_POWER
-			DS18B20_StrongPullUpDQ(TRUE);
+			DS18B20_StrongPullUpDQ(true);
 			DELAY_US(10000);
-			DS18B20_StrongPullUpDQ(FALSE);
+			DS18B20_StrongPullUpDQ(false);
 #endif
-
-			while(!DS18B20_Reset())
 			{
-				TimeoutCounter++;
+				Int16U TimeoutCounter = 0;
 
-				if(TimeoutCounter >= DS18B20_WRITE_TIMEOUT)
-					return 0;
+				while(!DS18B20_Reset())
+				{
+					DELAY_US(1000);
+					if(++TimeoutCounter >= DS18B20_WRITE_TIMEOUT)
+						return false;
+				}
 			}
 
-			return 1;
+			return true;
 		}
-		else
-			return 0;
 	}
 
-	return 0;
+	return false;
 }
 //-------------------
 
@@ -118,19 +123,17 @@ Boolean DS18B20_ReadReg(pInt16U Data)
 		for(i = 0; i < DS18B20_REGISTERS; i++)
 			ReadBytes[i] = DS18B20_ReadByte();
 
-		*(Data) = ReadBytes[REG_USER_BYTE_1] << 8 | ReadBytes[REG_USER_BYTE_2];
-
-		return 1;
+		*Data = ReadBytes[REG_USER_BYTE_1] << 8 | ReadBytes[REG_USER_BYTE_2];
+		return true;
 	}
 
-	return 0;
+	return false;
 }
 //-------------------
 
 Int16U DS18B20_ReadByte()
 {
-	Int16U Data = 0;
-	Int16U i;
+	Int16U i, Data = 0;
 
 	for(i = 0; i < 8; i++)
 		Data |= DS18B20_ReadBit() << i;
@@ -144,15 +147,15 @@ void DS18B20_WriteByte(Int16U Data)
 	Int16U i;
 
 	for(i = 0; i < 8; i++)
-		DS18B20_WriteBit(Data >> i & 0x1);
+		DS18B20_WriteBit((Data >> i) & 0x1);
 }
 //-------------------
 
 void DS18B20_WriteBit(Boolean Bit)
 {
-	DS18B20_SetDQ(FALSE);
+	DS18B20_SetDQ(false);
 	DELAY_US(Bit ? 5 : 65);
-	DS18B20_SetDQ(TRUE);
+	DS18B20_SetDQ(true);
 	DELAY_US(Bit ? 65 : 5);
 }
 //-------------------
@@ -161,9 +164,9 @@ Boolean DS18B20_ReadBit()
 {
 	Boolean Bit;
 
-	DS18B20_SetDQ(FALSE);
+	DS18B20_SetDQ(false);
 	DELAY_US(5);
-	DS18B20_SetDQ(TRUE);
+	DS18B20_SetDQ(true);
 	DELAY_US(10);
 
 	Bit = DS18B20_ReadDQ();
@@ -176,18 +179,18 @@ Boolean DS18B20_ReadBit()
 
 void DS18B20_SetDQ(Boolean State)
 {
-	(DQ_WRITE_INVERSION) ? ZwGPIO_WritePin(PIN_ADAPTER_ID_CTRL, !State) : ZwGPIO_WritePin(PIN_ADAPTER_ID_CTRL, State);
+	GPIO_SetState(GPIO_ADAPTER_ID_CTRL, DQ_WRITE_INVERSION ? !State : State);
 }
 //-------------------
 
 Boolean DS18B20_ReadDQ()
 {
-	return (DQ_READ_INVERSION) ? !ZwGPIO_ReadPin(PIN_ADAPTER_ID_DATA) : ZwGPIO_ReadPin(PIN_ADAPTER_ID_DATA);
+	return DQ_READ_INVERSION ? !GPIO_GetState(GPIO_ADAPTER_ID_DATA) : GPIO_GetState(GPIO_ADAPTER_ID_DATA);
 }
 //-------------------
 
 void DS18B20_StrongPullUpDQ(Boolean State)
 {
-	(DQ_STRONG_PULLUP_INVERSION) ? ZwGPIO_WritePin(PIN_ADAPTER_ID_PWR, !State) : ZwGPIO_WritePin(PIN_ADAPTER_ID_PWR, State);
+	GPIO_SetState(GPIO_ADAPTER_ID_PWR, (DQ_STRONG_PULLUP_INVERSION) ? !State : State);
 }
 //-------------------

@@ -1,9 +1,7 @@
 #ifndef DS18B20_H_
 #define DS18B20_H_
 
-// Includes
-//
-#include "ZwDSP.h"
+#include "stdinc.h"
 
 // Definitions
 //
@@ -38,7 +36,7 @@
 #define REG_CRC						8
 
 // Functions
-//
+void DS18B20_Init();
 Boolean DS18B20_WriteReg(pInt16U Data);
 Boolean DS18B20_ReadReg(pInt16U Data);
 Boolean DS18B20_ReadROM(pInt16U Data);
