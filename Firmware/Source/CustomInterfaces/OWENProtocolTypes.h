@@ -15,7 +15,7 @@ typedef struct __OWENProtocol_Frame
 	Int16U Hash;
 	Int16U DataSize;
 	Int16U Data[15];
-	Int16U CRC;
+	Int16U Checksum;
 	Boolean CRC_OK;
 } OWENProtocol_Frame, *pOWENProtocol_Frame;
 

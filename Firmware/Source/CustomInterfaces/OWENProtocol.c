@@ -87,7 +87,7 @@ Int16U OWENProtocol_FramePack(pOWENProtocol_Frame Frame, pInt16U Buffer)
 		MemCopy16(Frame->Data, Buffer + 4, Frame->DataSize);
 
 	crc = OWENProtocol_CRC16(Buffer, Frame->DataSize + 4);
-	Frame->CRC = crc;
+	Frame->Checksum = crc;
 	Frame->CRC_OK = TRUE;
 
 	Buffer[Frame->DataSize + 4] = (crc >> 8) & 0xff;
@@ -126,8 +126,8 @@ void OWENProtocol_FrameUnPack(pInt16U Buffer, Int16U BufferSize, pOWENProtocol_F
 	{
 		Frame->DataSize = 0;
 	}
-	Frame->CRC = (Buffer[BufferSize - 2] << 8) | Buffer[BufferSize - 1];
-	Frame->CRC_OK = (Frame->CRC == OWENProtocol_CRC16(Buffer, BufferSize - 2));
+	Frame->Checksum = (Buffer[BufferSize - 2] << 8) | Buffer[BufferSize - 1];
+	Frame->CRC_OK = (Frame->Checksum == OWENProtocol_CRC16(Buffer, BufferSize - 2));
 }
 // ----------------------------------------
 
