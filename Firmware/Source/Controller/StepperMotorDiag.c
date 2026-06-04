@@ -25,7 +25,7 @@ void SMD_LogicHandler()
 	if(++StepDivisorTicks >= StepDivisorLimit)
 	{
 		StepDivisorTicks = 0;
-		ZbGPIO_SwitchStep(TickHigh = !TickHigh);
+		LL_SwitchStep(TickHigh = !TickHigh);
 	}
 
 	if(!TickHigh)

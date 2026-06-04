@@ -7,6 +7,7 @@
 
 // Include
 #include "ZbBoard.h"
+#include "LowLevel.h"
 
 // Types
 typedef struct __SM_Config
@@ -14,14 +15,14 @@ typedef struct __SM_Config
 	Int16U NewPosition;
 	Int16U SlowDownDistance;
 	Int16U MaxSpeed;
-	Int16U LowSpeed;
+	Int16U SlowSpeed;
 	Int16U MinSpeed;
 } SM_Config, *pSM_Config;
 
 // Functions
 //
 // Main logic ISR call
-ISRCALL Timer1_ISR();
+void SM_TimerHandler();
 // Connect alter handler for timer processing
 void SM_ConnectAlterHandler(void *Handler);
 // Steps Enable

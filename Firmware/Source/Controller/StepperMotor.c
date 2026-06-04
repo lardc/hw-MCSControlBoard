@@ -10,6 +10,7 @@
 // Includes
 #include "SysConfig.h"
 #include "Global.h"
+#include <stdlib.h>
 
 // Definitions
 #define SM_SPEED_CHANGE_STEPS		(2 * SM_FULL_ROUND_STEPS)	// Acceleration in steps
@@ -34,8 +35,7 @@ void SM_ToggleCyclesToTarget(Int16U Target);
 
 // Functions
 //
-// Timer 1 ISR
-ISRCALL Timer1_ISR()
+void SM_TimerHandler()
 {
 	if(AlterHandler)
 	{
@@ -44,9 +44,6 @@ ISRCALL Timer1_ISR()
 	}
 	else
 		SM_LogicHandler();
-
-	// no PIE
-	TIMER1_ISR_DONE;
 }
 // -----------------------------------------
 
@@ -69,7 +66,7 @@ void SM_LogicHandler()
 		if(++SM_CycleCounter >= SM_CyclesToToggle)
 		{
 			SM_CycleCounter = 0;
-			ZbGPIO_SwitchStep(TickHigh = !TickHigh);
+			LL_SwitchStep(TickHigh = !TickHigh);
 
 			// Счёт для перемещения по нарастающему фронту тиков
 			if(TickHigh)
@@ -77,7 +74,7 @@ void SM_LogicHandler()
 				if(SM_HomingFlag)
 				{
 					// Условие завершения хоуминга
-					if(ZbGPIO_HomeSensorActuate())
+					if(LL_HomeSensorActuate())
 					{
 						SM_HomingFlag = FALSE;
 						SM_DestSteps = SM_GlobalStepsCounter = 0;
@@ -86,7 +83,7 @@ void SM_LogicHandler()
 				else
 				{
 					// Проверка условия позиционирования
-					SM_GlobalStepsCounter += (ZbGPIO_IsDirUp()) ? 1 : -1;
+					SM_GlobalStepsCounter += (LL_IsDirUp()) ? 1 : -1;
 					Int32U StepsToPos = abs(SM_DestSteps - SM_GlobalStepsCounter);
 
 					// 1-2. acceleration to Vmax or running at Vmax
@@ -119,14 +116,14 @@ void SM_LogicHandler()
 // Up or down direction
 void SM_UpDirection(Boolean State)
 {
-	ZbGPIO_SwitchUpDir(State);
+	LL_SwitchUpDir(State);
 }
 // ----------------------------------------
 
 // Steps Enable
 void SM_Enable(Boolean State)
 {
-	ZbGPIO_SwitchEnable(!State);
+	LL_SwitchEnable(!State);
 }
 // ----------------------------------------
 
@@ -141,7 +138,7 @@ void SM_GoToPosition(pSM_Config Config)
 	SM_UpDirection(SM_DestSteps > SM_GlobalStepsCounter);
 
 	SM_MinCycles = SM_SpeedToCycles(Config->MaxSpeed);
-	SM_LowSpeedCycles = SM_SpeedToCycles(Config->LowSpeed);
+	SM_LowSpeedCycles = SM_SpeedToCycles(Config->SlowSpeed);
 	SM_CyclesToToggle = SM_MaxCycles = SM_SpeedToCycles(Config->MinSpeed);
 }
 // ----------------------------------------

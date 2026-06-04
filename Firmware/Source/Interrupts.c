@@ -8,7 +8,7 @@
 #include "Global.h"
 #include "DataTable.h"
 #include "DeviceObjectDictionary.h"
-#include "Logic.h"
+#include "StepperMotor.h"
 
 // Functions
 //
@@ -46,6 +46,15 @@ void TIM7_IRQHandler()
 		}
 
 		TIM_StatusClear(TIM7);
+	}
+}
+
+void TIM1_UP_TIM16_IRQHandler(void)
+{
+	if(TIM_StatusCheck(TIM1))
+	{
+		Timer1_ISR();
+		TIM_StatusClear(TIM1);
 	}
 }
 //-----------------------------------------
