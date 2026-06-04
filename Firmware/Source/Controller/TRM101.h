@@ -3,7 +3,6 @@
 
 // Include
 #include "stdinc.h"
-#include "ZwDSP.h"
 
 // Types
 typedef enum __TRMError
@@ -16,10 +15,9 @@ typedef enum __TRMError
 } TRMError, *pTRMError;
 
 // Functions
-//
-Int16U TRM_ReadTemp(Int16U Address, pTRMError error);
-Int16U TRM_ReadPower(Int16U Address, pTRMError error);
-void TRM_SetTemp(Int16U Address, Int16U Temperature, pTRMError error);
+float TRM_ReadTemp(Int16U Address, pTRMError error);
+float TRM_ReadPower(Int16U Address, pTRMError error);
+void TRM_SetTemp(Int16U Address, float Temperature, pTRMError error);
 void TRM_Start(Int16U Address, pTRMError error);
 void TRM_Stop(Int16U Address, pTRMError error);
 

@@ -1,21 +1,41 @@
-﻿// Header
-#include "TRM101.h"
-//
+﻿#include "TRM101.h"
+
 // Include
 #include "OWENProtocol.h"
 #include "SysConfig.h"
-#include "ZwUtils.h"
+#include "Controller.h"
 #include "ZbBoard.h"
-#include "IQmathUtils.h"
+#include "ZwSCI.h"
 
 // Functions
-//
+static Boolean TRM_ReadChar(pInt16U Char, Int64U StartTime)
+{
+	while(CONTROL_TimeCounter - StartTime <= TRM_TIMEOUT_TICKS)
+	{
+		if(ZwSCIx_ReceiveChar(Char))
+			return TRUE;
+	}
+
+	return FALSE;
+}
+// ----------------------------------------
+
+static void TRM_SendBuffer(pInt16U Buffer, Int16U BufferSize)
+{
+	Int16U i;
+
+	for(i = 0; i < BufferSize; i++)
+		ZwSCI_SendChar(Buffer[i] & 0xFF);
+}
+// ----------------------------------------
+
 void TRM_DataExchange(Int16U Address, Int16U Hash, Boolean Request, pInt16U DataIn, Int16U DataInSize, pInt16U DataOut, pInt16U DataOutSize, pTRMError error)
 {
-	Int16S ret_val;
 	Int16U DataCounter, i;
 	Int16U RawBuffer[OWNP_MAX_FRAME_SIZE], ASCIIBuffer[OWNP_MAX_ASCII_FRAME_SIZE];
 	OWENProtocol_Frame frameOut, frameIn;
+	Int64U startTime = CONTROL_TimeCounter;
+	Int16U Char = 0;
 
 	// Compose frame
 	frameOut.Address = Address;
@@ -23,7 +43,7 @@ void TRM_DataExchange(Int16U Address, Int16U Hash, Boolean Request, pInt16U Data
 	frameOut.Hash = Hash;
 	frameOut.Request = Request ? 1 : 0;
 	frameOut.DataSize = Request ? 0 : DataInSize;
-	if (frameOut.DataSize)
+	if(frameOut.DataSize)
 		MemCopy16(DataIn, frameOut.Data, frameOut.DataSize);
 
 	// Pack frame
@@ -31,41 +51,57 @@ void TRM_DataExchange(Int16U Address, Int16U Hash, Boolean Request, pInt16U Data
 
 	// Convert to ASCII and send
 	DataCounter = OWENProtocol_FrameToASCII(RawBuffer, DataCounter, ASCIIBuffer);
-	ZbSU_SendData(ASCIIBuffer, DataCounter);
+	TRM_SendBuffer(ASCIIBuffer, DataCounter);
 
 	// Recieve data
-	ret_val = ZbSU_ReadData(ASCIIBuffer, OWNP_MAX_ASCII_FRAME_SIZE);
-	if (ret_val == -1)
+	do
 	{
-		*error = TRME_ResponseTimeout;
-		return;
+		if(!TRM_ReadChar(&Char, startTime))
+		{
+			*error = TRME_ResponseTimeout;
+			return;
+		}
 	}
-	else if (ret_val == 0)
+	while(Char != 0x23);
+
+	DataCounter = 0;
+	ASCIIBuffer[DataCounter++] = Char;
+	do
+	{
+		if(!TRM_ReadChar(&Char, startTime))
+		{
+			*error = TRME_ResponseTimeout;
+			return;
+		}
+
+		ASCIIBuffer[DataCounter++] = Char;
+	}
+	while(Char != 0x0D && DataCounter < OWNP_MAX_ASCII_FRAME_SIZE);
+
+	if(Char != 0x0D)
 	{
 		*error = TRME_InputBufferOverrun;
 		return;
 	}
-	else
-		DataCounter = ret_val;
 
 	// Convert ASCII data to frame
 	DataCounter = OWENProtocol_ASCIIToFrame(ASCIIBuffer, DataCounter, RawBuffer);
 	OWENProtocol_FrameUnPack(RawBuffer, DataCounter, &frameIn);
 
 	// Validate input data
-	if (frameIn.CRC_OK == 0)
+	if(frameIn.CRC_OK == 0)
 	{
 		*error = TRME_CheckSumError;
 		return;
 	}
-	else if (frameOut.Request == 0 && frameOut.CRC != frameIn.CRC)
+	else if(frameOut.Request == 0 && frameOut.Checksum != frameIn.Checksum)
 	{
 		*error = TRME_CheckSumError;
 		return;
 	}
-	else if (frameOut.Request)
+	else if(frameOut.Request)
 	{
-		if (frameOut.Address != frameIn.Address ||
+		if(frameOut.Address != frameIn.Address ||
 			frameOut.AddressLength != frameIn.AddressLength ||
 			frameOut.Hash != frameIn.Hash ||
 			frameIn.Request ||
@@ -88,44 +124,52 @@ void TRM_DataExchange(Int16U Address, Int16U Hash, Boolean Request, pInt16U Data
 }
 // ----------------------------------------
 
-_iq TRM_UnPackFloat24(pInt16U Buffer)
+float TRM_UnpackToFloat(pInt16U buf)
 {
-	Int16U i;
-	Int32U tmp, Float = 0;
-
-	for (i = 0; i < 3; i++)
+	union
 	{
-		tmp = Buffer[i] & 0xFF;
-		tmp <<= (3 - i) * 8;
-		Float |= tmp;
-	}
+		Int32U u;
+		float f;
+	} value;
 
-	return FloatToIQ(Float);
+	value.u = ((Int32U)(buf[0] & 0xFF) << 24)
+			| ((Int32U)(buf[1] & 0xFF) << 16)
+			| ((Int32U)(buf[2] & 0xFF) << 8);
+
+	return value.f;
 }
 // ----------------------------------------
 
-Int16U TRM_ReadF24(Int16U Address, Int16U Hash, Int16U Multiplier, pTRMError error)
+void TRM_PackFromFloat(float value, pInt16U out3)
+{
+	union
+	{
+		Int32U u;
+		float f;
+	} packed;
+
+	packed.f = value;
+
+	out3[0] = (Int16U)(packed.u >> 24);
+	out3[1] = (Int16U)((packed.u >> 16) & 0xFF);
+	out3[2] = (Int16U)((packed.u >> 8) & 0xFF);
+}
+// ----------------------------------------
+
+Int16U TRM_ReadF24(Int16U Address, Int16U Hash, pTRMError error)
 {
 	Int16U Data[OWPNP_MAX_DATA_BYTES], DataCounter;
 
 	TRM_DataExchange(Address, Hash, TRUE, NULL, 0, Data, &DataCounter, error);
-	if (DataCounter == 3)
-		return _IQmpyI32int(TRM_UnPackFloat24(Data), Multiplier);
-	else
-		return 0;
+	return (DataCounter == 3) ? TRM_UnpackToFloat(Data, Multiplier) : 0;
 }
 // ----------------------------------------
 
-void TRM_WriteF24(Int16U Address, Int16U Hash, Int16U Value, Int16U Divisor, pTRMError error)
+void TRM_WriteF24(Int16U Address, Int16U Hash, float Value, pTRMError error)
 {
 	Int16U Data[OWPNP_MAX_DATA_BYTES], DataCounter, DataOut[3];
-	Int32U tmp;
 
-	tmp = IQToFloat(_FPtoIQ2(Value, Divisor));
-	DataOut[0] = (tmp >> 24);
-	DataOut[1] = (tmp >> 16) & 0xFF;
-	DataOut[2] = (tmp >>  8) & 0xFF;
-
+	TRM_PackFromFloat(Value, DataOut);
 	TRM_DataExchange(Address, Hash, FALSE, DataOut, 3, Data, &DataCounter, error);
 }
 // ----------------------------------------
@@ -139,21 +183,21 @@ void TRM_Command(Int16U Address, Int16U Hash, Boolean Start, pTRMError error)
 }
 // ----------------------------------------
 
-Int16U TRM_ReadTemp(Int16U Address, pTRMError error)
+float TRM_ReadTemp(Int16U Address, pTRMError error)
 {
-	return TRM_ReadF24(Address, 0xB8DF, 10, error);
+	return TRM_ReadF24(Address, 0xB8DF, error);
 }
 // ----------------------------------------
 
-Int16U TRM_ReadPower(Int16U Address, pTRMError error)
+float TRM_ReadPower(Int16U Address, pTRMError error)
 {
-	return TRM_ReadF24(Address, 0x35E8, 10, error);
+	return TRM_ReadF24(Address, 0x35E8, error);
 }
 // ----------------------------------------
 
-void TRM_SetTemp(Int16U Address, Int16U Temperature, pTRMError error)
+void TRM_SetTemp(Int16U Address, float Temperature, pTRMError error)
 {
-	TRM_WriteF24(Address, 0x9107, Temperature, 10, error);
+	TRM_WriteF24(Address, 0x9107, Temperature, error);
 }
 // ----------------------------------------
 
@@ -168,5 +212,3 @@ void TRM_Stop(Int16U Address, pTRMError error)
 	TRM_Command(Address, 0xAF90, FALSE, error);
 }
 // ----------------------------------------
-
-// No more.
