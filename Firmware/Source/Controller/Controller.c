@@ -16,8 +16,8 @@
 #include "TRM101.h"
 #include "StepperMotor.h"
 #include "StepperMotorDiag.h"
-#include "ZbCSAdapter.h"
-#include "ZbMemory.h"
+#include "DS18B20.h"
+#include "ZwNFLASH.h"
 #include "SaveToFlash.h"
 
 // Definitions
@@ -28,22 +28,20 @@
 typedef void (*FUNC_AsyncDelegate)();
 
 // Variables
-static volatile Boolean CycleActive = FALSE, HeatingActive = FALSE;
+static Boolean CycleActive = FALSE, HeatingActive = FALSE;
 static volatile FUNC_AsyncDelegate DPCDelegate = NULL;
 
 volatile Int64U FanTimeout = 0, CONTROL_TimeCounter = 0, Timeout;
 volatile DeviceState CONTROL_State = DS_None;
 volatile DeviceSubState CONTROL_SubState = DSS_None;
 
-Int16U CONTROL_Values_1[VALUES_x_SIZE];
-Int32U CONTROL_ExtInfoData[VALUES_x_SIZE];
 volatile Int16U CONTROL_Values_Counter = 0, CSPressure = 0, AdapterID = 0, CONTROL_ExtInfoCounter = 0;
 volatile Int32U HomingDuration = 0, ClampingDuration = 0, ReleaseDuration = 0;
 volatile Boolean RequestSaveToFlash = FALSE;
 
-// Boot-loader flag
-#pragma DATA_SECTION(CONTROL_BootLoaderRequest, "bl_flag");
 volatile Int16U CONTROL_BootLoaderRequest = 0;
+
+Int16U CONTROL_Values_SubState[VALUES_XLOG_x_SIZE];
 
 // Forward functions
 static void CONTROL_HandleFanControl();
@@ -53,91 +51,58 @@ static void CONTROL_FillWPPartDefault();
 static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError);
 void CONTROL_SwitchToFault(Int16U Reason);
 void CONTROL_PreparePositioningX(Int16U NewPosition, Int16U SlowDownDistance,
-		Int16U MaxSpeed, Int16U LowSpeed, Int16U MinSpeed);
+		Int16U MaxSpeed, Int16U SlowSpeed, Int16U MinSpeed);
 void CONTROL_PreparePositioning();
 void CONTROL_PrepareHomingOffset();
 void CONTROL_PrepareClamping(Boolean Clamp);
 void CONTROL_Halt();
 void CONTROL_UpdateTRMTemperature();
-void UpdatePressureOK();
 static void CONTROL_InitStoragePointers();
 
 // Functions
-void CONTROL_Init(Boolean BadClockDetected)
+void CONTROL_Init()
 {
 	// Variables for endpoint configuration
-	Int16U EPIndexes_16[EP_COUNT_16] = {0};
-	Int16U EPSized_16[EP_COUNT_16] = {VALUES_x_SIZE};
-	pInt16U EPCounters_16[EP_COUNT_16] = {(pInt16U)&CONTROL_Values_Counter};
-	pInt16U EPDatas_16[EP_COUNT_16] = {CONTROL_Values_1};
-	
-	// Variables for endpoint configuration
-	Int16U EPIndexes_32[EP_COUNT_32] = {EP32_ExtInfoData};
-	Int16U EPSized_32[EP_COUNT_32] = {VALUES_x_SIZE};
-	pInt16U EPCounters_32[EP_COUNT_32] = {(pInt16U)&CONTROL_ExtInfoCounter};
-	pInt16U EPDatas_32[EP_COUNT_32] = {(pInt16U)CONTROL_ExtInfoData};
+	// TODO
 	
 	// Data-table EPROM service configuration
-	EPROMServiceConfig EPROMService = {&ZbMemory_WriteValuesEPROM, &ZbMemory_ReadValuesEPROM};
-	
-	// Init data table
-	DT_Init(EPROMService, BadClockDetected);
-	DT_SaveFirmwareInfo(DEVICE_CAN_ADDRESS, 0);
+	EPROMServiceConfig EPROMService = {
+		(FUNC_EPROM_WriteValues)&NFLASH_WriteDT,
+		(FUNC_EPROM_ReadValues)&NFLASH_ReadDT
+	};
+
+	DT_Init(EPROMService, FALSE);
+	DT_SaveFirmwareInfo(CAN_NID, 0);
 	// Fill state variables with default values
 	CONTROL_FillWPPartDefault();
 	
 	// Device profile initialization
 	DEVPROFILE_Init(&CONTROL_DispatchAction, &CycleActive);
-	DEVPROFILE_InitEPService16(EPIndexes_16, EPSized_16, EPCounters_16, EPDatas_16);
-	DEVPROFILE_InitEPService32(EPIndexes_32, EPSized_32, EPCounters_32, EPDatas_32);
+	// TODO DEVPROFILE_InitEPService16
+
 	// Reset control values
 	DEVPROFILE_ResetControlSection();
-	
 	CONTROL_InitStoragePointers();
-
 	SM_ResetZeroPoint();
-	ZwTimer_StartT1();
 
-	// Sliding system init
-	if(!BadClockDetected)
+	if(DataTable[REG_USE_HEATING])
 	{
-		if(ZwSystem_GetDogAlarmFlag())
-		{
-			DataTable[REG_WARNING] = WARNING_WATCHDOG_RESET;
-			ZwSystem_ClearDogAlarmFlag();
-		}
-		
-		// Heating system init
-		if(DataTable[REG_USE_HEATING])
-		{
-			TRMError dummy_error;
-			
-			// Terminate heating for sure
-			TRM_Stop(TRM_CH1_ADDR, &dummy_error);
-		}
+		TRMError dummy_error;
+		TRM_Stop(TRM_CH1_ADDR, &dummy_error);
 	}
-	else
-	{
-		CycleActive = TRUE;
-		DataTable[REG_DISABLE_REASON] = DISABLE_BAD_CLOCK;
-		CONTROL_SetDeviceState(DS_Disabled, DSS_None);
-	}
-
 }
 // ----------------------------------------
 
 void CONTROL_Idle()
 {
 	DEVPROFILE_ProcessRequests();
-	DEVPROFILE_UpdateCANDiagStatus();
-	
 	CONTROL_UpdateTRMTemperature();
 
-	DataTable[REG_SAFETY_SENSOR] = ZbGPIO_IsSafetySensorOk();
-	DataTable[REG_HOMING_SENSOR] = ZbGPIO_HomeSensorActuate();
-	DataTable[REG_BUS_TOOLING_SENSOR] = ZbGPIO_IsBusToolingSensorOk();
-	DataTable[REG_ADAPTER_TOOLING_SENSOR] = ZbGPIO_IsAdapterToolingSensorOk();
-	UpdatePressureOK();
+	DataTable[REG_SAFETY_SENSOR] = LL_IsSafetySensorOk();
+	DataTable[REG_HOMING_SENSOR] = LL_HomeSensorActuate();
+	DataTable[REG_BUS_TOOLING_SENSOR] = LL_IsBusToolingSensorOk();
+	DataTable[REG_ADAPTER_TOOLING_SENSOR] = LL_IsAdapterToolingSensorOk();
+	CONTROL_UpdatePressureOK();
 
 	// Process deferred procedures
 	if(DPCDelegate)
@@ -155,23 +120,10 @@ void CONTROL_Idle()
 }
 // ----------------------------------------
 
-#ifdef BOOT_FROM_FLASH
-#pragma CODE_SECTION(CONTROL_UpdateLow, "ramfuncs");
-#endif
 void CONTROL_UpdateLow()
 {
 	CONTROL_HandleFanControl();
 	CONTROL_HandleClampActions();
-	ZbSU_UpdateTimeCounter(CONTROL_TimeCounter);
-}
-// ----------------------------------------
-
-#ifdef BOOT_FROM_FLASH
-#pragma CODE_SECTION(CONTROL_NotifyCANaFault, "ramfuncs");
-#endif
-void CONTROL_NotifyCANaFault(ZwCAN_SysFlags Flag)
-{
-	DEVPROFILE_NotifyCANaFault(Flag);
 }
 // ----------------------------------------
 
@@ -201,7 +153,7 @@ static void CONTROL_SetDeviceState(DeviceState NewState, DeviceSubState NewSubSt
 
 static void CONTROL_HandleFanControl()
 {
-	ZbGPIO_SwitchFan((FanTimeout > CONTROL_TimeCounter) || HeatingActive);
+	LL_SwitchFan((FanTimeout > CONTROL_TimeCounter) || HeatingActive);
 }
 // ----------------------------------------
 
@@ -216,8 +168,10 @@ static void CONTROL_HandleClampActions()
 		case DS_Position:
 		case DS_Clamping:
 		case DS_ClampingRelease:
-			if(DataTable[REG_USE_SAFETY_SENSOR] && !ZbGPIO_IsSafetySensorOk())
+			if(DataTable[REG_USE_SAFETY_SENSOR] && !LL_IsSafetySensorOk())
 				CONTROL_Halt();
+			break;
+		default:
 			break;
 	}
 
@@ -228,12 +182,12 @@ static void CONTROL_HandleClampActions()
 			{
 				// Раннее включение поджатия адаптера если зажимается прибор
 				if(CONTROL_State == DS_Clamping)
-					ZbGPIO_SwitchPowerConnection(TRUE);
+					LL_SwitchPowerConnection(TRUE);
 
 				// Проверка состояния управления и пауза для разжатия
-				if(ZbGPIO_IsControlConnected())
+				if(LL_IsControlConnected())
 				{
-					ZbGPIO_SwitchControlConnection(FALSE);
+					LL_SwitchControlConnection(FALSE);
 
 					Timeout = CONTROL_TimeCounter + PNEUMATIC_CTRL_PAUSE;
 					CONTROL_SetDeviceState(CONTROL_State, DSS_Com_ControlRelease);
@@ -246,6 +200,9 @@ static void CONTROL_HandleClampActions()
 		case DSS_Com_ControlRelease:
 			if(CONTROL_TimeCounter > Timeout)
 				CONTROL_SetDeviceState(CONTROL_State, DSS_Com_ReleaseDone);
+			break;
+
+		default:
 			break;
 	}
 
@@ -285,6 +242,10 @@ static void CONTROL_HandleClampActions()
 						RequestSaveToFlash = TRUE;
 						CONTROL_SetDeviceState(DS_Ready, DSS_None);
 					}
+					break;
+
+				default:
+					break;
 			}
 			break;
 
@@ -300,6 +261,9 @@ static void CONTROL_HandleClampActions()
 					if(SM_IsPositioningDone())
 						CONTROL_SetDeviceState(DS_Ready, DSS_None);
 					break;
+
+				default:
+					break;
 			}
 			break;
 
@@ -314,8 +278,8 @@ static void CONTROL_HandleClampActions()
 				case DSS_ClampingWaitSensors:
 				{
 					DUT_Type DUTType = (DUT_Type)DataTable[REG_CASE_THYRISTOR];
-					IsBusClampOk = ZbGPIO_IsBusToolingSensorOk();
-					IsAdapterClampOk = ZbGPIO_IsAdapterToolingSensorOk();
+					IsBusClampOk = LL_IsBusToolingSensorOk();
+					IsAdapterClampOk = LL_IsAdapterToolingSensorOk();
 
 					if(!DataTable[REG_USE_TOOLING_SENSOR] || (IsBusClampOk && IsAdapterClampOk))
 					{
@@ -332,7 +296,7 @@ static void CONTROL_HandleClampActions()
 									(DUTType == DT_IGBT && AdapterID != DataTable[REG_DEV_CASE]))
 							{
 								DataTable[REG_PROBLEM] = PROBLEM_TOP_ADAPTER_MISMATCHED;
-								ZbGPIO_SwitchPowerConnection(FALSE);
+								LL_SwitchPowerConnection(FALSE);
 								CONTROL_SetDeviceState(DS_Ready, DSS_None);
 								break;
 							}
@@ -361,7 +325,7 @@ static void CONTROL_HandleClampActions()
 						}
 						else
 						{
-							ZbGPIO_SwitchControlConnection(TRUE);
+							LL_SwitchControlConnection(TRUE);
 							Timeout = CONTROL_TimeCounter + PNEUMATIC_CTRL_PAUSE;
 							CONTROL_SetDeviceState(CONTROL_State, DSS_ClampingConnectControl);
 						}
@@ -376,6 +340,9 @@ static void CONTROL_HandleClampActions()
 						RequestSaveToFlash = TRUE;
 						CONTROL_SetDeviceState(DS_ClampingDone, DSS_None);
 					}
+					break;
+
+				default:
 					break;
 			}
 			break;
@@ -397,7 +364,13 @@ static void CONTROL_HandleClampActions()
 						CONTROL_SetDeviceState(DS_Ready, DSS_None);
 					}
 					break;
+
+				default:
+					break;
 			}
+			break;
+
+		default:
 			break;
 	}
 }
@@ -409,16 +382,16 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 	{
 		case ACT_ADAPTER_WRITE_ID:
 			DS18B20_Init();
-			if(!CSAdapter_WriteID((Int16U*)&DataTable[REG_ADAPTER_ID]))
+			if(!DS18B20_WriteReg((Int16U*)&DataTable[REG_ADAPTER_ID]))
 				*UserError = ERR_DEVICE_NOT_READY;
-			ZbGPIO_CSMux(SPIMUX_EPROM);
+			LL_CSMux(SPIMUX_EPROM);
 			break;
 
 		case ACT_ADAPTER_READ_ID:
 			DS18B20_Init();
-			if(!CSAdapter_ReadID((Int16U*)&DataTable[REG_ADAPTER_ID]))
+			if(!DS18B20_ReadReg((Int16U*)&DataTable[REG_ADAPTER_ID]))
 				*UserError = ERR_DEVICE_NOT_READY;
-			ZbGPIO_CSMux(SPIMUX_EPROM);
+			LL_CSMux(SPIMUX_EPROM);
 			break;
 
 		case ACT_HOMING:
@@ -466,14 +439,14 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 			
 		case ACT_RELEASE_ADAPTER:
 			if(CONTROL_State == DS_None || CONTROL_State == DS_Ready)
-				ZbGPIO_SwitchPowerConnection(FALSE);
+				LL_SwitchPowerConnection(FALSE);
 			else
 				*UserError = ERR_OPERATION_BLOCKED;
 			break;
 			
 		case ACT_HOLD_ADAPTER:
 			if(CONTROL_State == DS_None || CONTROL_State == DS_Ready)
-				ZbGPIO_SwitchPowerConnection(TRUE);
+				LL_SwitchPowerConnection(TRUE);
 
 			else
 				*UserError = ERR_OPERATION_BLOCKED;
@@ -615,11 +588,11 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 			break;
 			
 		case ACT_DBG_CONNECT_CONTROL:
-			ZbGPIO_SwitchControlConnection(TRUE);
+			LL_SwitchControlConnection(TRUE);
 			break;
 			
 		case ACT_DBG_DISCONNECT_CONTROL:
-			ZbGPIO_SwitchControlConnection(FALSE);
+			LL_SwitchControlConnection(FALSE);
 			break;
 			
 		case ACT_DBG_MOTOR_START:
@@ -653,13 +626,13 @@ void CONTROL_SwitchToFault(Int16U Reason)
 // ----------------------------------------
 
 void CONTROL_PreparePositioningX(Int16U NewPosition, Int16U SlowDownDistance,
-		Int16U MaxSpeed, Int16U LowSpeed, Int16U MinSpeed)
+		Int16U MaxSpeed, Int16U SlowSpeed, Int16U MinSpeed)
 {
 	SM_Config Config;
 	Config.NewPosition = NewPosition;
 	Config.SlowDownDistance = SlowDownDistance;
 	Config.MaxSpeed = MaxSpeed;
-	Config.LowSpeed = LowSpeed;
+	Config.SlowSpeed = SlowSpeed;
 	Config.MinSpeed = MinSpeed;
 
 	SM_GoToPosition(&Config);
@@ -671,7 +644,7 @@ void CONTROL_PrepareClamping(Boolean Clamp)
 	if(Clamp)
 	{
 		Int16U Reg = 0;
-		switch(DataTable[REG_DEV_CASE])
+		switch((Int16U)DataTable[REG_DEV_CASE])
 		{
 			case SC_Type_A2:
 				Reg = 0;
@@ -787,22 +760,13 @@ void CONTROL_UpdateTRMTemperature()
 }
 // ----------------------------------------
 
-void CONTROL_PressureMeasuring(Int16U * const restrict pResults)
-{
-	Int32U Pressure = *(Int16U *)pResults;
-	CSPressure = (Pressure * DataTable[REG_PRESSURE_K] / 1000) + DataTable[REG_PRESSURE_OFFSET];
-	DataTable[REG_PRESSURE] = CSPressure;
-}
-// ----------------------------------------
-
-void UpdatePressureOK()
+void CONTROL_UpdatePressureOK()
 {
 	static Int64U PressureOkTime = 0;
+	float pressure = LL_MeasurePressure();
 
-	ZwADC_StartSEQ1();
-
-	// Control Pressure
-	ZwADC_SubscribeToResults1(&CONTROL_PressureMeasuring);
+	CSPressure = (Int32U)(pressure * 1000.0f);
+	DataTable[REG_PRESSURE] = CSPressure;
 
 	if(CSPressure >= DataTable[REG_PRESSURE_OK])
 		PressureOkTime = CONTROL_TimeCounter;
@@ -817,12 +781,12 @@ void UpdatePressureOK()
 
 Int16U CONTROL_ReadIGBTAdapterID(pBoolean AdapterOk)
 {
-	pInt16U AdapterID = 0;
+	Int16U AdapterID = 0;
 
 	DS18B20_Init();
-	*AdapterOk = CSAdapter_ReadID(AdapterID);
+	*AdapterOk = DS18B20_ReadReg(&AdapterID);
 
-	return *AdapterID;
+	return AdapterID;
 }
 // ----------------------------------------
 

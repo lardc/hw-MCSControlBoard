@@ -5,11 +5,9 @@
 #ifndef __CONTROLLER_H
 #define __CONTROLLER_H
 
-// Include
 #include "OWENProtocol.h"
 #include "stdinc.h"
-//
-#include "ZwDSP.h"
+#include "ZbBoard.h"
 #include "Global.h"
 #include "DeviceObjectDictionary.h"
 #include "StepperMotor.h"
@@ -67,7 +65,7 @@ typedef enum __DevType
 	SC_Type_F1 = 1004,
 	SC_Type_ADAP = 1007,
 	SC_Type_E2M = 1008,
-//
+	//
 	SC_Type_MIAA = 2001,
 	SC_Type_MIDA = 2002,
 	SC_Type_MIFA = 2003,
@@ -85,30 +83,15 @@ typedef enum __DevType
 } DevType;
 
 // Variables
-//
 extern volatile Int64U CONTROL_TimeCounter;
 extern volatile DeviceState CONTROL_State;
 extern volatile Int16U CONTROL_BootLoaderRequest;
-//
-extern Int16U CONTROL_Values_1[VALUES_x_SIZE];
-extern Int32U CONTROL_ExtInfoData[VALUES_x_SIZE];
-extern Int16U CONTROL_Values_SubState[VALUES_XLOG_x_SIZE];
-extern volatile Int16U CONTROL_Values_Counter, CONTROL_ExtInfoCounter;
 
 // Functions
-//
-// Initialize controller
-void CONTROL_Init(Boolean BadClockDetected);
-// Do background idle operation
+void CONTROL_Init();
 void CONTROL_Idle();
-// Update low-priority tasks
 void CONTROL_UpdateLow();
-// Notify that CANa system fault occurs
-void CONTROL_NotifyCANaFault(ZwCAN_SysFlags Flag);
-// Pressure measuring
-void CONTROL_PressureMeasuring(Int16U * const restrict pResults);
-//
 void CONTROL_UpdatePressureOK();
-//
 Int16U CONTROL_ReadIGBTAdapterID(pBoolean AdapterOk);
+
 #endif // __CONTROLLER_H
