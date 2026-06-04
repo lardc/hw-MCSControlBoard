@@ -56,6 +56,7 @@
 									<listOptionValue builtIn="false" value="../Source"/>
 									<listOptionValue builtIn="false" value="../Source/Platform"/>
 									<listOptionValue builtIn="false" value="../Source/Controller"/>
+									<listOptionValue builtIn="false" value="../Source/Board"/>
 									<listOptionValue builtIn="false" value="../Source/CustomInterfaces"/>
 								</option>
 								<option id="com.atollic.truestudio.common_options.target.endianess.664965281" name="Endianess" superClass="com.atollic.truestudio.common_options.target.endianess" useByScannerDiscovery="false"/>

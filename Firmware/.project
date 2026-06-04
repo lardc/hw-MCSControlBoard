@@ -280,6 +280,16 @@
 			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Firmware/FirmwareInfo.h</locationURI>
 		</link>
 		<link>
+			<name>Source/Platform/SaveToFlash.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Firmware/SaveToFlash.c</locationURI>
+		</link>
+		<link>
+			<name>Source/Platform/SaveToFlash.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Firmware/SaveToFlash.h</locationURI>
+		</link>
+		<link>
 			<name>System/Core/arm_common_tables.h</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/System/Core/arm_common_tables.h</locationURI>
