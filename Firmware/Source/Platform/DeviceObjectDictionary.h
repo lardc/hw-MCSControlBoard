@@ -39,8 +39,6 @@
 #define ACT_SAVE_TO_ROM						200	// Save parameters to EEPROM module
 #define ACT_RESTORE_FROM_ROM				201	// Restore parameters from EEPROM module
 #define ACT_RESET_TO_DEFAULT				202	// Reset parameters to default values (only in controller memory)
-#define ACT_LOCK_NV_AREA					203	// Lock modifications of parameters area
-#define ACT_UNLOCK_NV_AREA					204	// Unlock modifications of parameters area (password-protected)
 
 #define ACT_BOOT_LOADER_REQUEST				320	// Request reboot to bootloader
 
@@ -110,11 +108,6 @@
 #define REG_DBG_STEP_DIV					90	// Коэффициент деления шагов в отладочном режиме
 #define REG_DBG_STEPS_MAX					91	// Количество шагов для поворота в отладочном режиме
 //
-#define REG_PWD_1							91	// Unlock password location 1
-#define REG_PWD_2							92	// Unlock password location 2
-#define REG_PWD_3							93	// Unlock password location 3
-#define REG_PWD_4							94	// Unlock password location 4
-//
 #define REG_SP__2							95
 //
 // ----------------------------------------
@@ -158,7 +151,6 @@
 #define FAULT_NONE							0	// No fault
 //
 #define FAULT_TRM							4	// TRM communication fault
-//
 #define FAULT_PRESSURE						5	// Давление ниже нормы
 #define FAULT_BUS_SEN						7	// Ошибка сигнала с датчика поджатия шин
 #define FAULT_ADAPTER_SEN					8	// Ошибка сигнала с датчика поджатия адаптера
@@ -173,12 +165,10 @@
 // DISABLE CODES
 //
 #define DISABLE_NONE						0	// No fault
-#define DISABLE_BAD_CLOCK					1001	// Problem with main oscillator
 
 // WARNING CODES
 //
 #define WARNING_NONE						0	// No warning
-#define WARNING_WATCHDOG_RESET				1001	// System has been reseted by WD
 
 // USER ERROR CODES
 //
@@ -186,7 +176,6 @@
 #define ERR_CONFIGURATION_LOCKED			1	// Device is locked for writing
 #define ERR_OPERATION_BLOCKED				2	// Operation can't be done due to current device state
 #define ERR_DEVICE_NOT_READY				3	// Device isn't ready to switch state
-#define ERR_WRONG_PWD						4	// Wrong password - unlock failed
 //
 #define ERR_TRM_COMM_ERR					7	// Communication with TRM failed
 
