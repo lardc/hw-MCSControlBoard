@@ -41,8 +41,6 @@ volatile Boolean RequestSaveToFlash = FALSE;
 
 volatile Int16U CONTROL_BootLoaderRequest = 0;
 
-Int16U CONTROL_Values_SubState[VALUES_XLOG_x_SIZE];
-
 // Forward functions
 static void CONTROL_HandleFanControl();
 static void CONTROL_HandleClampActions();
