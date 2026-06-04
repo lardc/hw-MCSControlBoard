@@ -1,28 +1,32 @@
 ﻿#ifndef __LOWLEVEL_H
 #define __LOWLEVEL_H
 
-// Include
 #include "Board.h"
 #include "stdinc.h"
 
+void LL_InitGPIO();
 
-// Functions
-//
+Boolean LL_FilterSafetyCircuit(Boolean NewState);
+void LL_CSMux(Int16U SPIDevice);
+
+Boolean LL_IsSafetySensorOk();
+Boolean LL_HomeSensorActuate();
+Boolean LL_IsBusToolingSensorOk();
+Boolean LL_IsAdapterToolingSensorOk();
+
+void LL_SwitchPowerConnection(Boolean State);
+Boolean LL_IsPowerConnected();
+void LL_SwitchControlConnection(Boolean State);
+Boolean LL_IsControlConnected();
+
+void LL_SwitchStep(Boolean State);
+void LL_ToggleStep();
+void LL_SwitchUpDir(Boolean State);
+Boolean LL_IsDirUp();
+void LL_SwitchEnable(Boolean State);
+void LL_SwitchFan(Boolean State);
+
 void LL_ToggleBoardLED();
-void LL_IndicateBlockCSM(bool State);
-void LL_IndicateBlockAdapter(bool State);
-void LL_HoldTopAdapter(bool State);
-void LL_HoldBotAdapter(bool State);
-void LL_ClampDUT(bool State);
-void LL_SetSafetyOutput(bool State);
-bool LL_GetStatePresenceSensorDUT1();
-bool LL_GetStatePresenceSensorDUT2();
-bool LL_GetStatePresenceSensorDUT3();
-bool LL_GetStatePresenceSensorDUT4();
-bool LL_GetStateLimitSwitchTopAdapter();
-bool LL_GetStateLimitSwitchBotAdapter();
-float LL_MeasureIDTop();
-float LL_MeasureIDBot();
 float LL_MeasurePressure();
 
-#endif //__LOWLEVEL_H
+#endif // __LOWLEVEL_H
