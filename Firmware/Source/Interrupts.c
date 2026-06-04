@@ -53,7 +53,7 @@ void TIM1_UP_TIM16_IRQHandler(void)
 {
 	if(TIM_StatusCheck(TIM1))
 	{
-		Timer1_ISR();
+		SM_TimerHandler();
 		TIM_StatusClear(TIM1);
 	}
 }

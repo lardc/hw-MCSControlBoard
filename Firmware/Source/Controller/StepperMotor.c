@@ -189,7 +189,7 @@ Int32U SM_PosToSteps(Int16U NewPos)
 // Speed in mm/s to cycles to toggle raw converter
 Int16U SM_SpeedToCycles(Int16U Speed)
 {
-	Int32U res = 1000ul * SM_MOVING_RER_ROUND / TIMER1_PERIOD / SM_FULL_ROUND_STEPS / Speed;
+	Int32U res = 1000ul * SM_MOVING_RER_ROUND / TIMER1_uS / SM_FULL_ROUND_STEPS / Speed;
 	return (res == 0) ? 1 : res;
 }
 // ----------------------------------------

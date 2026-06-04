@@ -9,11 +9,10 @@
 #include "stdinc.h"
 
 // Constants
-#define DT_EPROM_ADDRESS			0
 #define	SCCI_TIMEOUT_TICKS  		1000
 #define SC_FILTER_T					100
 
-#define EP_COUNT_16					1
+#define EP_COUNT					0
 #define EP_WRITE_COUNT				0
 #define FEP_COUNT					0
 

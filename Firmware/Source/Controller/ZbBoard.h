@@ -9,7 +9,6 @@
 #include "LowLevel.h"
 #include "ZwTIM.h"
 #include "Delay.h"
-
-void MemCopy16(pInt16U Src, pInt16U Dst, Int16U Size);
+#include "SCCISlave.h"
 
 #endif // __ZB_BOARD_H

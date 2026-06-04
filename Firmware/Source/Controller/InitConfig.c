@@ -45,7 +45,7 @@ void INITCFG_ConfigTimer7()
 void INITCFG_ConfigTimer1()
 {
 	TIM_Clock_En(TIM_1);
-	TIM_Config(TIM1, SYSCLK, TIMER1_PERIOD);
+	TIM_Config(TIM1, SYSCLK, TIMER1_uS);
 	TIM_Interupt(TIM1, 1, true);
 	TIM_Start(TIM1);
 }

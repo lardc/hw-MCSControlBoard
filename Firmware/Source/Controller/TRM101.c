@@ -161,7 +161,7 @@ Int16U TRM_ReadF24(Int16U Address, Int16U Hash, pTRMError error)
 	Int16U Data[OWPNP_MAX_DATA_BYTES], DataCounter;
 
 	TRM_DataExchange(Address, Hash, TRUE, NULL, 0, Data, &DataCounter, error);
-	return (DataCounter == 3) ? TRM_UnpackToFloat(Data, Multiplier) : 0;
+	return (DataCounter == 3) ? TRM_UnpackToFloat(Data) : 0;
 }
 // ----------------------------------------
 

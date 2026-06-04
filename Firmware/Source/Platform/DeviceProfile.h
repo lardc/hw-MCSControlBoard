@@ -28,8 +28,6 @@ void DEVPROFILE_ProcessRequests();
 void DEVPROFILE_ResetEPReadState();
 // Reset user control (WR) section of data table
 void DEVPROFILE_ResetControlSection();
-// Update diagnostic registers
-void DEVPROFILE_UpdateCANDiagStatus();
 //
 Int16U DEVPROFILE_CallbackReadX(Int16U Endpoint, pInt16U *Buffer, Boolean Streamed, Boolean RepeatLastTransmission,
 		void *EPStateAddress, Int16U MaxNonStreamSize);
