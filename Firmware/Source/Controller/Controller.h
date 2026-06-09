@@ -10,7 +10,6 @@
 #include "Global.h"
 #include "DeviceObjectDictionary.h"
 #include "Constraints.h"
-#include "StepperMotor.h"
 
 // Types
 //
@@ -51,11 +50,7 @@ typedef enum __DeviceSubState
 	DSS_AdapterRelease_Bus = 60,
 	DSS_AdapterRelease_Adapter = 61,
 	DSS_AdapterRelease_HeatingOff = 62,
-	DSS_AdapterRelease_Done = 63,
-
-	DSS_Heating_Start = 70,
-	DSS_Heating_Operating = 71,
-	DSS_Heating_Done = 72
+	DSS_AdapterRelease_Done = 63
 } DeviceSubState;
 
 // Variables
@@ -66,7 +61,7 @@ extern volatile Int32U HomingDuration;
 extern volatile Int32U ClampingDuration;
 extern volatile Int32U ReleaseDuration;
 extern volatile Boolean RequestSaveToFlash;
-extern volatile Int16U CONTROL_BootLoaderRequest;
+extern Boolean HeatingActive;
 
 // Functions
 void CONTROL_Init();

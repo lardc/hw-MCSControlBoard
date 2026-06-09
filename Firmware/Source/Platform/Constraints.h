@@ -10,7 +10,6 @@
 //
 #include "DataTable.h"
 #include "Global.h"
-#include "StepperMotor.h"
 
 // Types
 //

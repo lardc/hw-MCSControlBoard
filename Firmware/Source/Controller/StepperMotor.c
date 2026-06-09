@@ -24,7 +24,7 @@ static xTimerAlterHandler AlterHandler = NULL;
 
 static Int32S SM_GlobalStepsCounter = 0, SM_DestSteps = 0;
 static Int16U SM_LowSpeedSteps, SM_CyclesToToggle, SM_LowSpeedCycles, SM_MinCycles, SM_MaxCycles;
-static Boolean SM_HomingFlag = FALSE, SM_RequestStopFlag = FALSE, SM_SafetyEvent = FALSE;
+static Boolean SM_HomingFlag = FALSE, SM_RequestStopFlag = FALSE;
 
 // Forward functions
 void SM_LogicHandler();
@@ -106,7 +106,6 @@ void SM_LogicHandler()
 				SM_RequestStopFlag = FALSE;
 				SM_HomingFlag = FALSE;
 				SM_DestSteps = SM_GlobalStepsCounter;
-				SM_SafetyEvent = TRUE;
 			}
 		}
 	}
@@ -117,13 +116,6 @@ void SM_LogicHandler()
 void SM_UpDirection(Boolean State)
 {
 	LL_SwitchUpDir(State);
-}
-// ----------------------------------------
-
-// Steps Enable
-void SM_Enable(Boolean State)
-{
-	LL_SwitchEnable(!State);
 }
 // ----------------------------------------
 
@@ -164,17 +156,10 @@ void SM_GoToPosition(pSM_Params Params)
 // Homing
 void SM_Homing()
 {
-	SM_SafetyEvent = FALSE;
 	SM_RequestStopFlag = FALSE;
 	SM_HomingFlag = TRUE;
 	SM_UpDirection(FALSE);
 	SM_CyclesToToggle = SM_SpeedToCycles(DataTable[REG_HOMING_SPEED]);
-}
-// ----------------------------------------
-
-Boolean SM_IsSafetyEvent()
-{
-	return SM_SafetyEvent;
 }
 // ----------------------------------------
 

@@ -6,8 +6,6 @@
 #include "Board.h"
 #include "SysConfig.h"
 #include "Global.h"
-#include "DataTable.h"
-#include "DeviceObjectDictionary.h"
 #include "StepperMotor.h"
 #include "ZwSCI.h"
 #include "ZwUSART.h"

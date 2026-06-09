@@ -30,10 +30,10 @@ static Boolean LOGIC_ReadAdapterId();
 static Boolean LOGIC_ValidateAdapter();
 static void LOGIC_ProcessSelfTest();
 static void LOGIC_MonitorCycleFaults();
-static Boolean LOGIC_IsCycleActive();
+static void LOGIC_PrepareClamping(Boolean Clamp);
 static Int16U LOGIC_GetClampHeightMm();
 
-void LOGIC_PrepareClamping(Boolean Clamp)
+static void LOGIC_PrepareClamping(Boolean Clamp)
 {
 	SM_Params Params;
 
@@ -143,7 +143,7 @@ static Boolean LOGIC_ValidateAdapter()
 }
 // ----------------------------------------
 
-static Boolean LOGIC_IsCycleActive()
+Boolean LOGIC_IsCycleActive()
 {
 	switch(CONTROL_State)
 	{
@@ -255,7 +255,7 @@ void LOGIC_Process()
 					if(LOGIC_OnSubStateEntry(CONTROL_State, CONTROL_SubState))
 						LOGIC_StateTimeout = CONTROL_TimeCounter + ADAPTER_HOLD_PRESSURE_TIMEOUT;
 
-					if(MEAS_GetPressureMilliBar() >= DataTable[REG_PRESSURE_OK])
+					if(MEAS_IsPressureOk())
 						CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterHold_ConnectAdapter);
 					else if(CONTROL_TimeCounter > LOGIC_StateTimeout)
 						CONTROL_SwitchToFault(FAULT_PRESSURE);
@@ -389,6 +389,7 @@ void LOGIC_Process()
 						LL_SPI_SetOutBit(SPI_OUT_FAN1, false);
 						LL_SPI_SetOutBit(SPI_OUT_FAN2, false);
 						LL_SPI_FlushOut();
+						HeatingActive = FALSE;
 
 						LOGIC_ClampHeightMm = 0;
 						DataTable[REG_ADAPTER_MATCH] = ADAPTER_MATCH_NONE;

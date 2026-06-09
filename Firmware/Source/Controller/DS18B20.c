@@ -54,24 +54,6 @@ Boolean DS18B20_Reset()
 }
 //-------------------
 
-Boolean DS18B20_ReadROM(pInt16U Data)
-{
-	Int16U i;
-
-	if(DS18B20_Reset())
-	{
-		DS18B20_WriteByte(DS18B20_READ_ROM);
-
-		for(i = 0; i < 8; i++)
-			*(Data + i) = DS18B20_ReadByte();
-
-		return true;
-	}
-
-	return false;
-}
-//-------------------
-
 Boolean DS18B20_WriteReg(pInt16U Data)
 {
 	if(DS18B20_Reset())

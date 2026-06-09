@@ -160,12 +160,6 @@ void LL_SwitchStep(Boolean State)
 }
 //-----------------------------
 
-void LL_ToggleStep()
-{
-	GPIO_Toggle(GPIO_STPM_STEP);
-}
-//-----------------------------
-
 void LL_SwitchUpDir(Boolean State)
 {
 	GPIO_SetState(GPIO_STPM_DIR, !State);
@@ -175,12 +169,6 @@ void LL_SwitchUpDir(Boolean State)
 Boolean LL_IsDirUp()
 {
 	return !GPIO_GetState(GPIO_STPM_DIR);
-}
-//-----------------------------
-
-void LL_SwitchEnable(Boolean State)
-{
-	GPIO_SetState(GPIO_STPM_EN, State);
 }
 //-----------------------------
 

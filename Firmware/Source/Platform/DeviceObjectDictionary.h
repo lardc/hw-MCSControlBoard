@@ -31,8 +31,7 @@
 #define ACT_DBG_READ_TRM_POWER				116	// Read TRM output power
 #define ACT_DBG_TRM_START					117	// Start TRM operation
 #define ACT_DBG_TRM_STOP					118	// Stop TRM operation
-#define	ACT_DBG_CONNECT_CONTROL				119	// Connect control circuit to device
-#define	ACT_DBG_DISCONNECT_CONTROL			120	// Disconnect control circuit from device
+// 119-120
 #define ACT_DBG_MOTOR_START					121	// Запуск отладочного вращения моторов
 #define ACT_DBG_MOTOR_STOP					122	// Остановка отладочного вращения моторов
 
@@ -134,8 +133,7 @@
 //
 #define FAULT_TRM							4	// TRM communication fault
 #define FAULT_PRESSURE						5	// Давление ниже нормы
-#define FAULT_BUS_SEN						7	// Ошибка сигнала с датчика поджатия шин
-#define FAULT_ADAPTER_SEN					8	// Ошибка сигнала с датчика поджатия адаптера
+// 6-8
 #define FAULT_ADAPTER_MISMATCH				9	// Несовпадение идентификатора адаптера
 #define FAULT_SELFTEST						10	// Ошибка самодиагностики оптронов
 #define FAULT_SPI_TIMEOUT					11	// Таймаут ожидания SPI-входа

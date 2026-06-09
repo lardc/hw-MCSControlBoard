@@ -22,23 +22,16 @@
 #include "ZwNFLASH.h"
 #include "SaveToFlash.h"
 
-// Types
-typedef void (*FUNC_AsyncDelegate)();
-
 // Variables
 static Boolean CycleActive = FALSE;
-static Boolean HeatingActive = FALSE;
-static volatile FUNC_AsyncDelegate DPCDelegate = NULL;
+Boolean HeatingActive = FALSE;
 
 volatile Int64U CONTROL_TimeCounter = 0;
 volatile DeviceState CONTROL_State = DS_None;
 volatile DeviceSubState CONTROL_SubState = DSS_None;
 
-volatile Int16U CONTROL_Values_Counter = 0, CONTROL_ExtInfoCounter = 0;
 volatile Int32U HomingDuration = 0, ClampingDuration = 0, ReleaseDuration = 0;
 volatile Boolean RequestSaveToFlash = FALSE;
-
-volatile Int16U CONTROL_BootLoaderRequest = 0;
 
 // Forward functions
 static void CONTROL_FillWPPartDefault();
@@ -82,6 +75,7 @@ void CONTROL_Init()
 
 void CONTROL_Idle()
 {
+	CycleActive = LOGIC_IsCycleActive();
 	DEVPROFILE_ProcessRequests();
 	CONTROL_UpdateTRMTemperature();
 
@@ -95,13 +89,6 @@ void CONTROL_Idle()
 	DataTable[REG_PRESSURE] = MEAS_GetPressureMilliBar();
 	CONTROL_UpdatePressureOK();
 	LOGIC_Process();
-
-	if(DPCDelegate)
-	{
-		FUNC_AsyncDelegate del = DPCDelegate;
-		DPCDelegate = NULL;
-		del();
-	}
 
 	if(RequestSaveToFlash)
 	{
@@ -285,21 +272,6 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 			break;
 
 		case ACT_DBG_READ_EXT_TEMP:
-			{
-				if(DataTable[REG_USE_HEATING])
-				{
-					TRMError error;
-					DataTable[REG_TRM_DATA] = TRM_ReadTemp(DataTable[REG_DBG_TRM_ADDRESS], &error);
-					DataTable[REG_TRM_ERROR] = error;
-
-					if(error != TRME_None)
-						*UserError = ERR_TRM_COMM_ERR;
-				}
-				else
-					*UserError = ERR_OPERATION_BLOCKED;
-			}
-			break;
-
 		case ACT_DBG_READ_TRM_TEMP:
 			{
 				if(DataTable[REG_USE_HEATING])

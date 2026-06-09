@@ -8,6 +8,6 @@
 #include "stdinc.h"
 
 void LOGIC_Process();
-void LOGIC_PrepareClamping(Boolean Clamp);
+Boolean LOGIC_IsCycleActive();
 
 #endif // __LOGIC_H

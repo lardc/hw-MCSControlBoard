@@ -48,7 +48,6 @@ typedef struct __AdapterIdentifier
 void DS18B20_Init();
 Boolean DS18B20_WriteReg(pInt16U Data);
 Boolean DS18B20_ReadReg(pInt16U Data);
-Boolean DS18B20_ReadROM(pInt16U Data);
 Boolean DS18B20_ReadIdentifier(pAdapterIdentifier Id);
 Boolean DS18B20_WriteIdentifier(pAdapterIdentifier Id);
 

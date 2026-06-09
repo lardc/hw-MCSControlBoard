@@ -46,7 +46,6 @@
 #define TRM_CH1_ADDR					0
 #define TRM_TEMP_THR					500
 #define TRM_TIMEOUT_TICKS				100
-#define FAN_TIMEOUT						30000
 // ----------------------------------------------
 
 #endif // __SYSCONFIG_H

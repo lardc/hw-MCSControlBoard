@@ -24,8 +24,6 @@ typedef struct __SM_Params
 void SM_TimerHandler();
 // Connect alter handler for timer processing
 void SM_ConnectAlterHandler(void *Handler);
-// Steps Enable
-void SM_Enable(Boolean State);
 // Fill config per MCS TT: max=REG_POS_SPEED_MAX(12), slow=REG_POS_SPEED_MIN(10),
 // slowDown=REG_SLOW_DOWN_DIST(13), min=REG_CLAMP_SPEED_MIN(16)
 void SM_Config(pSM_Params Params, Int16U PositionMm, Boolean UseSlowdown);
@@ -35,7 +33,6 @@ Boolean SM_IsPositioningDone();
 // Homing
 void SM_Homing();
 Boolean SM_IsHomingDone();
-Boolean SM_IsSafetyEvent();
 void SM_ResetZeroPoint();
 void SM_RequestStop();
 
