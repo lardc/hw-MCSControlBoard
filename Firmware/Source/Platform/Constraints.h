@@ -24,30 +24,6 @@ typedef struct __TableItemConstraint
 // Параметры позиционирования (мм)
 #define POS_MAX						180
 
-#define CASE_MIN					1
-#define CASE_MAX					POS_MAX
-#define CASE_A2_DEF					122
-#define CASE_B0_DEF					122
-#define CASE_C1_DEF					122
-#define CASE_D_DEF					93
-#define CASE_E_DEF					82
-#define CASE_F_DEF					144
-#define CASE_ADAP_DEF				50
-//
-#define CASE_MIAA_DEF				180
-#define CASE_MIDA_DEF				180
-#define CASE_MIFA_DEF				180
-#define CASE_MIHA_DEF				180
-#define CASE_MIHM_DEF				180
-#define CASE_MIHV_DEF				180
-#define CASE_MISM_DEF				180
-#define CASE_MISM2_CH_DEF			180
-#define CASE_MISM2_SS_SD_DEF		180
-#define CASE_MISV_DEF				180
-#define CASE_MIXM_DEF				180
-#define CASE_MIXV_DEF				180
-#define CASE_MADAP_DEF				180
-
 // Расстояние замедления (мм)
 #define SLOW_DOWN_MIN				0
 #define SLOW_DOWN_MAX				50
@@ -70,6 +46,20 @@ typedef struct __TableItemConstraint
 
 // Давление (мбар)
 #define PRESSURE_OK_DEF				5000
+
+// Идентификатор адаптера
+#define ADAPTER_CLAMP_HEIGHT_MIN	1
+#define ADAPTER_CLAMP_HEIGHT_MAX	POS_MAX
+#define ADAPTER_CLAMP_HEIGHT_DEF	50
+
+#define ADAPTER_MATCH_NONE			0
+#define ADAPTER_MATCH_OK			1
+#define ADAPTER_MATCH_FAIL			2
+
+#define ADAPTER_MISMATCH_NONE		0
+#define ADAPTER_MISMATCH_CODE		1
+#define ADAPTER_MISMATCH_CURRENT	2
+#define ADAPTER_MISMATCH_VOLTAGE	3
 
 // Variables
 //

@@ -35,10 +35,21 @@
 #define REG_COUNT_PER_CELSIUS		7
 #define REG_CRC						8
 
+typedef struct __AdapterIdentifier
+{
+	Int16U Code;
+	Int16U ClampHeightMm;
+	Int16U MaxCurrent;
+	Int16U MaxVoltage;
+	Int16U Serial;
+} AdapterIdentifier, *pAdapterIdentifier;
+
 // Functions
 void DS18B20_Init();
 Boolean DS18B20_WriteReg(pInt16U Data);
 Boolean DS18B20_ReadReg(pInt16U Data);
 Boolean DS18B20_ReadROM(pInt16U Data);
+Boolean DS18B20_ReadIdentifier(pAdapterIdentifier Id);
+Boolean DS18B20_WriteIdentifier(pAdapterIdentifier Id);
 
 #endif /* DS18B20_H_ */

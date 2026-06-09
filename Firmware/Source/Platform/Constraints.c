@@ -6,25 +6,22 @@
 #include "Constraints.h"
 
 // Include
-#include "Controller.h"
 #include "DeviceObjectDictionary.h"
 
-#define NO		0	// equal to FALSE
-#define YES		1	// equal to TRUE
+#define NO		0
+#define YES		1
 
-// Constants
-//
 const TableItemConstraint Constraint[DATA_TABLE_WP_START] = {
-	{CASE_MIN, CASE_MAX, CASE_A2_DEF},										// 0
-	{CASE_MIN, CASE_MAX, CASE_B0_DEF},										// 1
-	{CASE_MIN, CASE_MAX, CASE_C1_DEF},										// 2
-	{CASE_MIN, CASE_MAX, CASE_D_DEF},										// 3
-	{CASE_MIN, CASE_MAX, CASE_E_DEF},										// 4
-	{CASE_MIN, CASE_MAX, CASE_F_DEF},										// 5
-	{CASE_MIN, CASE_MAX, CASE_ADAP_DEF},									// 6
+	{0, 0, 0},																// 0
+	{0, 0, 0},																// 1
+	{0, 0, 0},																// 2
+	{0, 0, 0},																// 3
+	{0, 0, 0},																// 4
+	{0, 0, 0},																// 5
+	{0, 0, 0},																// 6
 	{0, 0, 0},																// 7
 	{0, 0, 0},																// 8
-	{NO, YES, YES},															// 9
+	{0, 0, 0},																// 9
 	{SPEED_MIN, SPEED_MAX, SPEED_DEF},										// 10
 	{SPEED_MIN, SPEED_MAX, SPEED_DEF},										// 11
 	{SPEED_MIN, SPEED_MAX, SPEED_DEF},										// 12
@@ -36,8 +33,8 @@ const TableItemConstraint Constraint[DATA_TABLE_WP_START] = {
 	{SPEED_MIN, SPEED_MAX, SPEED_DEF},										// 18
 	{1, 100, 50},															// 19
 	{NO, YES, YES},															// 20
-	{NO, YES, YES},															// 21
-	{NO, YES, YES},															// 22
+	{0, 0, 0},																// 21
+	{0, 0, 0},																// 22
 	{NO, YES, YES},															// 23
 	{0, 0, 0},																// 24
 	{0, 0, 0},																// 25
@@ -55,20 +52,20 @@ const TableItemConstraint Constraint[DATA_TABLE_WP_START] = {
 	{0, 0, 0},																// 37
 	{0, 0, 0},																// 38
 	{0, 0, 0},																// 39
-	{CASE_MIN, CASE_MAX, CASE_MIAA_DEF},									// 40
-	{CASE_MIN, CASE_MAX, CASE_MIDA_DEF},									// 41
-	{CASE_MIN, CASE_MAX, CASE_MIFA_DEF},									// 42
-	{CASE_MIN, CASE_MAX, CASE_MIHA_DEF},									// 43
-	{CASE_MIN, CASE_MAX, CASE_MIHM_DEF},									// 44
-	{CASE_MIN, CASE_MAX, CASE_MIHV_DEF},									// 45
-	{CASE_MIN, CASE_MAX, CASE_MISM_DEF},									// 46
-	{CASE_MIN, CASE_MAX, CASE_MISM2_CH_DEF},								// 47
-	{CASE_MIN, CASE_MAX, CASE_MISM2_SS_SD_DEF},								// 48
-	{CASE_MIN, CASE_MAX, CASE_MISV_DEF},									// 49
-	{CASE_MIN, CASE_MAX, CASE_MIXM_DEF},									// 50
-	{CASE_MIN, CASE_MAX, CASE_MIXV_DEF},									// 51
-	{CASE_MIN, CASE_MAX, CASE_MADAP_DEF},									// 52
-	{SC_Type_A2, SC_Type_MIADAP, SC_Type_MIADAP},							// 53
+	{0, 0, 0},																// 40
+	{0, 0, 0},																// 41
+	{0, 0, 0},																// 42
+	{0, 0, 0},																// 43
+	{0, 0, 0},																// 44
+	{0, 0, 0},																// 45
+	{0, 0, 0},																// 46
+	{0, 0, 0},																// 47
+	{0, 0, 0},																// 48
+	{0, 0, 0},																// 49
+	{0, 0, 0},																// 50
+	{0, 0, 0},																// 51
+	{0, 0, 0},																// 52
+	{0, 0, 0},																// 53
 	{0, 0, 0},																// 54
 	{0, 0, 0},																// 55
 	{0, 0, 0},																// 56
@@ -79,24 +76,24 @@ const TableItemConstraint Constraint[DATA_TABLE_WP_START] = {
 	{0, 0, 0},																// 61
 	{0, 0, 0},																// 62
 	{0, 0, 0},																// 63
-	{0, POS_MAX, 0},														// 64
+	{0, 0, 0},																// 64
 	{0, 0, 0},																// 65
 	{0, 0, 0},																// 66
 	{0, 0, 0},																// 67
 	{0, 0, 0},																// 68
 	{0, 0, 0},																// 69
 	{0, INT16U_MAX, 0},														// 70
-	{SC_Type_A2, SC_Type_MIADAP, SC_Type_MIHA},								// 71
+	{0, INT16U_MAX, 0},														// 71
 	{TRM_TEMP_MIN, TRM_TEMP_MAX, TRM_TEMP_DEF},								// 72
 	{0, INT16U_MAX, 0},														// 73
-	{0, 0, 0},																// 74
-	{0, 0, 0},																// 75
-	{0, 0, 0},																// 76
-	{0, 0, 0},																// 77
-	{0, 0, 0},																// 78
-	{0, 0, 0},																// 79
-	{0, 0, 0},																// 80
-	{0, 0, 0},																// 81
+	{ADAPTER_MATCH_NONE, ADAPTER_MATCH_FAIL, ADAPTER_MATCH_NONE},			// 74
+	{ADAPTER_MISMATCH_NONE, ADAPTER_MISMATCH_VOLTAGE, ADAPTER_MISMATCH_NONE},	// 75
+	{0, INT16U_MAX, 0},														// 76
+	{ADAPTER_CLAMP_HEIGHT_MIN, ADAPTER_CLAMP_HEIGHT_MAX, ADAPTER_CLAMP_HEIGHT_DEF},	// 77
+	{0, INT16U_MAX, 0},														// 78
+	{0, INT16U_MAX, 0},														// 79
+	{0, INT16U_MAX, 0},														// 80
+	{0, INT16U_MAX, 0},														// 81
 	{0, 0, 0},																// 82
 	{0, 0, 0},																// 83
 	{0, 255, 0},															// 84

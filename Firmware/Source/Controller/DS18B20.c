@@ -1,6 +1,7 @@
 #include "DS18B20.h"
 #include "Board.h"
 #include "DataTable.h"
+#include "DeviceObjectDictionary.h"
 #include "ZbBoard.h"
 
 // Definitions
@@ -128,6 +129,49 @@ Boolean DS18B20_ReadReg(pInt16U Data)
 	}
 
 	return false;
+}
+//-------------------
+
+static void DS18B20_PublishIdentifier(pAdapterIdentifier Id)
+{
+	DataTable[REG_ADAPTER_ID] = Id->Code;
+	DataTable[REG_ADAPTER_CLAMP_HEIGHT] = Id->ClampHeightMm;
+	DataTable[REG_ADAPTER_MAX_CURRENT] = Id->MaxCurrent;
+	DataTable[REG_ADAPTER_MAX_VOLTAGE] = Id->MaxVoltage;
+	DataTable[REG_ADAPTER_SERIAL] = Id->Serial;
+}
+//-------------------
+
+static void DS18B20_LoadIdentifierStub(pAdapterIdentifier Id)
+{
+	Id->ClampHeightMm = DataTable[REG_ADAPTER_CLAMP_HEIGHT];
+	Id->MaxCurrent = DataTable[REG_ADAPTER_MAX_CURRENT];
+	Id->MaxVoltage = DataTable[REG_ADAPTER_MAX_VOLTAGE];
+	Id->Serial = DataTable[REG_ADAPTER_SERIAL];
+}
+//-------------------
+
+Boolean DS18B20_ReadIdentifier(pAdapterIdentifier Id)
+{
+	if(!DS18B20_ReadReg(&Id->Code))
+		return false;
+
+	// v1: layout EEPROM уточняется; поля кроме кода — зеркало DataTable
+	DS18B20_LoadIdentifierStub(Id);
+	DS18B20_PublishIdentifier(Id);
+
+	return true;
+}
+//-------------------
+
+Boolean DS18B20_WriteIdentifier(pAdapterIdentifier Id)
+{
+	// v1: запись кода как в CS; полный блок EEPROM — TODO
+	if(!DS18B20_WriteReg(&Id->Code))
+		return false;
+
+	DS18B20_PublishIdentifier(Id);
+	return true;
 }
 //-------------------
 

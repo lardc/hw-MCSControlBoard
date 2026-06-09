@@ -16,12 +16,12 @@
 #define ACT_ADAPTER_READ_ID					11	//	Чтение с индификатора
 
 #define ACT_HOMING							100	// Start homing
-#define ACT_GOTO_POSITION					101 // Go to manually configured position
+// 101
 #define ACT_START_CLAMPING					102 // Star clamping
 // 103
 #define ACT_RELEASE_CLAMPING				104 // Perform unclamp
 #define ACT_HALT							105 // Abort operation
-// 106 - 107
+// 106-107
 #define ACT_SET_TEMPERATURE					108	// Set temperature
 #define ACT_RELEASE_ADAPTER					109	// Release adapter for changing
 #define ACT_HOLD_ADAPTER					110	// Hold adapter
@@ -48,18 +48,9 @@
 
 #define ACT_FLASH_DIAG_TO_EP				340	// Выполнить чтение массива из памяти отладочной информации в EP
 
-// REGISTERS
+// REGISTERS (NV writable, 0-95)
 //
-#define REG_CLAMP_HEIGHT_CASE_A2			0	// Высота подъёма столика для корпуса А2 (мм)
-#define REG_CLAMP_HEIGHT_CASE_B0			1	// Высота подъёма столика для корпуса B0 (мм)
-#define REG_CLAMP_HEIGHT_CASE_C1			2	// Высота подъёма столика для корпуса C1 (мм)
-#define REG_CLAMP_HEIGHT_CASE_D0			3	// Высота подъёма столика для корпуса D0 (мм)
-#define REG_CLAMP_HEIGHT_CASE_E0			4	// Высота подъёма столика для корпуса E0 (мм)
-#define REG_CLAMP_HEIGHT_CASE_F1			5	// Высота подъёма столика для корпуса F1 (мм)
-#define REG_CLAMP_HEIGHT_CASE_ADAP  		6   // Высота подъёма столика для калибровочного адаптера (мм)
-#define REG_CLAMP_HEIGHT_CASE_E2M			7 	// Высота подъёма столика для корпуса E2M (мм)
-
-#define REG_CASE_THYRISTOR					9	// Зажимное используется для тиристоров
+// 0-9
 #define REG_POS_SPEED_MIN					10	// Минимальная скорость перемещения при позиционировании (мм/сек)
 #define REG_POS_SPEED_LOW					11	// Пониженная скорость перемещения при позиционировании (мм/сек)
 #define REG_POS_SPEED_MAX					12	// Максимальная скорость перемещения при позиционировании (мм/сек)
@@ -70,80 +61,70 @@
 #define REG_CLAMP_SPEED_LOW					17	// Пониженная скорость перемещения при позиционировании зажатия (мм/сек)
 #define REG_CLAMP_SPEED_MAX					18	// Максимальная скорость перемещения при позиционировании зажатия (мм/сек)
 #define REG_SM_TOGGLE_ACCELERATION			19	// Наклон ускорения
-
 #define REG_USE_HEATING						20	// Включение/выключение обработки команд системы нагрева
-#define REG_USE_SAFETY_SENSOR				21	// Включение/выключение обработки датчика безопасности
-#define REG_USE_TOOLING_SENSOR				22	// Включение/выключение обработки датчика оснастки
-//
+// 21-29
 #define REG_PRESSURE_OFFSET 				30	// Смещение давления
 #define REG_PRESSURE_K						31  // Линейный коэффициент давления x1000
 #define REG_PRESSURE_OK						32	// Корректное давление системы бар x1000
-//
-#define REG_CLAMP_HEIGHT_CASE_MIAA			40	// Высота подъёма столика для корпуса MIAA (мм)
-#define REG_CLAMP_HEIGHT_CASE_MIDA			41	// Высота подъёма столика для корпуса MIDA (мм)
-#define REG_CLAMP_HEIGHT_CASE_MIFA			42	// Высота подъёма столика для корпуса MIFA (мм)
-#define REG_CLAMP_HEIGHT_CASE_MIHA			43	// Высота подъёма столика для корпуса MIHA (мм)
-#define REG_CLAMP_HEIGHT_CASE_MIHM			44	// Высота подъёма столика для корпуса MIHM (мм)
-#define REG_CLAMP_HEIGHT_CASE_MIHV			45	// Высота подъёма столика для корпуса MIHV (мм)
-#define REG_CLAMP_HEIGHT_CASE_MISM			46	// Высота подъёма столика для корпуса MISM (мм)
-#define REG_CLAMP_HEIGHT_CASE_MISM2_CH		47	// Высота подъёма столика для корпуса MISM2-CH (мм)
-#define REG_CLAMP_HEIGHT_CASE_MISM2_SS_SD	48	// Высота подъёма столика для корпуса MISM2-SS-SD (мм)
-#define REG_CLAMP_HEIGHT_CASE_MISV			49	// Высота подъёма столика для корпуса MISV (мм)
-#define REG_CLAMP_HEIGHT_CASE_MIXM			50	// Высота подъёма столика для корпуса MIXM (мм)
-#define REG_CLAMP_HEIGHT_CASE_MIXV			51	// Высота подъёма столика для корпуса MIXV (мм)
-#define REG_CLAMP_HEIGHT_CASE_MADAP			52	// Высота подъёма столика для калибровочного адаптера IGBT (мм)
-//
-#define REG_SERT_UPPER_ADAP_ID				53	// ID верхнего адаптера аттестации (взять из DevType в Controller.h)
-// ----------------------------------------
-//
-#define REG_CUSTOM_POS						64	// Mannually configured position (in mm)
-
-#define REG_DEV_CASE						71	// Код корпуса прибора/индификатора
+// 33-70
+#define REG_DEV_CASE						71	// Код корпуса прибора (задание Master для сверки)
 #define REG_TEMP_SETPOINT					72	// Уставка температуры (С х10)
-//
-#define REG_ADAPTER_ID						73	// CS adapter ID
-//
+#define REG_ADAPTER_ID						73	// Код адаптера в идентификаторе 1-Wire
+#define REG_ADAPTER_MATCH					74	// Результат сверки идентификатора
+#define REG_ADAPTER_MISMATCH				75	// Код несовпадения
+#define REG_ADAPTER_SERIAL					76	// Серийный номер адаптера
+#define REG_ADAPTER_CLAMP_HEIGHT			77	// Высота зажатия из идентификатора (мм)
+#define REG_ADAPTER_MAX_CURRENT				78	// Макс. ток из идентификатора
+#define REG_ADAPTER_MAX_VOLTAGE				79	// Макс. напряжение из идентификатора
+#define REG_TEST_CURRENT					80	// Заданный Master предел тока для сверки
+#define REG_TEST_VOLTAGE					81	// Заданный Master предел напряжения для сверки
+// 82-83
 #define REG_DBG_TRM_ADDRESS					84	// Адрес ТРМ по RS485 для отладки
-//
+// 85-89
 #define REG_DBG_STEP_DIV					90	// Коэффициент деления шагов в отладочном режиме
 #define REG_DBG_STEPS_MAX					91	// Количество шагов для поворота в отладочном режиме
-//
+// 92-94
 #define REG_SP__2							95
 //
+// REGISTERS (volatile, 96+)
 // ----------------------------------------
-//
 #define REG_DEV_STATE						96	// Device state
 #define REG_FAULT_REASON					97	// Fault reason in the case DeviceState -> FAULT
 #define REG_DISABLE_REASON					98	// Fault reason in the case DeviceState -> DISABLED
 #define REG_WARNING							99	// Warning if present
 #define REG_PROBLEM							100	// Problem if present
 #define REG_TEMP_CH1						101	// Sampled temperature on channel 1
-
+// 102
 #define REG_TRM_DATA						103	// Data read from TRM
 #define REG_TRM_ERROR						104	// TRM error value
 #define REG_PRESSURE						105	// Давление в пневмомагистрали
-#define REG_SAFETY_SENSOR					106	// Состояние датчика безопасности
+#define REG_SENSOR_S2						106	// Датчик столика S2 (PA10)
 #define REG_HOMING_SENSOR					107	// Состояние датчика хоуминга
-#define REG_BUS_TOOLING_SENSOR				108	// Состояние датчика фиксации шины оснастки
-#define REG_ADAPTER_TOOLING_SENSOR			109	// Состояние датчика фиксации адаптера оснастки
-
+#define REG_BUS_TOOLING_SENSOR				108	// SPI: датчик подключения силовых шин
+#define REG_ADAPTER_TOOLING_SENSOR			109	// SPI: датчик подключения адаптера
 #define REG_DEV_SUBSTATE					110	// Device substate
 #define REG_SELFTEST_RESULT					111	// Маска ошибок самодиагностики ОШ (бит0=ОШ1, бит1=ОШ2)
-
+// 112-113
+#define REG_SPI_IN_STATE					114	// Сырой байт регистра входа 2SPI
+#define REG_SENSOR_S3						115	// Датчик безопасности S3 (PA9)
+#define REG_SENSOR_S5						116	// Датчик безопасности S5 (PA12)
+// 117-119
 #define REG_CANA_BUSOFF_COUNTER				120 // Counter of bus-off states
 #define REG_CANA_STATUS_REG					121	// CAN status register (32 bit)
 #define REG_CANA_STATUS_REG_32				122
 #define REG_CANA_DIAG_TEC					123	// CAN TEC
 #define REG_CANA_DIAG_REC					124	// CAN REC
-//
+// 125-158
 #define REG_SP__3							159
-//
+// 160-169
 #define REG_DBG								170
-// ----------------------------------------
+// 171-255
 //
+// REGISTERS (firmware info, 256+)
+// ----------------------------------------
 #define REG_FWINFO_SLAVE_NID				256	// Device CAN slave node ID
 #define REG_FWINFO_MASTER_NID				257	// Device CAN master node ID (if presented)
-// 258 - 259
+// 258-259
 #define REG_FWINFO_STR_LEN					260	// Length of the information string record
 #define REG_FWINFO_STR_BEGIN				261	// Begining of the information string record
 
@@ -155,14 +136,13 @@
 #define FAULT_PRESSURE						5	// Давление ниже нормы
 #define FAULT_BUS_SEN						7	// Ошибка сигнала с датчика поджатия шин
 #define FAULT_ADAPTER_SEN					8	// Ошибка сигнала с датчика поджатия адаптера
-#define FAULT_IGBT_ADAPTER_CONN				9	// No connection to IGBT adapter
+#define FAULT_ADAPTER_MISMATCH				9	// Несовпадение идентификатора адаптера
 #define FAULT_SELFTEST						10	// Ошибка самодиагностики оптронов
-
+#define FAULT_SPI_TIMEOUT					11	// Таймаут ожидания SPI-входа
 
 // PROBLEM CODES
 //
 #define PROBLEM_NONE						0	// No problem
-#define PROBLEM_TOP_ADAPTER_MISMATCHED		3	// Установленный верхний адаптер не совпадает с заданым адаптером для проведения измерений
 
 // DISABLE CODES
 //

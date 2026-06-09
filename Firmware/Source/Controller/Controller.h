@@ -10,16 +10,11 @@
 #include "ZbBoard.h"
 #include "Global.h"
 #include "DeviceObjectDictionary.h"
+#include "Constraints.h"
 #include "StepperMotor.h"
 
 // Types
 //
-typedef enum __DUTType
-{
-	DT_IGBT	= 0,
-	DT_Thyristor = 1
-} DUT_Type;
-
 typedef enum __DeviceState
 {
 	DS_None	= 0,
@@ -28,11 +23,13 @@ typedef enum __DeviceState
 	DS_Ready = 3,
 	DS_Halt = 4,
 	DS_Homing = 5,
-	DS_Position = 6,
+	// 6 — reserved (legacy DS_Position)
 	DS_Clamping = 7,
 	DS_ClampingDone = 8,
 	DS_SelfTest = 9,
-	DS_ClampingRelease = 10
+	DS_ClampingRelease = 10,
+	DS_AdapterHold = 11,
+	DS_AdapterRelease = 12
 } DeviceState;
 
 typedef enum __DeviceSubState
@@ -47,41 +44,27 @@ typedef enum __DeviceSubState
 	DSS_HomingPause = 11,
 	DSS_HomingMakeOffset = 12,
 
-	DSS_PositionOperating = 20,
-
 	DSS_ClampingWaitSensors = 30,
 	DSS_ClampingOperating = 31,
 	DSS_ClampingConnectControl = 32,
 
-	DSS_ClampingReleaseOperating = 40
-} DeviceSubState;
+	DSS_ClampingReleaseOperating = 40,
 
-typedef enum __DevType
-{
-	SC_Type_A2 = 1001,
-	SC_Type_B1 = 1006,
-	SC_Type_C1 = 1002,
-	SC_Type_D0 = 1005,
-	SC_Type_E0 = 1003,
-	SC_Type_F1 = 1004,
-	SC_Type_ADAP = 1007,
-	SC_Type_E2M = 1008,
-	//
-	SC_Type_MIAA = 2001,
-	SC_Type_MIDA = 2002,
-	SC_Type_MIFA = 2003,
-	SC_Type_MIHA = 2004,
-	SC_Type_MIHM = 2005,
-	SC_Type_MIHV = 2006,
-	SC_Type_MISM = 2007,
-	SC_Type_MISV = 2008,
-	SC_Type_MIXM = 2009,
-	SC_Type_MIXV = 2010,
-	// 2011
-	SC_Type_MISM2_CH = 2012,
-	SC_Type_MISM2_SS_SD = 2014,
-	SC_Type_MIADAP = 2015
-} DevType;
+	DSS_AdapterHold_CheckPressure = 50,
+	DSS_AdapterHold_ConnectAdapter = 51,
+	DSS_AdapterHold_ConnectBus = 52,
+	DSS_AdapterHold_ReadId = 53,
+	DSS_AdapterHold_Done = 54,
+
+	DSS_AdapterRelease_Bus = 60,
+	DSS_AdapterRelease_Adapter = 61,
+	DSS_AdapterRelease_HeatingOff = 62,
+	DSS_AdapterRelease_Done = 63,
+
+	DSS_Heating_Start = 70,
+	DSS_Heating_Operating = 71,
+	DSS_Heating_Done = 72
+} DeviceSubState;
 
 // Variables
 extern volatile Int64U CONTROL_TimeCounter;
@@ -93,6 +76,5 @@ void CONTROL_Init();
 void CONTROL_Idle();
 void CONTROL_UpdateLow();
 void CONTROL_UpdatePressureOK();
-Int16U CONTROL_ReadIGBTAdapterID(pBoolean AdapterOk);
 
 #endif // __CONTROLLER_H

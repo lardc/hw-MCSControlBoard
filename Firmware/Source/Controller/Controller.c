@@ -23,10 +23,6 @@
 #include "ZwNFLASH.h"
 #include "SaveToFlash.h"
 
-// Definitions
-//
-#define SC_TYPE_MASK		0xFC00
-
 // Types
 typedef void (*FUNC_AsyncDelegate)();
 
@@ -38,7 +34,7 @@ volatile Int64U FanTimeout = 0, CONTROL_TimeCounter = 0, Timeout;
 volatile DeviceState CONTROL_State = DS_None;
 volatile DeviceSubState CONTROL_SubState = DSS_None;
 
-volatile Int16U CONTROL_Values_Counter = 0, AdapterID = 0, CONTROL_ExtInfoCounter = 0;
+volatile Int16U CONTROL_Values_Counter = 0, CONTROL_ExtInfoCounter = 0;
 volatile Int32U HomingDuration = 0, ClampingDuration = 0, ReleaseDuration = 0;
 volatile Boolean RequestSaveToFlash = FALSE;
 
@@ -54,7 +50,6 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError);
 void CONTROL_SwitchToFault(Int16U Reason);
 void CONTROL_PreparePositioningX(Int16U NewPosition, Int16U SlowDownDistance,
 		Int16U MaxSpeed, Int16U SlowSpeed, Int16U MinSpeed);
-void CONTROL_PreparePositioning();
 void CONTROL_PrepareHomingOffset();
 void CONTROL_PrepareClamping(Boolean Clamp);
 void CONTROL_Halt();
@@ -102,10 +97,13 @@ void CONTROL_Idle()
 	DEVPROFILE_ProcessRequests();
 	CONTROL_UpdateTRMTemperature();
 
-	DataTable[REG_SAFETY_SENSOR] = LL_FilterSafetyCircuit(LL_IsSafetyS3Ok());
+	DataTable[REG_SENSOR_S2] = LL_IsTableSensorOk();
+	DataTable[REG_SENSOR_S3] = LL_FilterSafetyCircuit(LL_IsSafetyS3Ok());
+	DataTable[REG_SENSOR_S5] = LL_FilterSafetyCircuit(LL_IsSafetyS5Ok());
 	DataTable[REG_HOMING_SENSOR] = LL_HomeSensorActuate();
 	DataTable[REG_BUS_TOOLING_SENSOR] = LL_SPI_GetInBit(SPI_IN_BUS_HELD);
 	DataTable[REG_ADAPTER_TOOLING_SENSOR] = LL_SPI_GetInBit(SPI_IN_ADAPTER_HELD);
+	DataTable[REG_SPI_IN_STATE] = LL_SPI_ReadInRaw();
 	DataTable[REG_PRESSURE] = MEAS_GetPressureMilliBar();
 	CONTROL_UpdatePressureOK();
 	CONTROL_ProcessSelfTest();
@@ -165,12 +163,14 @@ static void CONTROL_FillWPPartDefault()
 	DataTable[REG_DISABLE_REASON] = DISABLE_NONE;
 	DataTable[REG_WARNING] = WARNING_NONE;
 	DataTable[REG_PROBLEM] = PROBLEM_NONE;
+	DataTable[REG_ADAPTER_MATCH] = ADAPTER_MATCH_NONE;
+	DataTable[REG_ADAPTER_MISMATCH] = ADAPTER_MISMATCH_NONE;
 }
 // ----------------------------------------
 
 static void CONTROL_SetDeviceState(DeviceState NewState, DeviceSubState NewSubState)
 {
-	if(NewState == DS_Clamping || NewState == DS_Position)
+	if(NewState == DS_Clamping)
 		FanTimeout = CONTROL_TimeCounter + FAN_TIMEOUT;
 	
 	CONTROL_State = NewState;
@@ -194,15 +194,14 @@ static void CONTROL_HandleFanControl()
 static void CONTROL_HandleClampActions()
 {
 	static Int64U Timeout = 0;
-	Boolean IsIGBTAdapterOk, IsBusClampOk, IsAdapterClampOk;
+	Boolean IsBusClampOk, IsAdapterClampOk;
 
 	switch(CONTROL_State)
 	{
 		case DS_Homing:
-		case DS_Position:
 		case DS_Clamping:
 		case DS_ClampingRelease:
-			if(DataTable[REG_USE_SAFETY_SENSOR] && !LL_FilterSafetyCircuit(LL_IsSafetyS3Ok()))
+			if(!LL_FilterSafetyCircuit(LL_IsSafetyS3Ok()) || !LL_FilterSafetyCircuit(LL_IsSafetyS5Ok()))
 				CONTROL_Halt();
 			break;
 		default:
@@ -271,24 +270,6 @@ static void CONTROL_HandleClampActions()
 			}
 			break;
 
-		case DS_Position:
-			switch(CONTROL_SubState)
-			{
-				case DSS_Com_ReleaseDone:
-					CONTROL_PreparePositioning();
-					CONTROL_SetDeviceState(CONTROL_State, DSS_PositionOperating);
-					break;
-
-				case DSS_PositionOperating:
-					if(SM_IsPositioningDone())
-						CONTROL_SetDeviceState(DS_Ready, DSS_None);
-					break;
-
-				default:
-					break;
-			}
-			break;
-
 		case DS_Clamping:
 			switch(CONTROL_SubState)
 			{
@@ -298,44 +279,17 @@ static void CONTROL_HandleClampActions()
 					break;
 
 				case DSS_ClampingWaitSensors:
-				{
-					DUT_Type DUTType = (DUT_Type)DataTable[REG_CASE_THYRISTOR];
 					IsBusClampOk = LL_SPI_GetInBit(SPI_IN_BUS_HELD);
 					IsAdapterClampOk = LL_SPI_GetInBit(SPI_IN_ADAPTER_HELD);
 
-					if(!DataTable[REG_USE_TOOLING_SENSOR] || (IsBusClampOk && IsAdapterClampOk))
+					if(IsBusClampOk && IsAdapterClampOk)
 					{
-						AdapterID = (DUTType == DT_Thyristor) ? DataTable[REG_DEV_CASE] : CONTROL_ReadIGBTAdapterID(&IsIGBTAdapterOk);
-
-						if(DataTable[REG_DEV_CASE] == SC_Type_MIADAP && AdapterID == DataTable[REG_SERT_UPPER_ADAP_ID])
-							AdapterID = SC_Type_MIADAP;
-
-						if(!IsIGBTAdapterOk)
-							CONTROL_SwitchToFault(FAULT_IGBT_ADAPTER_CONN);
-						else
-						{
-							if ((DUTType == DT_Thyristor && (AdapterID & SC_TYPE_MASK)) || (DUTType == DT_IGBT && !(AdapterID & SC_TYPE_MASK)) ||
-									(DUTType == DT_IGBT && AdapterID != DataTable[REG_DEV_CASE]))
-							{
-								DataTable[REG_PROBLEM] = PROBLEM_TOP_ADAPTER_MISMATCHED;
-								LL_SPI_SetOutBit(SPI_OUT_ADAPTER, false);
-								LL_SPI_SetOutBit(SPI_OUT_BUS, false);
-								LL_SPI_FlushOut();
-								CONTROL_SetDeviceState(DS_Ready, DSS_None);
-								break;
-							}
-							else
-							{
-								CONTROL_PrepareClamping(TRUE);
-								CONTROL_SetDeviceState(CONTROL_State, DSS_ClampingOperating);
-							}
-						}
+						CONTROL_PrepareClamping(TRUE);
+						CONTROL_SetDeviceState(CONTROL_State, DSS_ClampingOperating);
 					}
-					else
-						if(CONTROL_TimeCounter > Timeout)
-							CONTROL_SwitchToFault(IsAdapterClampOk ? FAULT_BUS_SEN : FAULT_ADAPTER_SEN);
-				}
-				break;
+					else if(CONTROL_TimeCounter > Timeout)
+						CONTROL_SwitchToFault(IsAdapterClampOk ? FAULT_BUS_SEN : FAULT_ADAPTER_SEN);
+					break;
 
 				case DSS_ClampingOperating:
 					if(SM_IsPositioningDone())
@@ -387,14 +341,25 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 	{
 		case ACT_ADAPTER_WRITE_ID:
 			DS18B20_Init();
-			if(!DS18B20_WriteReg((Int16U*)&DataTable[REG_ADAPTER_ID]))
-				*UserError = ERR_DEVICE_NOT_READY;
+			{
+				AdapterIdentifier Id;
+				Id.Code = DataTable[REG_ADAPTER_ID];
+				Id.ClampHeightMm = DataTable[REG_ADAPTER_CLAMP_HEIGHT];
+				Id.MaxCurrent = DataTable[REG_ADAPTER_MAX_CURRENT];
+				Id.MaxVoltage = DataTable[REG_ADAPTER_MAX_VOLTAGE];
+				Id.Serial = DataTable[REG_ADAPTER_SERIAL];
+				if(!DS18B20_WriteIdentifier(&Id))
+					*UserError = ERR_DEVICE_NOT_READY;
+			}
 			break;
 
 		case ACT_ADAPTER_READ_ID:
 			DS18B20_Init();
-			if(!DS18B20_ReadReg((Int16U*)&DataTable[REG_ADAPTER_ID]))
-				*UserError = ERR_DEVICE_NOT_READY;
+			{
+				AdapterIdentifier Id;
+				if(!DS18B20_ReadIdentifier(&Id))
+					*UserError = ERR_DEVICE_NOT_READY;
+			}
 			break;
 
 		case ACT_HOMING:
@@ -405,13 +370,6 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 			}
 			else
 				*UserError = ERR_OPERATION_BLOCKED;
-			break;
-			
-		case ACT_GOTO_POSITION:
-			if(CONTROL_State == DS_Ready)
-				CONTROL_SetDeviceState(DS_Position, DSS_Com_CheckControl);
-			else
-				*UserError = ERR_DEVICE_NOT_READY;
 			break;
 			
 		case ACT_START_CLAMPING:
@@ -641,56 +599,16 @@ void CONTROL_PreparePositioningX(Int16U NewPosition, Int16U SlowDownDistance,
 }
 // ----------------------------------------
 
-static Int16U CONTROL_GetClampHeightMm()
-{
-	// TODO (Logic.c): высота из идентификатора адаптера (REG_ADAPTER_CLAMP_HEIGHT)
-	Int16U Reg = 0;
-	switch((Int16U)DataTable[REG_DEV_CASE])
-	{
-		case SC_Type_A2:		Reg = REG_CLAMP_HEIGHT_CASE_A2; break;
-		case SC_Type_B1:		Reg = REG_CLAMP_HEIGHT_CASE_B0; break;
-		case SC_Type_C1:		Reg = REG_CLAMP_HEIGHT_CASE_C1; break;
-		case SC_Type_D0:		Reg = REG_CLAMP_HEIGHT_CASE_D0; break;
-		case SC_Type_E0:		Reg = REG_CLAMP_HEIGHT_CASE_E0; break;
-		case SC_Type_F1:		Reg = REG_CLAMP_HEIGHT_CASE_F1; break;
-		case SC_Type_ADAP:		Reg = REG_CLAMP_HEIGHT_CASE_ADAP; break;
-		case SC_Type_E2M:		Reg = REG_CLAMP_HEIGHT_CASE_E2M; break;
-		case SC_Type_MIAA:		Reg = REG_CLAMP_HEIGHT_CASE_MIAA; break;
-		case SC_Type_MIDA:		Reg = REG_CLAMP_HEIGHT_CASE_MIDA; break;
-		case SC_Type_MIFA:		Reg = REG_CLAMP_HEIGHT_CASE_MIFA; break;
-		case SC_Type_MIHA:		Reg = REG_CLAMP_HEIGHT_CASE_MIHA; break;
-		case SC_Type_MIHM:		Reg = REG_CLAMP_HEIGHT_CASE_MIHM; break;
-		case SC_Type_MIHV:		Reg = REG_CLAMP_HEIGHT_CASE_MIHV; break;
-		case SC_Type_MISM:		Reg = REG_CLAMP_HEIGHT_CASE_MISM; break;
-		case SC_Type_MISM2_CH:	Reg = REG_CLAMP_HEIGHT_CASE_MISM2_CH; break;
-		case SC_Type_MISM2_SS_SD: Reg = REG_CLAMP_HEIGHT_CASE_MISM2_SS_SD; break;
-		case SC_Type_MISV:		Reg = REG_CLAMP_HEIGHT_CASE_MISV; break;
-		case SC_Type_MIXM:		Reg = REG_CLAMP_HEIGHT_CASE_MIXM; break;
-		case SC_Type_MIXV:		Reg = REG_CLAMP_HEIGHT_CASE_MIXV; break;
-		case SC_Type_MIADAP:	Reg = REG_CLAMP_HEIGHT_CASE_MADAP; break;
-		default:				break;
-	}
-	return DataTable[Reg];
-}
-// ----------------------------------------
-
 void CONTROL_PrepareClamping(Boolean Clamp)
 {
 	SM_Params Params;
 
 	if(Clamp)
-		SM_Config(&Params, CONTROL_GetClampHeightMm(), TRUE);
+		SM_Config(&Params, DataTable[REG_ADAPTER_CLAMP_HEIGHT], TRUE);
 	else
 		SM_Config(&Params, 0, FALSE);
 
 	SM_GoToPosition(&Params);
-}
-// ----------------------------------------
-
-void CONTROL_PreparePositioning()
-{
-	CONTROL_PreparePositioningX(DataTable[REG_CUSTOM_POS], DataTable[REG_SLOW_DOWN_DIST],
-			DataTable[REG_POS_SPEED_MAX], DataTable[REG_POS_SPEED_MIN], DataTable[REG_CLAMP_SPEED_MIN]);
 }
 // ----------------------------------------
 
@@ -750,17 +668,6 @@ void CONTROL_UpdatePressureOK()
 		DataTable[REG_DBG] = Pressure;
 		CONTROL_SwitchToFault(FAULT_PRESSURE);
 	}
-}
-// ----------------------------------------
-
-Int16U CONTROL_ReadIGBTAdapterID(pBoolean AdapterOk)
-{
-	Int16U AdapterID = 0;
-
-	DS18B20_Init();
-	*AdapterOk = DS18B20_ReadReg(&AdapterID);
-
-	return AdapterID;
 }
 // ----------------------------------------
 
