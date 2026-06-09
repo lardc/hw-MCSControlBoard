@@ -21,32 +21,33 @@ static float LL_MeasureWrapper(ADC_TypeDef* ADCx, uint32_t ChannelNumber)
 
 void LL_InitGPIO()
 {
-	GPIO_InitPushPullOutput(GPIO_STPM_EN);
+	GPIO_InitPushPullOutput(GPIO_LED);
+	GPIO_InitPushPullOutput(GPIO_RS485_CTRL);
 	GPIO_InitPushPullOutput(GPIO_STPM_DIR);
 	GPIO_InitPushPullOutput(GPIO_STPM_STEP);
-	GPIO_InitPushPullOutput(GPIO_OUT_CONTROL);
-	GPIO_InitPushPullOutput(GPIO_FAN);
-	GPIO_InitPushPullOutput(GPIO_LED);
-	GPIO_InitPushPullOutput(GPIO_OUT_POWER);
-	GPIO_InitPushPullOutput(GPIO_SPIMUX_A);
-	GPIO_InitPushPullOutput(GPIO_SPIMUX_B);
-	GPIO_InitPushPullOutput(GPIO_SPIMUX_C);
+	GPIO_InitPushPullOutput(GPIO_STPM_EN);
+	GPIO_InitPushPullOutput(GPIO_SPI_SS);
+	GPIO_InitPushPullOutput(GPIO_TEST);
 
-	GPIO_SetState(GPIO_STPM_EN, false);
+	GPIO_InitOpenDrainOutput(GPIO_SPI_LD, NoPull);
+	GPIO_InitOpenDrainOutput(GPIO_SPI_OE, NoPull);
+
+	GPIO_InitInput(GPIO_SEN_S1, NoPull);
+	GPIO_InitInput(GPIO_SEN_S3, NoPull);
+	GPIO_InitInput(GPIO_SEN_S2, NoPull);
+	GPIO_InitInput(GPIO_SEN_S4, NoPull);
+	GPIO_InitInput(GPIO_SEN_S5, NoPull);
+	GPIO_InitInput(GPIO_HOMING, NoPull);
+
+	GPIO_SetState(GPIO_LED, false);
+	GPIO_SetState(GPIO_RS485_CTRL, false);
 	GPIO_SetState(GPIO_STPM_DIR, false);
 	GPIO_SetState(GPIO_STPM_STEP, false);
-	GPIO_SetState(GPIO_OUT_CONTROL, false);
-	GPIO_SetState(GPIO_FAN, false);
-	GPIO_SetState(GPIO_LED, false);
-	GPIO_SetState(GPIO_OUT_POWER, false);
-	GPIO_SetState(GPIO_SPIMUX_A, true);
-	GPIO_SetState(GPIO_SPIMUX_B, true);
-	GPIO_SetState(GPIO_SPIMUX_C, true);
-
-	GPIO_InitInput(GPIO_SEN_BUS, NoPull);
-	GPIO_InitInput(GPIO_SEN_ADAPTER, NoPull);
-	GPIO_InitInput(GPIO_HOME, NoPull);
-	GPIO_InitInput(GPIO_SAFETY_IN, NoPull);
+	GPIO_SetState(GPIO_STPM_EN, false);
+	GPIO_SetState(GPIO_SPI_SS, false);
+	GPIO_SetState(GPIO_TEST, false);
+	GPIO_SetState(GPIO_SPI_LD, false);
+	GPIO_SetState(GPIO_SPI_OE, true);
 
 	DS18B20_Init();
 }
@@ -67,58 +68,55 @@ Boolean LL_FilterSafetyCircuit(Boolean NewState)
 
 void LL_CSMux(Int16U SPIDevice)
 {
-	GPIO_SetState(GPIO_SPIMUX_A, SPIDevice & BIT0);
-	GPIO_SetState(GPIO_SPIMUX_B, SPIDevice & BIT1);
-	GPIO_SetState(GPIO_SPIMUX_C, SPIDevice & BIT2);
-	DELAY_US(1);
+	(void)SPIDevice;
 }
 //-----------------------------
 
 Boolean LL_IsSafetySensorOk()
 {
-	return !GPIO_GetState(GPIO_SAFETY_IN);
+	return GPIO_GetState(GPIO_SEN_S3);
 }
 //-----------------------------
 
 Boolean LL_HomeSensorActuate()
 {
-	return GPIO_GetState(GPIO_HOME);
+	return GPIO_GetState(GPIO_HOMING);
 }
 //-----------------------------
 
 Boolean LL_IsBusToolingSensorOk()
 {
-	return !GPIO_GetState(GPIO_SEN_BUS);
+	return false;
 }
 //-----------------------------
 
 Boolean LL_IsAdapterToolingSensorOk()
 {
-	return !GPIO_GetState(GPIO_SEN_ADAPTER);
+	return false;
 }
 //-----------------------------
 
 void LL_SwitchPowerConnection(Boolean State)
 {
-	GPIO_SetState(GPIO_OUT_POWER, State);
+	(void)State;
 }
 //-----------------------------
 
 Boolean LL_IsPowerConnected()
 {
-	return GPIO_GetState(GPIO_OUT_POWER);
+	return false;
 }
 //-----------------------------
 
 void LL_SwitchControlConnection(Boolean State)
 {
-	GPIO_SetState(GPIO_OUT_CONTROL, State);
+	(void)State;
 }
 //-----------------------------
 
 Boolean LL_IsControlConnected()
 {
-	return GPIO_GetState(GPIO_OUT_CONTROL);
+	return false;
 }
 //-----------------------------
 
@@ -154,7 +152,7 @@ void LL_SwitchEnable(Boolean State)
 
 void LL_SwitchFan(Boolean State)
 {
-	GPIO_SetState(GPIO_FAN, State);
+	(void)State;
 }
 //-----------------------------
 

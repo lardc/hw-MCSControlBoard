@@ -16,6 +16,12 @@ int main()
 
 	// Настройка UART
 	INITCFG_ConfigUART();
+	INITCFG_ConfigUSART3();
+
+	// Настройка CAN и SPI
+	INITCFG_ConfigCAN();
+	INITCFG_ConfigSPI();
+	INITCFG_ConfigRS485();
 	
 	// Настройка системного счетчика
 	INITCFG_ConfigTimer7();
@@ -23,9 +29,11 @@ int main()
 
 	// Настройка сторожевого таймера
 	INITCFG_ConfigWatchDog();
-	
-	// Настройка АЦП
+
+	// Настройка таймера и фонового АЦП давления
+	INITCFG_ConfigTimer15();
 	INITCFG_ConfigADC();
+	INITCFG_ConfigDMA();
 
 	// Инициализация логики контроллера
 	CONTROL_Init();

@@ -27,12 +27,12 @@ void DS18B20_StrongPullUpDQ(Boolean State);
 //
 void DS18B20_Init()
 {
-	GPIO_InitPushPullOutput(GPIO_ADAPTER_ID_PWR);
-	GPIO_InitPushPullOutput(GPIO_ADAPTER_ID_CTRL);
-	GPIO_InitInput(GPIO_ADAPTER_ID_DATA, NoPull);
+	GPIO_InitOpenDrainOutput(GPIO_DQ_PWR, NoPull);
+	GPIO_InitPushPullOutput(GPIO_DQ_CTRL);
+	GPIO_InitInput(GPIO_DQ_IN, NoPull);
 
-	GPIO_SetState(GPIO_ADAPTER_ID_CTRL, false);
-	GPIO_SetState(GPIO_ADAPTER_ID_PWR, true);
+	GPIO_SetState(GPIO_DQ_CTRL, false);
+	GPIO_SetState(GPIO_DQ_PWR, true);
 }
 //-------------------
 
@@ -179,18 +179,18 @@ Boolean DS18B20_ReadBit()
 
 void DS18B20_SetDQ(Boolean State)
 {
-	GPIO_SetState(GPIO_ADAPTER_ID_CTRL, DQ_WRITE_INVERSION ? !State : State);
+	GPIO_SetState(GPIO_DQ_CTRL, DQ_WRITE_INVERSION ? !State : State);
 }
 //-------------------
 
 Boolean DS18B20_ReadDQ()
 {
-	return DQ_READ_INVERSION ? !GPIO_GetState(GPIO_ADAPTER_ID_DATA) : GPIO_GetState(GPIO_ADAPTER_ID_DATA);
+	return DQ_READ_INVERSION ? !GPIO_GetState(GPIO_DQ_IN) : GPIO_GetState(GPIO_DQ_IN);
 }
 //-------------------
 
 void DS18B20_StrongPullUpDQ(Boolean State)
 {
-	GPIO_SetState(GPIO_ADAPTER_ID_PWR, (DQ_STRONG_PULLUP_INVERSION) ? !State : State);
+	GPIO_SetState(GPIO_DQ_PWR, (DQ_STRONG_PULLUP_INVERSION) ? !State : State);
 }
 //-------------------

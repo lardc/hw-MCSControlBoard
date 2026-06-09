@@ -13,33 +13,36 @@
 #include "ZwIWDG.h"
 #include "ZwNFLASH.h"
 
-// Interface pins
-GPIO_PortPinSettingMacro GPIO_ALT_UART1_TX		= {GPIOA, Pin_9};
-GPIO_PortPinSettingMacro GPIO_ALT_UART1_RX		= {GPIOA, Pin_10};
-GPIO_PortPinSettingMacro GPIO_ALT_CAN1_TX		= {GPIOA, Pin_12};
-GPIO_PortPinSettingMacro GPIO_ALT_CAN1_RX		= {GPIOA, Pin_11};
+// Alternate-function pins
+GPIO_PortPinSettingMacro GPIO_ALT_UART1_TX		= {GPIOA, Pin_2};
+GPIO_PortPinSettingMacro GPIO_ALT_UART1_RX		= {GPIOA, Pin_3};
+GPIO_PortPinSettingMacro GPIO_ALT_UART3_TX		= {GPIOB, Pin_10};
+GPIO_PortPinSettingMacro GPIO_ALT_UART3_RX		= {GPIOB, Pin_11};
+GPIO_PortPinSettingMacro GPIO_ALT_CAN1_TX		= {GPIOB, Pin_9};
+GPIO_PortPinSettingMacro GPIO_ALT_CAN1_RX		= {GPIOB, Pin_8};
+GPIO_PortPinSettingMacro GPIO_ALT_SPI3_SCK		= {GPIOB, Pin_3};
+GPIO_PortPinSettingMacro GPIO_ALT_SPI3_MISO		= {GPIOB, Pin_4};
+GPIO_PortPinSettingMacro GPIO_ALT_SPI3_MOSI		= {GPIOB, Pin_5};
 
-// Stub pool (application GPIO — same physical pin until board pinout is defined)
-GPIO_PortPinSettingMacro GPIO_STUB_A			= {GPIOA, Pin_0};
-
-GPIO_PortPinSettingMacro GPIO_STPM_STEP			= {GPIOA, Pin_0};
-GPIO_PortPinSettingMacro GPIO_STPM_DIR			= {GPIOA, Pin_0};
-GPIO_PortPinSettingMacro GPIO_STPM_EN			= {GPIOA, Pin_0};
-GPIO_PortPinSettingMacro GPIO_FAN				= {GPIOA, Pin_0};
-GPIO_PortPinSettingMacro GPIO_SAFETY_IN			= {GPIOA, Pin_0};
-GPIO_PortPinSettingMacro GPIO_HOME				= {GPIOA, Pin_0};
-GPIO_PortPinSettingMacro GPIO_SEN_BUS			= {GPIOA, Pin_0};
-GPIO_PortPinSettingMacro GPIO_SEN_ADAPTER		= {GPIOA, Pin_0};
-GPIO_PortPinSettingMacro GPIO_OUT_POWER			= {GPIOA, Pin_0};
-GPIO_PortPinSettingMacro GPIO_OUT_CONTROL		= {GPIOA, Pin_0};
-GPIO_PortPinSettingMacro GPIO_SPIMUX_A			= {GPIOA, Pin_0};
-GPIO_PortPinSettingMacro GPIO_SPIMUX_B			= {GPIOA, Pin_0};
-GPIO_PortPinSettingMacro GPIO_SPIMUX_C			= {GPIOA, Pin_0};
-GPIO_PortPinSettingMacro GPIO_ADAPTER_ID_PWR	= {GPIOA, Pin_0};
-GPIO_PortPinSettingMacro GPIO_ADAPTER_ID_CTRL	= {GPIOA, Pin_0};
-GPIO_PortPinSettingMacro GPIO_ADAPTER_ID_DATA	= {GPIOA, Pin_0};
-
-GPIO_PortPinSettingMacro GPIO_LED				= {GPIOB, Pin_10};
+// Application GPIO
+GPIO_PortPinSettingMacro GPIO_LED				= {GPIOA, Pin_0};
+GPIO_PortPinSettingMacro GPIO_RS485_CTRL		= {GPIOA, Pin_1};
+GPIO_PortPinSettingMacro GPIO_DQ_PWR			= {GPIOA, Pin_5};
+GPIO_PortPinSettingMacro GPIO_DQ_IN				= {GPIOA, Pin_6};
+GPIO_PortPinSettingMacro GPIO_DQ_CTRL			= {GPIOA, Pin_7};
+GPIO_PortPinSettingMacro GPIO_SEN_S1			= {GPIOA, Pin_8};
+GPIO_PortPinSettingMacro GPIO_SEN_S3			= {GPIOA, Pin_9};
+GPIO_PortPinSettingMacro GPIO_SEN_S2			= {GPIOA, Pin_10};
+GPIO_PortPinSettingMacro GPIO_SEN_S4			= {GPIOA, Pin_11};
+GPIO_PortPinSettingMacro GPIO_SEN_S5			= {GPIOA, Pin_12};
+GPIO_PortPinSettingMacro GPIO_SPI_LD			= {GPIOA, Pin_15};
+GPIO_PortPinSettingMacro GPIO_STPM_DIR			= {GPIOB, Pin_0};
+GPIO_PortPinSettingMacro GPIO_STPM_STEP			= {GPIOB, Pin_1};
+GPIO_PortPinSettingMacro GPIO_STPM_EN			= {GPIOB, Pin_2};
+GPIO_PortPinSettingMacro GPIO_SPI_OE			= {GPIOB, Pin_6};
+GPIO_PortPinSettingMacro GPIO_SPI_SS			= {GPIOB, Pin_7};
+GPIO_PortPinSettingMacro GPIO_HOMING			= {GPIOB, Pin_12};
+GPIO_PortPinSettingMacro GPIO_TEST				= {GPIOB, Pin_13};
 GPIO_PortPinSettingMacro GPIO_MEASURE_PRESS		= {GPIOA, Pin_4};
 
 #endif // __BOARD_H

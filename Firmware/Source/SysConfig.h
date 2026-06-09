@@ -30,6 +30,15 @@
 
 // ADC
 #define ADC_PRESSURE_CHANNEL			1
+#define ADC_PRESSURE_SEQ_LENGTH			1
+#define ADC_PRESSURE_BUF_SIZE			16
+#define TIMER15_uS						500		// Период фонового АЦП давления (мкс)
+// ----------------------------------------------
+
+// SPI3 (сдвиговые регистры)
+#define SPI3_BAUDRATE_BITS				0x5
+#define SPI_LSB_FIRST					false
+#define SPI_MSB_FIRST					true
 // ----------------------------------------------
 
 // TRM
