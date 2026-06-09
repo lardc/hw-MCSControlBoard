@@ -49,6 +49,5 @@ Boolean LL_IsDirUp();
 void LL_SwitchEnable(Boolean State);
 
 void LL_ToggleBoardLED();
-float LL_MeasurePressure();
 
 #endif // __LOWLEVEL_H

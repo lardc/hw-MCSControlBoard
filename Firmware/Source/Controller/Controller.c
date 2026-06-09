@@ -18,6 +18,7 @@
 #include "StepperMotorDiag.h"
 #include "DS18B20.h"
 #include "LowLevel.h"
+#include "Measurement.h"
 #include "ZwNFLASH.h"
 #include "SaveToFlash.h"
 
@@ -36,7 +37,7 @@ volatile Int64U FanTimeout = 0, CONTROL_TimeCounter = 0, Timeout;
 volatile DeviceState CONTROL_State = DS_None;
 volatile DeviceSubState CONTROL_SubState = DSS_None;
 
-volatile Int16U CONTROL_Values_Counter = 0, CSPressure = 0, AdapterID = 0, CONTROL_ExtInfoCounter = 0;
+volatile Int16U CONTROL_Values_Counter = 0, AdapterID = 0, CONTROL_ExtInfoCounter = 0;
 volatile Int32U HomingDuration = 0, ClampingDuration = 0, ReleaseDuration = 0;
 volatile Boolean RequestSaveToFlash = FALSE;
 
@@ -101,6 +102,7 @@ void CONTROL_Idle()
 	DataTable[REG_HOMING_SENSOR] = LL_HomeSensorActuate();
 	DataTable[REG_BUS_TOOLING_SENSOR] = LL_SPI_GetInBit(SPI_IN_BUS_HELD);
 	DataTable[REG_ADAPTER_TOOLING_SENSOR] = LL_SPI_GetInBit(SPI_IN_ADAPTER_HELD);
+	DataTable[REG_PRESSURE] = MEAS_GetPressureMilliBar();
 	CONTROL_UpdatePressureOK();
 
 	// Process deferred procedures
@@ -731,20 +733,30 @@ void CONTROL_UpdateTRMTemperature()
 }
 // ----------------------------------------
 
+static Boolean CONTROL_ShouldMonitorPressureFault()
+{
+	if(CycleActive)
+		return TRUE;
+
+	if(LL_SPI_GetInBit(SPI_IN_ADAPTER_HELD) || LL_SPI_GetInBit(SPI_IN_BUS_HELD))
+		return TRUE;
+
+	return !SM_IsHomingDone() || !SM_IsPositioningDone();
+}
+// ----------------------------------------
+
 void CONTROL_UpdatePressureOK()
 {
 	static Int64U PressureOkTime = 0;
-	float pressure = LL_MeasurePressure();
+	Int32U Pressure = DataTable[REG_PRESSURE];
 
-	CSPressure = (Int32U)(pressure * 1000.0f);
-	DataTable[REG_PRESSURE] = CSPressure;
-
-	if(CSPressure >= DataTable[REG_PRESSURE_OK])
+	if(Pressure >= DataTable[REG_PRESSURE_OK])
 		PressureOkTime = CONTROL_TimeCounter;
 
-	if (CONTROL_TimeCounter > PressureOkTime + PNEUMATIC_READ_PAUSE)
+	if(CONTROL_ShouldMonitorPressureFault()
+			&& CONTROL_TimeCounter > PressureOkTime + PNEUMATIC_READ_PAUSE)
 	{
-		DataTable[REG_DBG] = CSPressure;
+		DataTable[REG_DBG] = Pressure;
 		CONTROL_SwitchToFault(FAULT_PRESSURE);
 	}
 }

@@ -1,25 +1,12 @@
 ﻿#include "LowLevel.h"
 
 #include "DS18B20.h"
-#include "Global.h"
-#include "DataTable.h"
 #include "Delay.h"
+#include "Global.h"
 #include "SysConfig.h"
 #include "ZwSPI.h"
 
 static Int8U SpiOutShadow = 0;
-
-static float LL_MeasureWrapper(ADC_TypeDef* ADCx, uint32_t ChannelNumber)
-{
-	float result = 0;
-	Int16U samples = AVG_SAMPLES_DEF;
-	Int16U i;
-
-	for(i = 0; i < samples; i++)
-		result += ADC_Measure(ADCx, ChannelNumber);
-
-	return result / samples * ADC_REF_VOLTAGE / ADC_RESOLUTION;
-}
 //-----------------------------
 
 static void LL_SPI_WriteRaw(Int8U Data)
@@ -200,16 +187,5 @@ void LL_SwitchEnable(Boolean State)
 void LL_ToggleBoardLED()
 {
 	GPIO_Toggle(GPIO_LED);
-}
-//-----------------------------
-
-float LL_MeasurePressure()
-{
-	float offset = DataTable[REG_PRESSURE_OFFSET];
-	float k = DataTable[REG_PRESSURE_K];
-	float pressure = LL_MeasureWrapper(ADC2, ADC_PRESSURE_CHANNEL) * k
-			- offset * ADC_REF_VOLTAGE / ADC_RESOLUTION * k;
-
-	return (pressure > 0) ? pressure : 0;
 }
 //-----------------------------

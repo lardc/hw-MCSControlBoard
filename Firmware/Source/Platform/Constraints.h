@@ -68,6 +68,9 @@ typedef struct __TableItemConstraint
 #define TRM_TEMP_MAX				2000	// in C x10
 #define TRM_TEMP_DEF				0		// in C x10
 
+// Давление (мбар)
+#define PRESSURE_OK_DEF				5000
+
 // Variables
 //
 extern const TableItemConstraint Constraint[];
