@@ -630,105 +630,67 @@ void CONTROL_SwitchToFault(Int16U Reason)
 void CONTROL_PreparePositioningX(Int16U NewPosition, Int16U SlowDownDistance,
 		Int16U MaxSpeed, Int16U SlowSpeed, Int16U MinSpeed)
 {
-	SM_Config Config;
-	Config.NewPosition = NewPosition;
-	Config.SlowDownDistance = SlowDownDistance;
-	Config.MaxSpeed = MaxSpeed;
-	Config.SlowSpeed = SlowSpeed;
-	Config.MinSpeed = MinSpeed;
+	SM_Params Params;
+	Params.NewPosition = NewPosition;
+	Params.SlowDownDistance = SlowDownDistance;
+	Params.MaxSpeed = MaxSpeed;
+	Params.SlowSpeed = SlowSpeed;
+	Params.MinSpeed = MinSpeed;
 
-	SM_GoToPosition(&Config);
+	SM_GoToPosition(&Params);
+}
+// ----------------------------------------
+
+static Int16U CONTROL_GetClampHeightMm()
+{
+	// TODO (Logic.c): высота из идентификатора адаптера (REG_ADAPTER_CLAMP_HEIGHT)
+	Int16U Reg = 0;
+	switch((Int16U)DataTable[REG_DEV_CASE])
+	{
+		case SC_Type_A2:		Reg = REG_CLAMP_HEIGHT_CASE_A2; break;
+		case SC_Type_B1:		Reg = REG_CLAMP_HEIGHT_CASE_B0; break;
+		case SC_Type_C1:		Reg = REG_CLAMP_HEIGHT_CASE_C1; break;
+		case SC_Type_D0:		Reg = REG_CLAMP_HEIGHT_CASE_D0; break;
+		case SC_Type_E0:		Reg = REG_CLAMP_HEIGHT_CASE_E0; break;
+		case SC_Type_F1:		Reg = REG_CLAMP_HEIGHT_CASE_F1; break;
+		case SC_Type_ADAP:		Reg = REG_CLAMP_HEIGHT_CASE_ADAP; break;
+		case SC_Type_E2M:		Reg = REG_CLAMP_HEIGHT_CASE_E2M; break;
+		case SC_Type_MIAA:		Reg = REG_CLAMP_HEIGHT_CASE_MIAA; break;
+		case SC_Type_MIDA:		Reg = REG_CLAMP_HEIGHT_CASE_MIDA; break;
+		case SC_Type_MIFA:		Reg = REG_CLAMP_HEIGHT_CASE_MIFA; break;
+		case SC_Type_MIHA:		Reg = REG_CLAMP_HEIGHT_CASE_MIHA; break;
+		case SC_Type_MIHM:		Reg = REG_CLAMP_HEIGHT_CASE_MIHM; break;
+		case SC_Type_MIHV:		Reg = REG_CLAMP_HEIGHT_CASE_MIHV; break;
+		case SC_Type_MISM:		Reg = REG_CLAMP_HEIGHT_CASE_MISM; break;
+		case SC_Type_MISM2_CH:	Reg = REG_CLAMP_HEIGHT_CASE_MISM2_CH; break;
+		case SC_Type_MISM2_SS_SD: Reg = REG_CLAMP_HEIGHT_CASE_MISM2_SS_SD; break;
+		case SC_Type_MISV:		Reg = REG_CLAMP_HEIGHT_CASE_MISV; break;
+		case SC_Type_MIXM:		Reg = REG_CLAMP_HEIGHT_CASE_MIXM; break;
+		case SC_Type_MIXV:		Reg = REG_CLAMP_HEIGHT_CASE_MIXV; break;
+		case SC_Type_MIADAP:	Reg = REG_CLAMP_HEIGHT_CASE_MADAP; break;
+		default:				break;
+	}
+	return DataTable[Reg];
 }
 // ----------------------------------------
 
 void CONTROL_PrepareClamping(Boolean Clamp)
 {
+	SM_Params Params;
+
 	if(Clamp)
-	{
-		Int16U Reg = 0;
-		switch((Int16U)DataTable[REG_DEV_CASE])
-		{
-			case SC_Type_A2:
-				Reg = 0;
-				break;
-			case SC_Type_B1:
-				Reg = 1;
-				break;
-			case SC_Type_C1:
-				Reg = 2;
-				break;
-			case SC_Type_D0:
-				Reg = 3;
-				break;
-			case SC_Type_E0:
-				Reg = 4;
-				break;
-			case SC_Type_F1:
-				Reg = 5;
-				break;
-			case SC_Type_ADAP:
-				Reg = 6;
-				break;
-
-			case SC_Type_E2M:
-				Reg = 7;
-				break;
-//
-			case SC_Type_MIAA:
-				Reg = 40;
-				break;
-			case SC_Type_MIDA:
-				Reg = 41;
-				break;
-			case SC_Type_MIFA:
-				Reg = 42;
-				break;
-			case SC_Type_MIHA:
-				Reg = 43;
-				break;
-			case SC_Type_MIHM:
-				Reg = 44;
-				break;
-			case SC_Type_MIHV:
-				Reg = 45;
-				break;
-			case SC_Type_MISM:
-				Reg = 46;
-				break;
-			case SC_Type_MISM2_CH:
-				Reg = 47;
-				break;
-			case SC_Type_MISM2_SS_SD:
-				Reg = 48;
-				break;
-			case SC_Type_MISV:
-				Reg = 49;
-				break;
-			case SC_Type_MIXM:
-				Reg = 50;
-				break;
-			case SC_Type_MIXV:
-				Reg = 51;
-				break;
-
-			case SC_Type_MIADAP:
-				Reg = 52;
-				break;
-		}
-
-		CONTROL_PreparePositioningX(DataTable[Reg], DataTable[REG_SLOW_DOWN_DIST],
-				DataTable[REG_CLAMP_SPEED_MAX], DataTable[REG_CLAMP_SPEED_LOW], DataTable[REG_CLAMP_SPEED_MIN]);
-	}
+		SM_Config(&Params, CONTROL_GetClampHeightMm(), TRUE);
 	else
-		CONTROL_PreparePositioningX(0, 0,
-				DataTable[REG_CLAMP_SPEED_MAX], DataTable[REG_CLAMP_SPEED_LOW], DataTable[REG_CLAMP_SPEED_MIN]);
+		SM_Config(&Params, 0, FALSE);
+
+	SM_GoToPosition(&Params);
 }
 // ----------------------------------------
 
 void CONTROL_PreparePositioning()
 {
 	CONTROL_PreparePositioningX(DataTable[REG_CUSTOM_POS], DataTable[REG_SLOW_DOWN_DIST],
-			DataTable[REG_POS_SPEED_MAX], DataTable[REG_POS_SPEED_LOW], DataTable[REG_POS_SPEED_MIN]);
+			DataTable[REG_POS_SPEED_MAX], DataTable[REG_POS_SPEED_MIN], DataTable[REG_CLAMP_SPEED_MIN]);
 }
 // ----------------------------------------
 

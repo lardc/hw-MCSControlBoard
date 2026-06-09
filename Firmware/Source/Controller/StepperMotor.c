@@ -127,19 +127,37 @@ void SM_Enable(Boolean State)
 }
 // ----------------------------------------
 
+// MCS cycle speed profile (regs 10, 12, 13, 16)
+void SM_Config(pSM_Params Params, Int16U PositionMm, Boolean UseSlowdown)
+{
+	Params->NewPosition = PositionMm;
+	Params->MaxSpeed = DataTable[REG_POS_SPEED_MAX];
+	Params->SlowSpeed = DataTable[REG_POS_SPEED_MIN];
+	Params->MinSpeed = DataTable[REG_CLAMP_SPEED_MIN];
+
+	if(UseSlowdown)
+		Params->SlowDownDistance = DataTable[REG_SLOW_DOWN_DIST];
+	else
+	{
+		Params->SlowDownDistance = 0;
+		Params->SlowSpeed = Params->MaxSpeed;
+	}
+}
+// ----------------------------------------
+
 // New position in mm, speed in mm/s
-void SM_GoToPosition(pSM_Config Config)
+void SM_GoToPosition(pSM_Params Params)
 {
 	SM_RequestStopFlag = FALSE;
 
-	SM_LowSpeedSteps = SM_PosToSteps(Config->SlowDownDistance);
-	SM_DestSteps = SM_PosToSteps(Config->NewPosition);
+	SM_LowSpeedSteps = SM_PosToSteps(Params->SlowDownDistance);
+	SM_DestSteps = SM_PosToSteps(Params->NewPosition);
 
 	SM_UpDirection(SM_DestSteps > SM_GlobalStepsCounter);
 
-	SM_MinCycles = SM_SpeedToCycles(Config->MaxSpeed);
-	SM_LowSpeedCycles = SM_SpeedToCycles(Config->SlowSpeed);
-	SM_CyclesToToggle = SM_MaxCycles = SM_SpeedToCycles(Config->MinSpeed);
+	SM_MinCycles = SM_SpeedToCycles(Params->MaxSpeed);
+	SM_LowSpeedCycles = SM_SpeedToCycles(Params->SlowSpeed);
+	SM_CyclesToToggle = SM_MaxCycles = SM_SpeedToCycles(Params->MinSpeed);
 }
 // ----------------------------------------
 
