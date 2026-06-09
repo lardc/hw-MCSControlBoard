@@ -17,6 +17,7 @@
 #include "StepperMotor.h"
 #include "StepperMotorDiag.h"
 #include "DS18B20.h"
+#include "LowLevel.h"
 #include "ZwNFLASH.h"
 #include "SaveToFlash.h"
 
@@ -96,10 +97,10 @@ void CONTROL_Idle()
 	DEVPROFILE_ProcessRequests();
 	CONTROL_UpdateTRMTemperature();
 
-	DataTable[REG_SAFETY_SENSOR] = LL_IsSafetySensorOk();
+	DataTable[REG_SAFETY_SENSOR] = LL_FilterSafetyCircuit(LL_IsSafetyS3Ok());
 	DataTable[REG_HOMING_SENSOR] = LL_HomeSensorActuate();
-	DataTable[REG_BUS_TOOLING_SENSOR] = LL_IsBusToolingSensorOk();
-	DataTable[REG_ADAPTER_TOOLING_SENSOR] = LL_IsAdapterToolingSensorOk();
+	DataTable[REG_BUS_TOOLING_SENSOR] = LL_SPI_GetInBit(SPI_IN_BUS_HELD);
+	DataTable[REG_ADAPTER_TOOLING_SENSOR] = LL_SPI_GetInBit(SPI_IN_ADAPTER_HELD);
 	CONTROL_UpdatePressureOK();
 
 	// Process deferred procedures
@@ -151,7 +152,11 @@ static void CONTROL_SetDeviceState(DeviceState NewState, DeviceSubState NewSubSt
 
 static void CONTROL_HandleFanControl()
 {
-	LL_SwitchFan((FanTimeout > CONTROL_TimeCounter) || HeatingActive);
+	Boolean FanOn = (FanTimeout > CONTROL_TimeCounter) || HeatingActive;
+
+	LL_SPI_SetOutBit(SPI_OUT_FAN1, FanOn);
+	LL_SPI_SetOutBit(SPI_OUT_FAN2, FanOn);
+	LL_SPI_FlushOut();
 }
 // ----------------------------------------
 
@@ -166,7 +171,7 @@ static void CONTROL_HandleClampActions()
 		case DS_Position:
 		case DS_Clamping:
 		case DS_ClampingRelease:
-			if(DataTable[REG_USE_SAFETY_SENSOR] && !LL_IsSafetySensorOk())
+			if(DataTable[REG_USE_SAFETY_SENSOR] && !LL_FilterSafetyCircuit(LL_IsSafetyS3Ok()))
 				CONTROL_Halt();
 			break;
 		default:
@@ -179,19 +184,7 @@ static void CONTROL_HandleClampActions()
 		case DSS_Com_CheckControl:
 			{
 				// Раннее включение поджатия адаптера если зажимается прибор
-				if(CONTROL_State == DS_Clamping)
-					LL_SwitchPowerConnection(TRUE);
-
-				// Проверка состояния управления и пауза для разжатия
-				if(LL_IsControlConnected())
-				{
-					LL_SwitchControlConnection(FALSE);
-
-					Timeout = CONTROL_TimeCounter + PNEUMATIC_CTRL_PAUSE;
-					CONTROL_SetDeviceState(CONTROL_State, DSS_Com_ControlRelease);
-				}
-				else
-					CONTROL_SetDeviceState(CONTROL_State, DSS_Com_ReleaseDone);
+				CONTROL_SetDeviceState(CONTROL_State, DSS_Com_ReleaseDone);
 			}
 			break;
 
@@ -276,8 +269,8 @@ static void CONTROL_HandleClampActions()
 				case DSS_ClampingWaitSensors:
 				{
 					DUT_Type DUTType = (DUT_Type)DataTable[REG_CASE_THYRISTOR];
-					IsBusClampOk = LL_IsBusToolingSensorOk();
-					IsAdapterClampOk = LL_IsAdapterToolingSensorOk();
+					IsBusClampOk = LL_SPI_GetInBit(SPI_IN_BUS_HELD);
+					IsAdapterClampOk = LL_SPI_GetInBit(SPI_IN_ADAPTER_HELD);
 
 					if(!DataTable[REG_USE_TOOLING_SENSOR] || (IsBusClampOk && IsAdapterClampOk))
 					{
@@ -294,7 +287,9 @@ static void CONTROL_HandleClampActions()
 									(DUTType == DT_IGBT && AdapterID != DataTable[REG_DEV_CASE]))
 							{
 								DataTable[REG_PROBLEM] = PROBLEM_TOP_ADAPTER_MISMATCHED;
-								LL_SwitchPowerConnection(FALSE);
+								LL_SPI_SetOutBit(SPI_OUT_ADAPTER, false);
+								LL_SPI_SetOutBit(SPI_OUT_BUS, false);
+								LL_SPI_FlushOut();
 								CONTROL_SetDeviceState(DS_Ready, DSS_None);
 								break;
 							}
@@ -313,25 +308,6 @@ static void CONTROL_HandleClampActions()
 
 				case DSS_ClampingOperating:
 					if(SM_IsPositioningDone())
-					{
-						if(DataTable[REG_DEV_CASE] == SC_Type_C1 || DataTable[REG_DEV_CASE] == SC_Type_F1)
-						{
-							ClampingDuration = CONTROL_TimeCounter - ClampingDuration;
-							HomingDuration = ReleaseDuration = 0;
-							RequestSaveToFlash = TRUE;
-							CONTROL_SetDeviceState(DS_ClampingDone, DSS_None);
-						}
-						else
-						{
-							LL_SwitchControlConnection(TRUE);
-							Timeout = CONTROL_TimeCounter + PNEUMATIC_CTRL_PAUSE;
-							CONTROL_SetDeviceState(CONTROL_State, DSS_ClampingConnectControl);
-						}
-					}
-					break;
-
-				case DSS_ClampingConnectControl:
-					if(CONTROL_TimeCounter > Timeout)
 					{
 						ClampingDuration = CONTROL_TimeCounter - ClampingDuration;
 						HomingDuration = ReleaseDuration = 0;
@@ -382,14 +358,12 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 			DS18B20_Init();
 			if(!DS18B20_WriteReg((Int16U*)&DataTable[REG_ADAPTER_ID]))
 				*UserError = ERR_DEVICE_NOT_READY;
-			LL_CSMux(SPIMUX_EPROM);
 			break;
 
 		case ACT_ADAPTER_READ_ID:
 			DS18B20_Init();
 			if(!DS18B20_ReadReg((Int16U*)&DataTable[REG_ADAPTER_ID]))
 				*UserError = ERR_DEVICE_NOT_READY;
-			LL_CSMux(SPIMUX_EPROM);
 			break;
 
 		case ACT_HOMING:
@@ -437,15 +411,22 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 			
 		case ACT_RELEASE_ADAPTER:
 			if(CONTROL_State == DS_None || CONTROL_State == DS_Ready)
-				LL_SwitchPowerConnection(FALSE);
+			{
+				LL_SPI_SetOutBit(SPI_OUT_ADAPTER, false);
+				LL_SPI_SetOutBit(SPI_OUT_BUS, false);
+				LL_SPI_FlushOut();
+			}
 			else
 				*UserError = ERR_OPERATION_BLOCKED;
 			break;
 			
 		case ACT_HOLD_ADAPTER:
 			if(CONTROL_State == DS_None || CONTROL_State == DS_Ready)
-				LL_SwitchPowerConnection(TRUE);
-
+			{
+				LL_SPI_SetOutBit(SPI_OUT_ADAPTER, true);
+				LL_SPI_SetOutBit(SPI_OUT_BUS, true);
+				LL_SPI_FlushOut();
+			}
 			else
 				*UserError = ERR_OPERATION_BLOCKED;
 			break;
@@ -583,14 +564,6 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 				else
 					*UserError = ERR_OPERATION_BLOCKED;
 			}
-			break;
-			
-		case ACT_DBG_CONNECT_CONTROL:
-			LL_SwitchControlConnection(TRUE);
-			break;
-			
-		case ACT_DBG_DISCONNECT_CONTROL:
-			LL_SwitchControlConnection(FALSE);
 			break;
 			
 		case ACT_DBG_MOTOR_START:

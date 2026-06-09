@@ -5,6 +5,9 @@
 #include "DataTable.h"
 #include "Delay.h"
 #include "SysConfig.h"
+#include "ZwSPI.h"
+
+static Int8U SpiOutShadow = 0;
 
 static float LL_MeasureWrapper(ADC_TypeDef* ADCx, uint32_t ChannelNumber)
 {
@@ -16,6 +19,22 @@ static float LL_MeasureWrapper(ADC_TypeDef* ADCx, uint32_t ChannelNumber)
 		result += ADC_Measure(ADCx, ChannelNumber);
 
 	return result / samples * ADC_REF_VOLTAGE / ADC_RESOLUTION;
+}
+//-----------------------------
+
+static void LL_SPI_WriteRaw(Int8U Data)
+{
+	SPI_WriteByte8b(SPI3, Data);
+}
+//-----------------------------
+
+static void LL_SPI_LatchOut()
+{
+	DELAY_US(TIME_SPI_DELAY_US);
+	GPIO_SetState(GPIO_SPI_SS, true);
+	DELAY_US(TIME_SPI_DELAY_US);
+	GPIO_SetState(GPIO_SPI_SS, false);
+	DELAY_US(TIME_SPI_DELAY_US);
 }
 //-----------------------------
 
@@ -66,15 +85,67 @@ Boolean LL_FilterSafetyCircuit(Boolean NewState)
 }
 //-----------------------------
 
-void LL_CSMux(Int16U SPIDevice)
+void LL_SPI_SetOutBit(Int8U Bit, Boolean State)
 {
-	(void)SPIDevice;
+	if(State)
+		SpiOutShadow |= (Int8U)(1u << Bit);
+	else
+		SpiOutShadow &= (Int8U)~(1u << Bit);
 }
 //-----------------------------
 
-Boolean LL_IsSafetySensorOk()
+void LL_SPI_FlushOut()
+{
+	LL_SPI_WriteRaw(SpiOutShadow);
+	LL_SPI_LatchOut();
+}
+//-----------------------------
+
+Int8U LL_SPI_ReadInRaw()
+{
+	Int8U Data;
+
+	GPIO_SetState(GPIO_SPI_LD, false);
+	DELAY_US(TIME_SPI_DELAY_US);
+	GPIO_SetState(GPIO_SPI_LD, true);
+	DELAY_US(TIME_SPI_DELAY_US);
+
+	GPIO_SetState(GPIO_SPI_OE, false);
+	DELAY_US(TIME_SPI_DELAY_US);
+	Data = (Int8U)SPI_ReadByte8b(SPI3);
+	GPIO_SetState(GPIO_SPI_OE, true);
+
+	return Data;
+}
+//-----------------------------
+
+Boolean LL_SPI_GetInBit(Int8U Bit)
+{
+	return (LL_SPI_ReadInRaw() & (1u << Bit)) != 0;
+}
+//-----------------------------
+
+Boolean LL_SPI_IsCoil24VOk()
+{
+	return (LL_SPI_ReadInRaw() & SPI_IN_MASK_COIL_24V) == SPI_IN_MASK_COIL_24V;
+}
+//-----------------------------
+
+Boolean LL_IsTableSensorOk()
+{
+	return GPIO_GetState(GPIO_SEN_S2);
+}
+//-----------------------------
+
+Boolean LL_IsSafetyS3Ok()
 {
 	return GPIO_GetState(GPIO_SEN_S3);
+}
+//-----------------------------
+
+Boolean LL_IsSafetyS5Ok()
+{
+	return GPIO_GetState(GPIO_SEN_S5);
 }
 //-----------------------------
 
@@ -84,39 +155,15 @@ Boolean LL_HomeSensorActuate()
 }
 //-----------------------------
 
-Boolean LL_IsBusToolingSensorOk()
+void LL_SetTestLine(Boolean State)
 {
-	return false;
+	GPIO_SetState(GPIO_TEST, State);
 }
 //-----------------------------
 
-Boolean LL_IsAdapterToolingSensorOk()
+void LL_RS485_SetTxMode(Boolean State)
 {
-	return false;
-}
-//-----------------------------
-
-void LL_SwitchPowerConnection(Boolean State)
-{
-	(void)State;
-}
-//-----------------------------
-
-Boolean LL_IsPowerConnected()
-{
-	return false;
-}
-//-----------------------------
-
-void LL_SwitchControlConnection(Boolean State)
-{
-	(void)State;
-}
-//-----------------------------
-
-Boolean LL_IsControlConnected()
-{
-	return false;
+	GPIO_SetState(GPIO_RS485_CTRL, State);
 }
 //-----------------------------
 
@@ -147,12 +194,6 @@ Boolean LL_IsDirUp()
 void LL_SwitchEnable(Boolean State)
 {
 	GPIO_SetState(GPIO_STPM_EN, State);
-}
-//-----------------------------
-
-void LL_SwitchFan(Boolean State)
-{
-	(void)State;
 }
 //-----------------------------
 

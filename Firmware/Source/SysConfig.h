@@ -39,6 +39,7 @@
 #define SPI3_BAUDRATE_BITS				0x5
 #define SPI_LSB_FIRST					false
 #define SPI_MSB_FIRST					true
+#define TIME_SPI_DELAY_US				5
 // ----------------------------------------------
 
 // TRM
@@ -46,10 +47,6 @@
 #define TRM_TEMP_THR					500
 #define TRM_TIMEOUT_TICKS				100
 #define FAN_TIMEOUT						30000
-// ----------------------------------------------
-
-// SPI mux (stub)
-#define SPIMUX_EPROM					4
 // ----------------------------------------------
 
 #endif // __SYSCONFIG_H

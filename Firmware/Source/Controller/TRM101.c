@@ -4,6 +4,7 @@
 #include "OWENProtocol.h"
 #include "SysConfig.h"
 #include "Controller.h"
+#include "LowLevel.h"
 #include "ZbBoard.h"
 #include "ZwSCI.h"
 
@@ -24,8 +25,10 @@ static void TRM_SendBuffer(pInt16U Buffer, Int16U BufferSize)
 {
 	Int16U i;
 
+	LL_RS485_SetTxMode(true);
 	for(i = 0; i < BufferSize; i++)
 		ZwSCI_SendChar(Buffer[i] & 0xFF);
+	LL_RS485_SetTxMode(false);
 }
 // ----------------------------------------
 
