@@ -128,6 +128,7 @@
 #define REG_ADAPTER_TOOLING_SENSOR			109	// Состояние датчика фиксации адаптера оснастки
 
 #define REG_DEV_SUBSTATE					110	// Device substate
+#define REG_SELFTEST_RESULT					111	// Маска ошибок самодиагностики ОШ (бит0=ОШ1, бит1=ОШ2)
 
 #define REG_CANA_BUSOFF_COUNTER				120 // Counter of bus-off states
 #define REG_CANA_STATUS_REG					121	// CAN status register (32 bit)
@@ -155,6 +156,7 @@
 #define FAULT_BUS_SEN						7	// Ошибка сигнала с датчика поджатия шин
 #define FAULT_ADAPTER_SEN					8	// Ошибка сигнала с датчика поджатия адаптера
 #define FAULT_IGBT_ADAPTER_CONN				9	// No connection to IGBT adapter
+#define FAULT_SELFTEST						10	// Ошибка самодиагностики оптронов
 
 
 // PROBLEM CODES

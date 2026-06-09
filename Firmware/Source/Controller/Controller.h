@@ -31,6 +31,7 @@ typedef enum __DeviceState
 	DS_Position = 6,
 	DS_Clamping = 7,
 	DS_ClampingDone = 8,
+	DS_SelfTest = 9,
 	DS_ClampingRelease = 10
 } DeviceState;
 

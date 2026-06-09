@@ -19,6 +19,7 @@
 #include "DS18B20.h"
 #include "LowLevel.h"
 #include "Measurement.h"
+#include "SelfTest.h"
 #include "ZwNFLASH.h"
 #include "SaveToFlash.h"
 
@@ -46,6 +47,7 @@ volatile Int16U CONTROL_BootLoaderRequest = 0;
 // Forward functions
 static void CONTROL_HandleFanControl();
 static void CONTROL_HandleClampActions();
+static void CONTROL_ProcessSelfTest();
 static void CONTROL_SetDeviceState(DeviceState NewState, DeviceSubState NewSubState);
 static void CONTROL_FillWPPartDefault();
 static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError);
@@ -90,6 +92,8 @@ void CONTROL_Init()
 		TRMError dummy_error;
 		TRM_Stop(TRM_CH1_ADDR, &dummy_error);
 	}
+
+	CONTROL_SetDeviceState(DS_SelfTest, DSS_None);
 }
 // ----------------------------------------
 
@@ -104,6 +108,7 @@ void CONTROL_Idle()
 	DataTable[REG_ADAPTER_TOOLING_SENSOR] = LL_SPI_GetInBit(SPI_IN_ADAPTER_HELD);
 	DataTable[REG_PRESSURE] = MEAS_GetPressureMilliBar();
 	CONTROL_UpdatePressureOK();
+	CONTROL_ProcessSelfTest();
 
 	// Process deferred procedures
 	if(DPCDelegate)
@@ -125,6 +130,30 @@ void CONTROL_UpdateLow()
 {
 	CONTROL_HandleFanControl();
 	CONTROL_HandleClampActions();
+}
+// ----------------------------------------
+
+static void CONTROL_ProcessSelfTest()
+{
+	static DeviceState SelfTestLatch = DS_None;
+
+	if(CONTROL_State != DS_SelfTest)
+	{
+		SelfTestLatch = DS_None;
+		return;
+	}
+
+	if(SelfTestLatch == DS_SelfTest)
+		return;
+
+	SelfTestLatch = DS_SelfTest;
+
+	DataTable[REG_SELFTEST_RESULT] = SELFTEST_Run();
+
+	if(DataTable[REG_SELFTEST_RESULT] == 0)
+		CONTROL_SetDeviceState(DS_Ready, DSS_None);
+	else
+		CONTROL_SwitchToFault(FAULT_SELFTEST);
 }
 // ----------------------------------------
 
