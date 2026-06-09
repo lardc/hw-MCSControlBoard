@@ -6,7 +6,6 @@
 #define __STEPPER_MOTOR_H
 
 // Include
-#include "ZbBoard.h"
 #include "LowLevel.h"
 
 // Types
@@ -34,7 +33,7 @@ void SM_Config(pSM_Params Params, Int16U PositionMm, Boolean UseSlowdown);
 void SM_GoToPosition(pSM_Params Params);
 Boolean SM_IsPositioningDone();
 // Homing
-void SM_Homing(Int16U HomingSpeed);
+void SM_Homing();
 Boolean SM_IsHomingDone();
 Boolean SM_IsSafetyEvent();
 void SM_ResetZeroPoint();

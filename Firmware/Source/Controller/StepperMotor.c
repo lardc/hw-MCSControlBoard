@@ -162,13 +162,13 @@ void SM_GoToPosition(pSM_Params Params)
 // ----------------------------------------
 
 // Homing
-void SM_Homing(Int16U HomingSpeed)
+void SM_Homing()
 {
 	SM_SafetyEvent = FALSE;
 	SM_RequestStopFlag = FALSE;
 	SM_HomingFlag = TRUE;
 	SM_UpDirection(FALSE);
-	SM_CyclesToToggle = SM_SpeedToCycles(HomingSpeed);
+	SM_CyclesToToggle = SM_SpeedToCycles(DataTable[REG_HOMING_SPEED]);
 }
 // ----------------------------------------
 

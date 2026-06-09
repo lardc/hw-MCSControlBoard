@@ -2,7 +2,6 @@
 //
 #include "OWENProtocol.h"
 #include "SysConfig.h"
-#include "ZbBoard.h"
 
 // Functions
 //

@@ -31,6 +31,8 @@
 #define PNEUMATIC_POWER_TIMEOUT		2000
 #define HOMING_PAUSE				500
 #define TRM_READ_PAUSE				1000
+#define SPI_WAIT_TIMEOUT			2000	// мс (тики CONTROL_TimeCounter)
+#define ADAPTER_HOLD_PRESSURE_TIMEOUT	2000	// мс
 
 // Stepper motors system config
 #define SM_FULL_ROUND_STEPS			1000ul		// steps/round

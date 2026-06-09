@@ -7,7 +7,6 @@
 
 #include "OWENProtocol.h"
 #include "stdinc.h"
-#include "ZbBoard.h"
 #include "Global.h"
 #include "DeviceObjectDictionary.h"
 #include "Constraints.h"
@@ -36,18 +35,11 @@ typedef enum __DeviceSubState
 {
 	DSS_None = 0,
 
-	DSS_Com_CheckControl = 1,
-	DSS_Com_ControlRelease = 3,
-	DSS_Com_ReleaseDone = 4,
-
 	DSS_HomingSearchSensor = 10,
 	DSS_HomingPause = 11,
 	DSS_HomingMakeOffset = 12,
 
-	DSS_ClampingWaitSensors = 30,
 	DSS_ClampingOperating = 31,
-	DSS_ClampingConnectControl = 32,
-
 	DSS_ClampingReleaseOperating = 40,
 
 	DSS_AdapterHold_CheckPressure = 50,
@@ -69,12 +61,19 @@ typedef enum __DeviceSubState
 // Variables
 extern volatile Int64U CONTROL_TimeCounter;
 extern volatile DeviceState CONTROL_State;
+extern volatile DeviceSubState CONTROL_SubState;
+extern volatile Int32U HomingDuration;
+extern volatile Int32U ClampingDuration;
+extern volatile Int32U ReleaseDuration;
+extern volatile Boolean RequestSaveToFlash;
 extern volatile Int16U CONTROL_BootLoaderRequest;
 
 // Functions
 void CONTROL_Init();
 void CONTROL_Idle();
-void CONTROL_UpdateLow();
 void CONTROL_UpdatePressureOK();
+void CONTROL_SetDeviceState(DeviceState NewState, DeviceSubState NewSubState);
+void CONTROL_SwitchToFault(Int16U Reason);
+void CONTROL_Halt();
 
 #endif // __CONTROLLER_H
