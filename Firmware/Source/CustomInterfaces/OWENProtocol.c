@@ -2,6 +2,7 @@
 //
 #include "OWENProtocol.h"
 #include "SysConfig.h"
+#include "SCCISlave.h"
 
 // Functions
 //

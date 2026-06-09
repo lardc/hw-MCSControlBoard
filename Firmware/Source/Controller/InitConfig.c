@@ -5,6 +5,7 @@
 #include "LowLevel.h"
 #include "ZwSPI.h"
 #include "ZwDMA.h"
+#include "ZwSCI.h"
 
 Int16U INITCFG_PressureAdcBuffer[ADC_PRESSURE_BUF_SIZE];
 
@@ -38,14 +39,15 @@ void INITCFG_ConfigIO()
 
 void INITCFG_ConfigUART()
 {
-	USART_Init(USART1, SYSCLK, USART_BAUDRATE);
-	USART_Recieve_Interupt(USART1, 0, true);
+	USART_Init(USART3, SYSCLK, USART_BAUDRATE);
+	USART_Recieve_Interupt(USART3, 0, true);
 }
 //------------------------------------------------
 
-void INITCFG_ConfigUSART3()
+void INITCFG_ConfigTRMUART()
 {
-	USART_Init(USART3, SYSCLK, USART_BAUDRATE);
+	USART_Init(USART1, SYSCLK, USART_BAUDRATE);
+	USART_Recieve_Interupt(USART1, 0, true);
 }
 //------------------------------------------------
 

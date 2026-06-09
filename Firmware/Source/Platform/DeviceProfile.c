@@ -12,7 +12,7 @@
 #include "Controller.h"
 #include "Constraints.h"
 #include "ZwNCAN.h"
-#include "ZwSCI.h"
+#include "ZwUSART.h"
 
 // Types
 //
@@ -73,10 +73,10 @@ void DEVPROFILE_Init(xCCI_FUNC_CallbackAction SpecializedDispatch, Boolean* Mask
 	MaskChangesFlag = MaskChanges;
 	
 	// Init interface
-	RS232_IOConfig.IO_SendArray16 = &ZwSCI_SendArray16;
-	RS232_IOConfig.IO_ReceiveArray16 = &ZwSCI_ReceiveArray16;
-	RS232_IOConfig.IO_GetBytesToReceive = &ZwSCI_GetBytesToReceive;
-	RS232_IOConfig.IO_ReceiveByte = &ZwSCI_ReceiveChar;
+	RS232_IOConfig.IO_SendArray16 = (SCCI_FUNC_SendArray16)&USART3_SendArray16;
+	RS232_IOConfig.IO_ReceiveArray16 = (SCCI_FUNC_ReceiveArray16)&USART3_ReceiveArray16;
+	RS232_IOConfig.IO_GetBytesToReceive = (SCCI_FUNC_GetBytesToReceive)&USART3_GetBytesToReceive;
+	RS232_IOConfig.IO_ReceiveByte = (SCCI_FUNC_ReceiveByte)&USART3_ReceiveChar;
 	CAN_IOConfig.IO_SendMessage = &NCAN_SendMessage;
 	CAN_IOConfig.IO_SendMessageEx = &NCAN_SendMessageEx;
 	CAN_IOConfig.IO_GetMessage = &NCAN_GetMessage;

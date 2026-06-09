@@ -260,6 +260,16 @@
 			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Library/ZwTIM.h</locationURI>
 		</link>
 		<link>
+			<name>Source/Library/ZwUSART.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Library/ZwUSART.c</locationURI>
+		</link>
+		<link>
+			<name>Source/Library/ZwUSART.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Library/ZwUSART.h</locationURI>
+		</link>
+		<link>
 			<name>Source/Library/ZwWWDG.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Library/ZwWWDG.c</locationURI>

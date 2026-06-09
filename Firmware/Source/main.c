@@ -14,9 +14,9 @@ int main()
 	// Настройка портов
 	INITCFG_ConfigIO();
 
-	// Настройка UART
+	// USART3 — RS232 SCCI, USART1 — TRM (RS485)
 	INITCFG_ConfigUART();
-	INITCFG_ConfigUSART3();
+	INITCFG_ConfigTRMUART();
 
 	// Настройка CAN и SPI
 	INITCFG_ConfigCAN();

@@ -9,6 +9,8 @@
 #include "DataTable.h"
 #include "DeviceObjectDictionary.h"
 #include "StepperMotor.h"
+#include "ZwSCI.h"
+#include "ZwUSART.h"
 
 // Functions
 //
@@ -18,6 +20,16 @@ void USART1_IRQHandler()
 	{
 		ZwSCI_RegisterToFIFO(USART1);
 		ZwSCI_RecieveFlagClear(USART1);
+	}
+}
+//-----------------------------------------
+
+void USART3_IRQHandler()
+{
+	if(USARTx_RecieveCheck(USART3))
+	{
+		USARTx_RegisterToFIFO(USART3);
+		USARTx_OverrunFlagClear(USART3);
 	}
 }
 //-----------------------------------------

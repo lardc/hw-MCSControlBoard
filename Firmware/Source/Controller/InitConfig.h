@@ -7,7 +7,7 @@
 Boolean INITCFG_ConfigSystemClock();
 void INITCFG_ConfigIO();
 void INITCFG_ConfigUART();
-void INITCFG_ConfigUSART3();
+void INITCFG_ConfigTRMUART();
 void INITCFG_ConfigCAN();
 void INITCFG_ConfigSPI();
 void INITCFG_ConfigRS485();
