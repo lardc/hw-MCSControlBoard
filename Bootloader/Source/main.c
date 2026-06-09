@@ -55,21 +55,20 @@ void ConfigGPIO()
 	RCC_GPIO_Clk_EN(PORTA);
 	RCC_GPIO_Clk_EN(PORTB);
 	
-	//Выходы
+	// Выходы
 	GPIO_Config(LED_BLINK_PORT, LED_BLINK_PIN, Output, PushPull, HighSpeed, NoPull);
-	
-	//Альтернативные функции портов
-	GPIO_Config(GPIOA, Pin_9, AltFn, PushPull, HighSpeed, NoPull);
-	GPIO_AltFn(GPIOA, Pin_9, AltFn_7);
-	
-	GPIO_Config(GPIOA, Pin_10, AltFn, PushPull, HighSpeed, NoPull);
-	GPIO_AltFn(GPIOA, Pin_10, AltFn_7);
 
-	GPIO_Config(GPIOA, Pin_11, AltFn, PushPull, HighSpeed, NoPull);
-	GPIO_AltFn(GPIOA, Pin_11, AltFn_9);
+	// USART1 RS485 (PA2/PA3) — синхронно с Firmware Board.h
+	GPIO_Config(GPIOA, Pin_2, AltFn, PushPull, HighSpeed, NoPull);
+	GPIO_AltFn(GPIOA, Pin_2, AltFn_7);
+	GPIO_Config(GPIOA, Pin_3, AltFn, PushPull, HighSpeed, NoPull);
+	GPIO_AltFn(GPIOA, Pin_3, AltFn_7);
 
-	GPIO_Config(GPIOA, Pin_12, AltFn, PushPull, HighSpeed, NoPull);
-	GPIO_AltFn(GPIOA, Pin_12, AltFn_9);
+	// CAN1 (PB8/PB9) — синхронно с Firmware Board.h
+	GPIO_Config(GPIOB, Pin_8, AltFn, PushPull, HighSpeed, NoPull);
+	GPIO_AltFn(GPIOB, Pin_8, AltFn_9);
+	GPIO_Config(GPIOB, Pin_9, AltFn, PushPull, HighSpeed, NoPull);
+	GPIO_AltFn(GPIOB, Pin_9, AltFn_9);
 }
 //--------------------------------------------
 
