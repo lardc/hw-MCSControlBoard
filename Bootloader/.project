@@ -280,16 +280,6 @@
 			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Library/ZwRCC.h</locationURI>
 		</link>
 		<link>
-			<name>Source/Library/ZwSCI.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Library/ZwSCI.c</locationURI>
-		</link>
-		<link>
-			<name>Source/Library/ZwSCI.h</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Library/ZwSCI.h</locationURI>
-		</link>
-		<link>
 			<name>Source/Library/ZwSPI.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Library/ZwSPI.c</locationURI>
@@ -308,6 +298,16 @@
 			<name>Source/Library/ZwTIM.h</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Library/ZwTIM.h</locationURI>
+		</link>
+		<link>
+			<name>Source/Library/ZwUSART.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Library/ZwUSART.c</locationURI>
+		</link>
+		<link>
+			<name>Source/Library/ZwUSART.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Library/ZwUSART.h</locationURI>
 		</link>
 		<link>
 			<name>Source/Library/ZwWWDG.c</name>
