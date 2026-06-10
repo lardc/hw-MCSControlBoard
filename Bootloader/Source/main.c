@@ -58,7 +58,7 @@ void ConfigGPIO()
 	// Выходы
 	GPIO_Config(LED_BLINK_PORT, LED_BLINK_PIN, Output, PushPull, HighSpeed, NoPull);
 
-	// USART1 RS485 (PA2/PA3) — синхронно с Firmware Board.h
+	// USART2 RS485 (PA2/PA3, AF7) — синхронно с Firmware Board.h
 	GPIO_Config(GPIOA, Pin_2, AltFn, PushPull, HighSpeed, NoPull);
 	GPIO_AltFn(GPIOA, Pin_2, AltFn_7);
 	GPIO_Config(GPIOA, Pin_3, AltFn, PushPull, HighSpeed, NoPull);
@@ -74,8 +74,8 @@ void ConfigGPIO()
 
 void ConfigUART()
 {
-	USART_Init(USART1, SYSCLK, USART_BAUDRATE);
-	USART_Recieve_Interupt(USART1, 0, true);
+	USARTx_Init(USART2, SYSCLK, USART_BAUDRATE);
+	USARTx_RecieveInterrupt(USART2, true);
 }
 //--------------------------------------------
 

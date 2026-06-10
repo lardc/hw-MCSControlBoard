@@ -14,7 +14,7 @@ int main()
 	// Настройка портов
 	INITCFG_ConfigIO();
 
-	// USART3 — RS232 SCCI, USART1 — TRM (RS485)
+	// USART3 — RS232 SCCI, USART2 — TRM (RS485, PA2/PA3)
 	INITCFG_ConfigUART();
 	INITCFG_ConfigTRMUART();
 

@@ -5,15 +5,17 @@
 #include "SysConfig.h"
 #include "Controller.h"
 #include "LowLevel.h"
-#include "ZwSCI.h"
+#include "ZwUSART.h"
 
-// Functions
 static Boolean TRM_ReadChar(pInt16U Char, Int64U StartTime)
 {
 	while(CONTROL_TimeCounter - StartTime <= TRM_TIMEOUT_TICKS)
 	{
-		if(ZwSCIx_ReceiveChar(Char))
+		if(USART2_GetBytesToReceive())
+		{
+			*Char = USART2_ReceiveChar();
 			return TRUE;
+		}
 	}
 
 	return FALSE;
@@ -26,7 +28,7 @@ static void TRM_SendBuffer(pInt16U Buffer, Int16U BufferSize)
 
 	LL_RS485_SetTxMode(true);
 	for(i = 0; i < BufferSize; i++)
-		ZwSCI_SendChar(Buffer[i] & 0xFF);
+		USART2_SendChar(Buffer[i] & 0xFF);
 	LL_RS485_SetTxMode(false);
 }
 // ----------------------------------------

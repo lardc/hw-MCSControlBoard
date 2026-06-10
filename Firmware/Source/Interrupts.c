@@ -7,17 +7,16 @@
 #include "SysConfig.h"
 #include "Global.h"
 #include "StepperMotor.h"
-#include "ZwSCI.h"
 #include "ZwUSART.h"
 
 // Functions
 //
-void USART1_IRQHandler()
+void USART2_IRQHandler()
 {
-	if(ZwSCI_RecieveCheck(USART1))
+	if(USARTx_RecieveCheck(USART2))
 	{
-		ZwSCI_RegisterToFIFO(USART1);
-		ZwSCI_RecieveFlagClear(USART1);
+		USARTx_RegisterToFIFO(USART2);
+		USARTx_OverrunFlagClear(USART2);
 	}
 }
 //-----------------------------------------

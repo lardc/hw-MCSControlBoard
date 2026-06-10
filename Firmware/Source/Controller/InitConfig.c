@@ -5,7 +5,7 @@
 #include "LowLevel.h"
 #include "ZwSPI.h"
 #include "ZwDMA.h"
-#include "ZwSCI.h"
+#include "ZwUSART.h"
 
 Int16U INITCFG_PressureAdcBuffer[ADC_PRESSURE_BUF_SIZE];
 
@@ -23,8 +23,8 @@ void INITCFG_ConfigIO()
 
 	GPIO_InitAnalog(GPIO_MEASURE_PRESS);
 
-	GPIO_InitAltFunction(GPIO_ALT_UART1_RX, AltFn_7);
-	GPIO_InitAltFunction(GPIO_ALT_UART1_TX, AltFn_7);
+	GPIO_InitAltFunction(GPIO_ALT_UART2_RX, AltFn_7);
+	GPIO_InitAltFunction(GPIO_ALT_UART2_TX, AltFn_7);
 	GPIO_InitAltFunction(GPIO_ALT_UART3_RX, AltFn_7);
 	GPIO_InitAltFunction(GPIO_ALT_UART3_TX, AltFn_7);
 	GPIO_InitAltFunction(GPIO_ALT_CAN1_RX, AltFn_9);
@@ -39,15 +39,15 @@ void INITCFG_ConfigIO()
 
 void INITCFG_ConfigUART()
 {
-	USART_Init(USART3, SYSCLK, USART_BAUDRATE);
-	USART_Recieve_Interupt(USART3, 0, true);
+	USARTx_Init(USART3, SYSCLK, USART_BAUDRATE);
+	USARTx_RecieveInterrupt(USART3, true);
 }
 //------------------------------------------------
 
 void INITCFG_ConfigTRMUART()
 {
-	USART_Init(USART1, SYSCLK, USART_BAUDRATE);
-	USART_Recieve_Interupt(USART1, 0, true);
+	USARTx_Init(USART2, SYSCLK, USART_BAUDRATE);
+	USARTx_RecieveInterrupt(USART2, true);
 }
 //------------------------------------------------
 

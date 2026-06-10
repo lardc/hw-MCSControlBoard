@@ -14,8 +14,8 @@
 #include "ZwNFLASH.h"
 
 // Alternate-function pins
-GPIO_PortPinSettingMacro GPIO_ALT_UART1_TX		= {GPIOA, Pin_2};
-GPIO_PortPinSettingMacro GPIO_ALT_UART1_RX		= {GPIOA, Pin_3};
+GPIO_PortPinSettingMacro GPIO_ALT_UART2_TX		= {GPIOA, Pin_2};
+GPIO_PortPinSettingMacro GPIO_ALT_UART2_RX		= {GPIOA, Pin_3};
 GPIO_PortPinSettingMacro GPIO_ALT_UART3_TX		= {GPIOB, Pin_10};
 GPIO_PortPinSettingMacro GPIO_ALT_UART3_RX		= {GPIOB, Pin_11};
 GPIO_PortPinSettingMacro GPIO_ALT_CAN1_TX		= {GPIOB, Pin_9};
