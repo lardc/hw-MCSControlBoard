@@ -59,6 +59,7 @@ typedef struct __TableItemConstraint
 #define ADAPTER_MISMATCH_CODE		1
 #define ADAPTER_MISMATCH_CURRENT	2
 #define ADAPTER_MISMATCH_VOLTAGE	3
+#define ADAPTER_MISMATCH_HEIGHT		4
 
 // Variables
 //

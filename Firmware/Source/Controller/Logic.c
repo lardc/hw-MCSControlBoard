@@ -138,6 +138,13 @@ static Boolean LOGIC_ValidateAdapter()
 		return FALSE;
 	}
 
+	if(DataTable[REG_ADAPTER_CLAMP_HEIGHT] < ADAPTER_CLAMP_HEIGHT_MIN || DataTable[REG_ADAPTER_CLAMP_HEIGHT] > ADAPTER_CLAMP_HEIGHT_MAX)
+		{
+			DataTable[REG_ADAPTER_MISMATCH] = ADAPTER_MISMATCH_HEIGHT;
+			DataTable[REG_ADAPTER_MATCH] = ADAPTER_MATCH_FAIL;
+			return FALSE;
+		}
+
 	DataTable[REG_ADAPTER_MATCH] = ADAPTER_MATCH_OK;
 	return TRUE;
 }
@@ -149,6 +156,7 @@ Boolean LOGIC_IsCycleActive()
 	{
 		case DS_Homing:
 		case DS_Clamping:
+		case DS_ClampingDone:
 		case DS_ClampingRelease:
 		case DS_AdapterHold:
 		case DS_AdapterRelease:
@@ -385,6 +393,13 @@ void LOGIC_Process()
 
 						if(DataTable[REG_USE_HEATING])
 							TRM_Stop(TRM_CH1_ADDR, &error);
+
+						if(error != TRME_None)
+						{
+							DataTable[REG_TRM_ERROR] = error;
+							CONTROL_SwitchToFault(FAULT_TRM);
+							break;
+						}
 
 						LL_SPI_SetOutBit(SPI_OUT_FAN1, false);
 						LL_SPI_SetOutBit(SPI_OUT_FAN2, false);
