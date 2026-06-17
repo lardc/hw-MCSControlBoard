@@ -6,9 +6,6 @@
 
 // Definitions
 //
-#define DQ_WRITE_INVERSION			true
-#define DQ_READ_INVERSION			false
-#define DQ_STRONG_PULLUP_INVERSION	true
 #define DS18B20_USE_PARASITE_POWER	true
 //
 #define DS18B20_REGISTERS			9
@@ -203,20 +200,22 @@ Boolean DS18B20_ReadBit()
 }
 //-------------------
 
+//Инверсия по записи
 void DS18B20_SetDQ(Boolean State)
 {
-	GPIO_SetState(GPIO_DQ_CTRL, DQ_WRITE_INVERSION ? !State : State);
+	GPIO_SetState(GPIO_DQ_CTRL, !State);
 }
 //-------------------
 
+//Без инверсии по чтению
 Boolean DS18B20_ReadDQ()
 {
-	return DQ_READ_INVERSION ? !GPIO_GetState(GPIO_DQ_IN) : GPIO_GetState(GPIO_DQ_IN);
+	return GPIO_GetState(GPIO_DQ_IN);
 }
 //-------------------
 
 void DS18B20_StrongPullUpDQ(Boolean State)
 {
-	GPIO_SetState(GPIO_DQ_PWR, (DQ_STRONG_PULLUP_INVERSION) ? !State : State);
+	GPIO_SetState(GPIO_DQ_PWR, !State);
 }
 //-------------------
