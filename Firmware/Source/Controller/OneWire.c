@@ -79,9 +79,7 @@ Int8U OneWire_Reset()
 	Int8U retries = LINE_RETRIES_UNTIL_FREE;
 	Int32U Primask;
 
-	Primask = OneWire_irq_save();
 	OneWire_SetWriteLine(true);
-	__set_PRIMASK(Primask);
 
 	// Ожидание освобождения линии
 	do
@@ -92,9 +90,7 @@ Int8U OneWire_Reset()
 	}
 	while (!OneWire_ReadLine());
 
-	Primask = OneWire_irq_save();
 	OneWire_SetWriteLine(false);
-	__set_PRIMASK(Primask);
 	DELAY_US(480);
 
 	Primask = OneWire_irq_save();
@@ -156,17 +152,12 @@ Int8U OneWire_ReadBit()
 void OneWire_Write(Int8U value, Int8U power)
 {
 	Int8U bitMask;
-	Int32U Primask;
 
 	for (bitMask = 0x01; bitMask; bitMask <<= 1)
 		OneWire_WriteBit((bitMask & value) ? 1 : 0);
 
 	if (!power)
-	{
-		Primask = OneWire_irq_save();
 		OneWire_SetWriteLine(true);
-		__set_PRIMASK(Primask);
-	}
 	else if (Bus.hasPowerPin)
 		OneWire_SetPowerLine(true);
 }
@@ -176,16 +167,11 @@ void OneWire_Write(Int8U value, Int8U power)
 void OneWire_WriteBytes(const Int8U *buf, Int16U count, Boolean power)
 {
 	Int16U i;
-	Int32U Primask;
 	for (i = 0; i < count; i++)
 		OneWire_Write(buf[i], 0);
 
 	if (!power)
-	{
-		Primask = OneWire_irq_save();
 		OneWire_SetWriteLine(true);
-		__set_PRIMASK(Primask);
-	}
 	else if (Bus.hasPowerPin)
 		OneWire_SetPowerLine(true);
 }
@@ -239,14 +225,10 @@ void OneWire_Skip()
 // Отключение parasite power и освобождение линии данных
 void OneWire_Depower()
 {
-	Int32U Primask;
-
 	if (Bus.hasPowerPin)
 		OneWire_SetPowerLine(false);
 
-	Primask = OneWire_irq_save();
 	OneWire_SetWriteLine(true);
-	__set_PRIMASK(Primask);
 }
 //-------------------
 
