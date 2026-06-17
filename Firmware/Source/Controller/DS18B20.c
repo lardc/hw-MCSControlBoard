@@ -1,4 +1,5 @@
 #include "DS18B20.h"
+#include "OneWire.h"
 #include "Board.h"
 #include "DataTable.h"
 #include "DeviceObjectDictionary.h"
@@ -6,75 +7,41 @@
 
 // Definitions
 //
-#define DS18B20_USE_PARASITE_POWER	true
-//
 #define DS18B20_REGISTERS			9
 #define DS18B20_WRITE_TIMEOUT		5
-
-// Function prototypes
-//
-void DS18B20_SetDQ(Boolean State);
-Boolean DS18B20_ReadDQ();
-Boolean DS18B20_ReadBit();
-void DS18B20_WriteBit(Boolean Bit);
-Int16U DS18B20_ReadByte();
-void DS18B20_WriteByte(Int16U Data);
-void DS18B20_StrongPullUpDQ(Boolean State);
 
 // Functions
 //
 void DS18B20_Init()
 {
-	GPIO_InitOpenDrainOutput(GPIO_DQ_PWR, NoPull);
-	GPIO_InitPushPullOutput(GPIO_DQ_CTRL);
-	GPIO_InitInput(GPIO_DQ_IN, NoPull);
-
-	GPIO_SetState(GPIO_DQ_CTRL, false);
-	GPIO_SetState(GPIO_DQ_PWR, true);
-}
-//-------------------
-
-Boolean DS18B20_Reset()
-{
-	Boolean InitState;
-
-	DS18B20_SetDQ(false);
-	DELAY_US(700);
-	DS18B20_SetDQ(true);
-	DELAY_US(90);
-
-	InitState = !DS18B20_ReadDQ();
-
-	DELAY_US(250);
-
-	return InitState;
+	bool UsePowerPin = true;
+	bool SinglePin = false;
+	bool InvertWrite = true;
+	bool InvertPower = true;
+	OneWire_Init(GPIO_DQ_CTRL, GPIO_DQ_IN, GPIO_DQ_PWR, UsePowerPin, SinglePin, InvertWrite, InvertPower);
 }
 //-------------------
 
 Boolean DS18B20_WriteReg(pInt16U Data)
 {
-	if(DS18B20_Reset())
+	if(OneWire_Reset())
 	{
-		DS18B20_WriteByte(DS18B20_SKIP_ROM);
-		DS18B20_WriteByte(DS18B20_WRITE_SCRATCHPAD);
-		DS18B20_WriteByte((*Data >> 8) & 0xFF);
-		DS18B20_WriteByte(*Data & 0xFF);
-		DS18B20_WriteByte(CONFIG_RES_12BIT);
+		OneWire_Skip();
+		OneWire_Write(DS18B20_WRITE_SCRATCHPAD, 0);
+		OneWire_Write((*Data >> 8) & 0xFF, 0);
+		OneWire_Write(*Data & 0xFF, 0);
+		OneWire_Write(CONFIG_RES_12BIT, 0);
 
-		if(DS18B20_Reset())
+		if(OneWire_Reset())
 		{
-			DS18B20_WriteByte(DS18B20_SKIP_ROM);
-			DS18B20_WriteByte(DS18B20_COPY_SCRATCHPAD);
-
-#ifdef DS18B20_USE_PARASITE_POWER
-			DS18B20_StrongPullUpDQ(true);
+			OneWire_Skip();
+			OneWire_Write(DS18B20_COPY_SCRATCHPAD, 1);
 			DELAY_US(10000);
-			DS18B20_StrongPullUpDQ(false);
-#endif
+			OneWire_Depower();
 			{
 				Int16U TimeoutCounter = 0;
 
-				while(!DS18B20_Reset())
+				while(!OneWire_Reset())
 				{
 					DELAY_US(1000);
 					if(++TimeoutCounter >= DS18B20_WRITE_TIMEOUT)
@@ -92,16 +59,13 @@ Boolean DS18B20_WriteReg(pInt16U Data)
 
 Boolean DS18B20_ReadReg(pInt16U Data)
 {
-	Int16U i;
-	Int16U ReadBytes[DS18B20_REGISTERS];
+	Int8U ReadBytes[DS18B20_REGISTERS];
 
-	if(DS18B20_Reset())
+	if(OneWire_Reset())
 	{
-		DS18B20_WriteByte(DS18B20_SKIP_ROM);
-		DS18B20_WriteByte(DS18B20_READ_SCRATCHPAD);
-
-		for(i = 0; i < DS18B20_REGISTERS; i++)
-			ReadBytes[i] = DS18B20_ReadByte();
+		OneWire_Skip();
+		OneWire_Write(DS18B20_READ_SCRATCHPAD, 0);
+		OneWire_ReadBytes(ReadBytes, DS18B20_REGISTERS);
 
 		*Data = ReadBytes[REG_USER_BYTE_1] << 8 | ReadBytes[REG_USER_BYTE_2];
 		return true;
@@ -151,71 +115,5 @@ Boolean DS18B20_WriteIdentifier(pAdapterIdentifier Id)
 
 	DS18B20_PublishIdentifier(Id);
 	return true;
-}
-//-------------------
-
-Int16U DS18B20_ReadByte()
-{
-	Int16U i, Data = 0;
-
-	for(i = 0; i < 8; i++)
-		Data |= DS18B20_ReadBit() << i;
-
-	return Data;
-}
-//-------------------
-
-void DS18B20_WriteByte(Int16U Data)
-{
-	Int16U i;
-
-	for(i = 0; i < 8; i++)
-		DS18B20_WriteBit((Data >> i) & 0x1);
-}
-//-------------------
-
-void DS18B20_WriteBit(Boolean Bit)
-{
-	DS18B20_SetDQ(false);
-	DELAY_US(Bit ? 5 : 65);
-	DS18B20_SetDQ(true);
-	DELAY_US(Bit ? 65 : 5);
-}
-//-------------------
-
-Boolean DS18B20_ReadBit()
-{
-	Boolean Bit;
-
-	DS18B20_SetDQ(false);
-	DELAY_US(5);
-	DS18B20_SetDQ(true);
-	DELAY_US(10);
-
-	Bit = DS18B20_ReadDQ();
-
-	DELAY_US(55);
-
-	return Bit;
-}
-//-------------------
-
-//Инверсия по записи
-void DS18B20_SetDQ(Boolean State)
-{
-	GPIO_SetState(GPIO_DQ_CTRL, !State);
-}
-//-------------------
-
-//Без инверсии по чтению
-Boolean DS18B20_ReadDQ()
-{
-	return GPIO_GetState(GPIO_DQ_IN);
-}
-//-------------------
-
-void DS18B20_StrongPullUpDQ(Boolean State)
-{
-	GPIO_SetState(GPIO_DQ_PWR, !State);
 }
 //-------------------

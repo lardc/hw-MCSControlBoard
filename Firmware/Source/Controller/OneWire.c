@@ -7,6 +7,8 @@ typedef struct __OneWireBus
 	GPIO_PortPinSetting readPin;
 	GPIO_PortPinSetting powerPin;
 	Boolean hasPowerPin;
+	Boolean invertWrite;
+	Boolean invertPower;
 	Int8U ROM_NO[8];
 	Int8U LastVariance;
 	Int8U LastFamilyVariance;
@@ -27,7 +29,7 @@ static inline Int32U OneWire_irq_save()
 // Управление линией записи
 static void OneWire_SetWriteLine(Boolean active)
 {
-	GPIO_SetState(Bus.writePin, active);
+	GPIO_SetState(Bus.writePin, Bus.invertWrite ? !active : active);
 }
 //-------------------
 
@@ -44,18 +46,20 @@ static void OneWire_SetPowerLine(Boolean active)
 	if (!Bus.hasPowerPin)
 		return;
 
-	GPIO_SetState(Bus.powerPin, active);
+	GPIO_SetState(Bus.powerPin, Bus.invertPower ? !active : active);
 }
 //-------------------
 
-// Инициализация шины: пины записи, чтения, parasite power и флаг использования питания
+// Инициализация шины
 void OneWire_Init(GPIO_PortPinSetting writePin, GPIO_PortPinSetting readPin, GPIO_PortPinSetting powerPin,
-		Boolean usePowerPin, Boolean useSinglePin)
+		Boolean usePowerPin, Boolean useSinglePin, Boolean invertWrite, Boolean invertPower)
 {
 	Bus.writePin = writePin;
 	Bus.readPin = useSinglePin ? writePin : readPin;
 	Bus.powerPin = powerPin;
 	Bus.hasPowerPin = usePowerPin;
+	Bus.invertWrite = invertWrite;
+	Bus.invertPower = invertPower;
 
 	if (useSinglePin)
 		GPIO_InitOpenDrainOutput(writePin, NoPull);
