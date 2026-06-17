@@ -50,15 +50,20 @@ static void OneWire_SetPowerLine(Boolean active)
 
 // Инициализация шины: пины записи, чтения, parasite power и флаг использования питания
 void OneWire_Init(GPIO_PortPinSetting writePin, GPIO_PortPinSetting readPin, GPIO_PortPinSetting powerPin,
-		Boolean usePowerPin)
+		Boolean usePowerPin, Boolean useSinglePin)
 {
 	Bus.writePin = writePin;
-	Bus.readPin = readPin;
+	Bus.readPin = useSinglePin ? writePin : readPin;
 	Bus.powerPin = powerPin;
 	Bus.hasPowerPin = usePowerPin;
 
-	GPIO_InitPushPullOutput(Bus.writePin);
-	GPIO_InitInput(Bus.readPin, NoPull);
+	if (useSinglePin)
+		GPIO_InitOpenDrainOutput(writePin, NoPull);
+	else
+	{
+		GPIO_InitPushPullOutput(Bus.writePin);
+		GPIO_InitInput(Bus.readPin, NoPull);
+	}
 
 	if (Bus.hasPowerPin)
 	{

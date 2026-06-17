@@ -8,9 +8,9 @@
 #define MATCH_ROM				0x55
 #define SKIP_ROM 				0xCC
 
-// Инициализация шины: writePin, readPin, powerPin, usePowerPin — использовать powerPin для parasite power
+// Инициализация шины: writePin, readPin, powerPin, usePowerPin — использовать powerPin для parasite power, useSinglePin (один пин open-drain)
 void OneWire_Init(GPIO_PortPinSetting writePin, GPIO_PortPinSetting readPin, GPIO_PortPinSetting powerPin,
-		Boolean usePowerPin);
+		Boolean usePowerPin, Boolean useSinglePin);
 
 // Обмен данными
 Int8U OneWire_Reset();
