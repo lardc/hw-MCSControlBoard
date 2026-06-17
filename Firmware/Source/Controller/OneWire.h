@@ -4,13 +4,9 @@
 #include "stdinc.h"
 #include "ZwGPIO.h"
 
-#ifndef ONEWIRE_CRC8_TABLE
-#define ONEWIRE_CRC8_TABLE 1
-#endif
-
-#ifndef ONEWIRE_CRC16
-#define ONEWIRE_CRC16 1
-#endif
+#define LINE_RETRIES_UNTIL_FREE	125
+#define MATCH_ROM				0x55
+#define SKIP_ROM 				0xCC
 
 // Инициализация шины: writePin, readPin, powerPin, usePowerPin — использовать powerPin для parasite power
 void OneWire_Init(GPIO_PortPinSetting writePin, GPIO_PortPinSetting readPin, GPIO_PortPinSetting powerPin,
@@ -35,10 +31,8 @@ Boolean OneWire_Search(Int8U *newAddr, Boolean searchMode);
 
 // Контрольные суммы Dallas
 Int8U OneWire_Crc8(const Int8U *addr, Int8U len);
-
-#if ONEWIRE_CRC16
+Boolean OneWire_CheckCrc8(const Int8U *data, Int8U len, Int8U receivedCrc);
 Boolean OneWire_CheckCrc16(const Int8U *input, Int16U len, const Int8U *invertedCrc, Int16U crc);
 Int16U OneWire_Crc16(const Int8U *input, Int16U len, Int16U crc);
-#endif
 
 #endif // __ONEWIRE_H

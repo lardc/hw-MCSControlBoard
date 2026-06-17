@@ -8,8 +8,8 @@ typedef struct __OneWireBus
 	GPIO_PortPinSetting powerPin;
 	Boolean hasPowerPin;
 	Int8U ROM_NO[8];
-	Int8U LastDiscrepancy;
-	Int8U LastFamilyDiscrepancy;
+	Int8U LastVariance;
+	Int8U LastFamilyVariance;
 	Boolean LastDeviceFlag;
 } OneWireBus;
 
@@ -24,34 +24,17 @@ static inline Int32U OneWire_irq_save()
 }
 //-------------------
 
-// Запись уровня на выходной пин (прямой доступ к регистрам для точных таймингов)
-static void OneWire_DirectWrite(GPIO_PortPinSetting pin, Boolean high)
-{
-	if (high)
-		pin.Port->BSRRL = (1U << pin.Pin);
-	else
-		pin.Port->BRR = (1U << pin.Pin);
-}
-//-------------------
-
-// Чтение уровня с входного пина
-static Boolean OneWire_DirectRead(GPIO_PortPinSetting pin)
-{
-	return (pin.Port->IDR & (1U << pin.Pin)) != 0;
-}
-//-------------------
-
 // Управление линией записи
 static void OneWire_SetWriteLine(Boolean active)
 {
-	OneWire_DirectWrite(Bus.writePin, active);
+	GPIO_SetState(Bus.writePin, active);
 }
 //-------------------
 
 // Чтение линии данных
 static Boolean OneWire_ReadLine()
 {
-	return OneWire_DirectRead(Bus.readPin);
+	return GPIO_GetState(Bus.readPin);
 }
 //-------------------
 
@@ -93,7 +76,7 @@ void OneWire_Init(GPIO_PortPinSetting writePin, GPIO_PortPinSetting readPin, GPI
 Int8U OneWire_Reset()
 {
 	Int8U result;
-	Int8U retries = 125;
+	Int8U retries = LINE_RETRIES_UNTIL_FREE;
 	Int32U Primask;
 
 	Primask = OneWire_irq_save();
@@ -239,7 +222,7 @@ void OneWire_Select(const Int8U *rom)
 {
 	Int8U i;
 
-	OneWire_Write(0x55, 0);
+	OneWire_Write(MATCH_ROM, 0);
 
 	for (i = 0; i < 8; i++)
 		OneWire_Write(rom[i], 0);
@@ -249,7 +232,7 @@ void OneWire_Select(const Int8U *rom)
 // Команда SKIP ROM (0xCC) — обращение ко всем устройствам на шине
 void OneWire_Skip()
 {
-	OneWire_Write(0xCC, 0);
+	OneWire_Write(SKIP_ROM, 0);
 }
 //-------------------
 
@@ -272,9 +255,9 @@ void OneWire_ResetSearch()
 {
 	Int8S i;
 
-	Bus.LastDiscrepancy = 0;
+	Bus.LastVariance = 0;
 	Bus.LastDeviceFlag = false;
-	Bus.LastFamilyDiscrepancy = 0;
+	Bus.LastFamilyVariance = 0;
 
 	for (i = 7; i >= 0; i--)
 		Bus.ROM_NO[i] = 0;
@@ -290,8 +273,8 @@ void OneWire_TargetSearch(Int8U familyCode)
 	for (i = 1; i < 8; i++)
 		Bus.ROM_NO[i] = 0;
 
-	Bus.LastDiscrepancy = 64;
-	Bus.LastFamilyDiscrepancy = 0;
+	Bus.LastVariance = 64;
+	Bus.LastFamilyVariance = 0;
 	Bus.LastDeviceFlag = false;
 }
 //-------------------
@@ -316,9 +299,9 @@ Boolean OneWire_Search(Int8U *newAddr, Boolean searchMode)
 	{
 		if (!OneWire_Reset())
 		{
-			Bus.LastDiscrepancy = 0;
+			Bus.LastVariance = 0;
 			Bus.LastDeviceFlag = false;
-			Bus.LastFamilyDiscrepancy = 0;
+			Bus.LastFamilyVariance = 0;
 			return false;
 		}
 
@@ -339,16 +322,16 @@ Boolean OneWire_Search(Int8U *newAddr, Boolean searchMode)
 				searchDirection = idBit;
 			else
 			{
-				if (idBitNumber < Bus.LastDiscrepancy)
+				if (idBitNumber < Bus.LastVariance)
 					searchDirection = ((Bus.ROM_NO[romByteNumber] & romByteMask) > 0);
 				else
-					searchDirection = (idBitNumber == Bus.LastDiscrepancy);
+					searchDirection = (idBitNumber == Bus.LastVariance);
 
 				if (searchDirection == 0)
 				{
 					lastZero = idBitNumber;
 					if (lastZero < 9)
-						Bus.LastFamilyDiscrepancy = lastZero;
+						Bus.LastFamilyVariance = lastZero;
 				}
 			}
 
@@ -372,8 +355,8 @@ Boolean OneWire_Search(Int8U *newAddr, Boolean searchMode)
 
 		if (!(idBitNumber < 65))
 		{
-			Bus.LastDiscrepancy = lastZero;
-			if (Bus.LastDiscrepancy == 0)
+			Bus.LastVariance = lastZero;
+			if (Bus.LastVariance == 0)
 				Bus.LastDeviceFlag = true;
 			searchResult = true;
 		}
@@ -381,9 +364,9 @@ Boolean OneWire_Search(Int8U *newAddr, Boolean searchMode)
 
 	if (!searchResult || !Bus.ROM_NO[0])
 	{
-		Bus.LastDiscrepancy = 0;
+		Bus.LastVariance = 0;
 		Bus.LastDeviceFlag = false;
-		Bus.LastFamilyDiscrepancy = 0;
+		Bus.LastFamilyVariance = 0;
 		searchResult = false;
 	}
 	else
@@ -396,30 +379,7 @@ Boolean OneWire_Search(Int8U *newAddr, Boolean searchMode)
 }
 //-------------------
 
-#if ONEWIRE_CRC8_TABLE
-static const Int8U dscrc2x16_table[] = {
-	0x00, 0x5E, 0xBC, 0xE2, 0x61, 0x3F, 0xDD, 0x83,
-	0xC2, 0x9C, 0x7E, 0x20, 0xA3, 0xFD, 0x1F, 0x41,
-	0x00, 0x9D, 0x23, 0xBE, 0x46, 0xDB, 0x65, 0xF8,
-	0x8C, 0x11, 0xAF, 0x32, 0xCA, 0x57, 0xE9, 0x74
-};
-
-// Расчёт 8-битного CRC Dallas (ROM, scratchpad)
-Int8U OneWire_Crc8(const Int8U *addr, Int8U len)
-{
-	Int8U crc = 0;
-
-	while (len--)
-	{
-		crc = *addr++ ^ crc;
-		crc = dscrc2x16_table[crc & 0x0f] ^ dscrc2x16_table[16 + ((crc >> 4) & 0x0f)];
-	}
-
-	return crc;
-}
-//-------------------
-#else
-// Расчёт 8-битного CRC Dallas (медленный вариант без таблицы)
+// Расчёт 8-битного CRC
 Int8U OneWire_Crc8(const Int8U *addr, Int8U len)
 {
 	Int8U crc = 0;
@@ -442,9 +402,14 @@ Int8U OneWire_Crc8(const Int8U *addr, Int8U len)
 	return crc;
 }
 //-------------------
-#endif
 
-#if ONEWIRE_CRC16
+// Проверка 8-битного CRC (receivedCrc — байт CRC из ответа устройства)
+Boolean OneWire_CheckCrc8(const Int8U *data, Int8U len, Int8U receivedCrc)
+{
+	return OneWire_Crc8(data, len) == receivedCrc;
+}
+//-------------------
+
 // Проверка 16-битного CRC (принимает инвертированные байты из ответа устройства)
 Boolean OneWire_CheckCrc16(const Int8U *input, Int16U len, const Int8U *invertedCrc, Int16U crc)
 {
@@ -478,4 +443,3 @@ Int16U OneWire_Crc16(const Int8U *input, Int16U len, Int16U crc)
 	return crc;
 }
 //-------------------
-#endif
