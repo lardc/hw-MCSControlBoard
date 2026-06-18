@@ -1,29 +1,29 @@
 #include "DS18B20.h"
 #include "OneWire.h"
 #include "Board.h"
-#include "DataTable.h"
-#include "DeviceObjectDictionary.h"
 #include "Delay.h"
 
-// Definitions
-//
-#define DS18B20_REGISTERS			9
 #define DS18B20_WRITE_TIMEOUT		5
+#define DS18B20_CONVERT_DELAY_US	750000	// 12-bit, parasite power
 
-// Functions
-//
+static Boolean DS18B20_ReadScratchpad(Int8U *Scratchpad);
+static Boolean DS18B20_StartConvert();
+
 void DS18B20_Init()
 {
 	bool UsePowerPin = true;
 	bool SinglePin = false;
 	bool InvertWrite = true;
 	bool InvertPower = true;
+
 	OneWire_Init(GPIO_DQ_CTRL, GPIO_DQ_IN, GPIO_DQ_PWR, UsePowerPin, SinglePin, InvertWrite, InvertPower);
 }
 //-------------------
 
 Boolean DS18B20_WriteReg(pInt16U Data)
 {
+	Int8U Scratchpad[DS18B20_SCRATCHPAD_SIZE];
+
 	if(OneWire_Reset())
 	{
 		OneWire_Skip();
@@ -32,12 +32,21 @@ Boolean DS18B20_WriteReg(pInt16U Data)
 		OneWire_Write(*Data & 0xFF, 0);
 		OneWire_Write(CONFIG_RES_12BIT, 0);
 
+		if(!DS18B20_ReadScratchpad(Scratchpad))
+			return false;
+
+		if(Scratchpad[REG_USER_BYTE_1] != ((*Data >> 8) & 0xFF)
+				|| Scratchpad[REG_USER_BYTE_2] != (*Data & 0xFF)
+				|| Scratchpad[REG_CONFIGURATION] != CONFIG_RES_12BIT)
+			return false;
+
 		if(OneWire_Reset())
 		{
 			OneWire_Skip();
 			OneWire_Write(DS18B20_COPY_SCRATCHPAD, 1);
 			DELAY_US(10000);
 			OneWire_Depower();
+
 			{
 				Int16U TimeoutCounter = 0;
 
@@ -59,61 +68,57 @@ Boolean DS18B20_WriteReg(pInt16U Data)
 
 Boolean DS18B20_ReadReg(pInt16U Data)
 {
-	Int8U ReadBytes[DS18B20_REGISTERS];
+	Int8U Scratchpad[DS18B20_SCRATCHPAD_SIZE];
 
-	if(OneWire_Reset())
-	{
-		OneWire_Skip();
-		OneWire_Write(DS18B20_READ_SCRATCHPAD, 0);
-		OneWire_ReadBytes(ReadBytes, DS18B20_REGISTERS);
-
-		*Data = ReadBytes[REG_USER_BYTE_1] << 8 | ReadBytes[REG_USER_BYTE_2];
-		return true;
-	}
-
-	return false;
-}
-//-------------------
-
-static void DS18B20_PublishIdentifier(pAdapterIdentifier Id)
-{
-	DataTable[REG_ADAPTER_ID] = Id->Code;
-	DataTable[REG_ADAPTER_CLAMP_HEIGHT] = Id->ClampHeightMm;
-	DataTable[REG_ADAPTER_MAX_CURRENT] = Id->MaxCurrent;
-	DataTable[REG_ADAPTER_MAX_VOLTAGE] = Id->MaxVoltage;
-	DataTable[REG_ADAPTER_SERIAL] = Id->Serial;
-}
-//-------------------
-
-static void DS18B20_LoadIdentifierStub(pAdapterIdentifier Id)
-{
-	Id->ClampHeightMm = DataTable[REG_ADAPTER_CLAMP_HEIGHT];
-	Id->MaxCurrent = DataTable[REG_ADAPTER_MAX_CURRENT];
-	Id->MaxVoltage = DataTable[REG_ADAPTER_MAX_VOLTAGE];
-	Id->Serial = DataTable[REG_ADAPTER_SERIAL];
-}
-//-------------------
-
-Boolean DS18B20_ReadIdentifier(pAdapterIdentifier Id)
-{
-	if(!DS18B20_ReadReg(&Id->Code))
+	if(!DS18B20_ReadScratchpad(Scratchpad))
 		return false;
 
-	// v1: layout EEPROM уточняется; поля кроме кода — зеркало DataTable
-	DS18B20_LoadIdentifierStub(Id);
-	DS18B20_PublishIdentifier(Id);
+	*Data = (Int16U)Scratchpad[REG_USER_BYTE_1] << 8 | Scratchpad[REG_USER_BYTE_2];
+	return true;
+}
+//-------------------
+
+Boolean DS18B20_ReadTemperatureC10(pInt16S Data)
+{
+	Int8U Scratchpad[DS18B20_SCRATCHPAD_SIZE];
+	Int16S Raw;
+
+	if(!DS18B20_StartConvert())
+		return false;
+
+	if(!DS18B20_ReadScratchpad(Scratchpad))
+		return false;
+
+	Raw = (Int16S)((Int16U)Scratchpad[REG_TEMPERATURE_LSB] | ((Int16U)Scratchpad[REG_TEMPERATURE_MSB] << 8));
+	*Data = (Int16S)(((Int32S)Raw * 10) / 16);
 
 	return true;
 }
 //-------------------
 
-Boolean DS18B20_WriteIdentifier(pAdapterIdentifier Id)
+static Boolean DS18B20_StartConvert()
 {
-	// v1: запись кода как в CS; полный блок EEPROM — TODO
-	if(!DS18B20_WriteReg(&Id->Code))
+	if(!OneWire_Reset())
 		return false;
 
-	DS18B20_PublishIdentifier(Id);
+	OneWire_Skip();
+	OneWire_Write(DS18B20_CONVERT_T, 1);
+	DELAY_US(DS18B20_CONVERT_DELAY_US);
+	OneWire_Depower();
+
 	return true;
+}
+//-------------------
+
+static Boolean DS18B20_ReadScratchpad(Int8U *Scratchpad)
+{
+	if(!OneWire_Reset())
+		return false;
+
+	OneWire_Skip();
+	OneWire_Write(DS18B20_READ_SCRATCHPAD, 0);
+	OneWire_ReadBytes(Scratchpad, DS18B20_SCRATCHPAD_SIZE);
+
+	return OneWire_CheckCrc8(Scratchpad, REG_CRC, Scratchpad[REG_CRC]);
 }
 //-------------------

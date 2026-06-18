@@ -1,8 +1,4 @@
-﻿// ----------------------------------------
-// Controller logic
-// ----------------------------------------
-
-// Header
+﻿// Header
 #include "Controller.h"
 
 // Includes
@@ -133,7 +129,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 	switch(ActionID)
 	{
 		case ACT_ADAPTER_WRITE_ID:
-			DS18B20_Init();
+			LOGIC_AdapterIdInit();
 			{
 				AdapterIdentifier Id;
 				Id.Code = DataTable[REG_ADAPTER_ID];
@@ -141,16 +137,16 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 				Id.MaxCurrent = DataTable[REG_ADAPTER_MAX_CURRENT];
 				Id.MaxVoltage = DataTable[REG_ADAPTER_MAX_VOLTAGE];
 				Id.Serial = DataTable[REG_ADAPTER_SERIAL];
-				if(!DS18B20_WriteIdentifier(&Id))
+				if(!LOGIC_AdapterIdWrite(&Id))
 					*UserError = ERR_DEVICE_NOT_READY;
 			}
 			break;
 
 		case ACT_ADAPTER_READ_ID:
-			DS18B20_Init();
+			LOGIC_AdapterIdInit();
 			{
 				AdapterIdentifier Id;
-				if(!DS18B20_ReadIdentifier(&Id))
+				if(!LOGIC_AdapterIdRead(&Id))
 					*UserError = ERR_DEVICE_NOT_READY;
 			}
 			break;

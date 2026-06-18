@@ -1,7 +1,3 @@
-// ----------------------------------------
-// MCS operational logic (FSM)
-// ----------------------------------------
-
 #include "Logic.h"
 #include "Controller.h"
 #include "Global.h"
@@ -13,9 +9,9 @@
 #include "Measurement.h"
 #include "SelfTest.h"
 #include "StepperMotor.h"
-#include "DS18B20.h"
 #include "TRM101.h"
 
+static void LOGIC_AdapterIdPublish(pAdapterIdentifier Id);
 static Int16U LOGIC_ClampHeightMm = 0;
 static Int64U LOGIC_WaitDeadline = 0;
 static Int64U LOGIC_StateTimeout = 0;
@@ -104,11 +100,49 @@ static Boolean LOGIC_ReadAdapterId()
 {
 	AdapterIdentifier Id;
 
-	DS18B20_Init();
-	if(!DS18B20_ReadIdentifier(&Id))
+	LOGIC_AdapterIdInit();
+	if(!LOGIC_AdapterIdRead(&Id))
 		return FALSE;
 
 	LOGIC_ClampHeightMm = Id.ClampHeightMm;
+	return TRUE;
+}
+// ----------------------------------------
+
+void LOGIC_AdapterIdInit()
+{
+	// TODO: инициализация шины / пинов микросхемы идентификатора
+}
+// ----------------------------------------
+
+static void LOGIC_AdapterIdPublish(pAdapterIdentifier Id)
+{
+	DataTable[REG_ADAPTER_ID] = Id->Code;
+	DataTable[REG_ADAPTER_CLAMP_HEIGHT] = Id->ClampHeightMm;
+	DataTable[REG_ADAPTER_MAX_CURRENT] = Id->MaxCurrent;
+	DataTable[REG_ADAPTER_MAX_VOLTAGE] = Id->MaxVoltage;
+	DataTable[REG_ADAPTER_SERIAL] = Id->Serial;
+}
+// ----------------------------------------
+
+Boolean LOGIC_AdapterIdRead(pAdapterIdentifier Id)
+{
+	// TODO: чтение идентификатора из отдельной микросхемы
+	Id->Code = DataTable[REG_ADAPTER_ID];
+	Id->ClampHeightMm = DataTable[REG_ADAPTER_CLAMP_HEIGHT];
+	Id->MaxCurrent = DataTable[REG_ADAPTER_MAX_CURRENT];
+	Id->MaxVoltage = DataTable[REG_ADAPTER_MAX_VOLTAGE];
+	Id->Serial = DataTable[REG_ADAPTER_SERIAL];
+
+	LOGIC_AdapterIdPublish(Id);
+	return TRUE;
+}
+// ----------------------------------------
+
+Boolean LOGIC_AdapterIdWrite(pAdapterIdentifier Id)
+{
+	// TODO: запись идентификатора в отдельную микросхему
+	LOGIC_AdapterIdPublish(Id);
 	return TRUE;
 }
 // ----------------------------------------
