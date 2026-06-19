@@ -5,7 +5,6 @@
 // Header
 #include "DataTable.h"
 //
-#include "SysConfig.h"
 #include "FirmwareInfo.h"
 
 // Constants

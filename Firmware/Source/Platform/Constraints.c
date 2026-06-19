@@ -5,9 +5,6 @@
 // Header
 #include "Constraints.h"
 
-// Include
-#include "DeviceObjectDictionary.h"
-
 #define NO		0
 #define YES		1
 

@@ -7,7 +7,6 @@
 #include "StepperMotorDiag.h"
 #include "StepperMotor.h"
 #include "DataTable.h"
-#include "DeviceObjectDictionary.h"
 
 // Variables
 //

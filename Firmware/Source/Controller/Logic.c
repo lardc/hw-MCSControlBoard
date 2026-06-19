@@ -1,10 +1,10 @@
+// Header
 #include "Logic.h"
+// Includes
 #include "Controller.h"
-#include "Global.h"
 #include "SysConfig.h"
 #include "DataTable.h"
 #include "DeviceObjectDictionary.h"
-#include "Constraints.h"
 #include "LowLevel.h"
 #include "Measurement.h"
 #include "SelfTest.h"

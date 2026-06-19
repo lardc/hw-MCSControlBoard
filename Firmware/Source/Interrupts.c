@@ -3,8 +3,6 @@
 //
 #include "Controller.h"
 #include "LowLevel.h"
-#include "Board.h"
-#include "SysConfig.h"
 #include "Global.h"
 #include "StepperMotor.h"
 #include "ZwUSART.h"

@@ -4,7 +4,6 @@
 
 // Header
 #include "StepperMotor.h"
-#include "DeviceObjectDictionary.h"
 #include "DataTable.h"
 
 // Includes
