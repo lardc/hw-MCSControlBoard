@@ -34,6 +34,10 @@
 // 119-120
 #define ACT_DBG_MOTOR_START					121	// Запуск отладочного вращения моторов
 #define ACT_DBG_MOTOR_STOP					122	// Остановка отладочного вращения моторов
+#define ACT_DBG_DS18_READ					123 // Считать 2 байта памяти по OneWire в рег REG_DBG
+#define ACT_DBG_DS18_WRITE					124	// Записать 2 байта памяти по Onewire из рег REG_DBG
+#define ACT_DBG_ONEWIRE_SEARCH				125 // Поиск устройств OneWire, число найденных → REG_DBG
+#define ACT_DBG_DS18_READ_TEMP				126 // Тест считывания температуры из DS18
 
 #define ACT_SAVE_TO_ROM						200	// Save parameters to EEPROM module
 #define ACT_RESTORE_FROM_ROM				201	// Restore parameters from EEPROM module
@@ -92,8 +96,8 @@
 #define REG_DISABLE_REASON					98	// Fault reason in the case DeviceState -> DISABLED
 #define REG_WARNING							99	// Warning if present
 #define REG_PROBLEM							100	// Problem if present
-#define REG_TEMP_CH1						101	// Sampled temperature on channel 1
-// 102
+#define REG_OP_RESULT						101	// Регистр результата операции
+#define REG_TEMP_CH1						102	// Sampled temperature on channel 1
 #define REG_TRM_DATA						103	// Data read from TRM
 #define REG_TRM_ERROR						104	// TRM error value
 #define REG_PRESSURE						105	// Давление в пневмомагистрали
@@ -116,7 +120,7 @@
 // 125-158
 #define REG_SP__3							159
 // 160-169
-#define REG_DBG								170
+#define REG_DBG								170	// Отладочный регистр (DS18, OneWire search, …)
 // 171-255
 //
 // REGISTERS (firmware info, 256+)
@@ -126,6 +130,11 @@
 // 258-259
 #define REG_FWINFO_STR_LEN					260	// Length of the information string record
 #define REG_FWINFO_STR_BEGIN				261	// Begining of the information string record
+
+// Operation results
+#define OPRESULT_NONE							0	// No information or not finished
+#define OPRESULT_OK								1	// Operation was successful
+#define OPRESULT_FAIL							2	// Operation failed
 
 // FAULT CODES
 //
@@ -141,6 +150,7 @@
 // PROBLEM CODES
 //
 #define PROBLEM_NONE						0	// No problem
+#define PROBLEM_ONEWIRE						1	// OneWire failed task
 
 // DISABLE CODES
 //
@@ -156,7 +166,6 @@
 #define ERR_CONFIGURATION_LOCKED			1	// Device is locked for writing
 #define ERR_OPERATION_BLOCKED				2	// Operation can't be done due to current device state
 #define ERR_DEVICE_NOT_READY				3	// Device isn't ready to switch state
-//
 #define ERR_TRM_COMM_ERR					7	// Communication with TRM failed
 
 // ENDPOINTS

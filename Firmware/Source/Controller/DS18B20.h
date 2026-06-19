@@ -3,6 +3,8 @@
 
 #include "stdinc.h"
 
+#define DS18B20_FAMILY_CODE			0x28
+
 // DS18B20 ROM commands
 #define DS18B20_READ_ROM			0x33
 #define DS18B20_MATCH_ROM			0x55

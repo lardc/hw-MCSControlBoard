@@ -5,6 +5,9 @@
 #include "DataTable.h"
 #include "TRM101.h"
 #include "StepperMotorDiag.h"
+#include "DS18B20.h"
+#include "OneWire.h"
+#include "Controller.h"
 
 // Functions
 bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
@@ -82,6 +85,66 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 
 		case ACT_DBG_MOTOR_STOP:
 			SMD_RequstStop();
+			break;
+
+		case ACT_DBG_DS18_READ:
+			{
+				Int16U value;
+
+				if(DS18B20_ReadReg(&value))
+					DataTable[REG_DBG] = value;
+				else
+					CONTROL_FinishedWithProblem(PROBLEM_ONEWIRE);
+			}
+			break;
+
+		case ACT_DBG_DS18_WRITE:
+			{
+				Int16U value = (Int16U)DataTable[REG_DBG];
+
+				if(!DS18B20_WriteReg(&value))
+					CONTROL_FinishedWithProblem(PROBLEM_ONEWIRE);
+			}
+			break;
+
+		case ACT_DBG_ONEWIRE_SEARCH:
+			{
+				Int8U addr[8];
+				Int16U count = 0;
+				Boolean crcOk = true;
+
+				DataTable[REG_DBG] = 0;
+
+				OneWire_ResetSearch();
+				OneWire_TargetSearch(DS18B20_FAMILY_CODE);
+
+				while(OneWire_Search(addr, true))
+				{
+					if(!OneWire_CheckCrc8(addr, 7, addr[7]))
+					{
+						crcOk = false;
+						break;
+					}
+
+					count++;
+				}
+
+				DataTable[REG_DBG] = count;
+
+				if(!crcOk || count == 0)
+					CONTROL_FinishedWithProblem(PROBLEM_ONEWIRE);
+			}
+			break;
+
+		case ACT_DBG_DS18_READ_TEMP:
+			{
+				Int16S temp;
+
+				if(DS18B20_ReadTemperatureC10(&temp))
+					DataTable[REG_DBG] = temp;
+				else
+					CONTROL_FinishedWithProblem(PROBLEM_ONEWIRE);
+			}
 			break;
 
 		default:

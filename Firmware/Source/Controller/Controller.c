@@ -283,6 +283,13 @@ void CONTROL_Halt()
 }
 // ----------------------------------------
 
+void CONTROL_FinishedWithProblem(Int16U Problem)
+{
+	DataTable[REG_OP_RESULT] = OPRESULT_FAIL;
+	DataTable[REG_PROBLEM] = Problem;
+}
+// ----------------------------------------
+
 void CONTROL_SwitchToFault(Int16U Reason)
 {
 	CONTROL_SetDeviceState(DS_Fault, DSS_None);
