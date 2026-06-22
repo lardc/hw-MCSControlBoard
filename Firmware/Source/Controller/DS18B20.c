@@ -1,22 +1,29 @@
+// Header
 #include "DS18B20.h"
+// Includes
 #include "OneWire.h"
 #include "Board.h"
 #include "Delay.h"
 
 #define DS18B20_WRITE_TIMEOUT		5
-#define DS18B20_CONVERT_DELAY_US	750000	// 12-bit, parasite power
-
+#define DS18B20_CONVERT_DELAY_MS	750
+// Forward functions
 static Boolean DS18B20_ReadScratchpad(Int8U *Scratchpad);
 static Boolean DS18B20_StartConvert();
 
+// Functions
 void DS18B20_Init()
 {
+#if ONEWIRE_THREE_PIN_BUS
 	bool UsePowerPin = true;
 	bool SinglePin = false;
 	bool InvertWrite = true;
 	bool InvertPower = true;
 
 	OneWire_Init(GPIO_DQ_CTRL, GPIO_DQ_IN, GPIO_DQ_PWR, UsePowerPin, SinglePin, InvertWrite, InvertPower);
+#else
+	OneWire_Init(GPIO_DQ, GPIO_DQ, GPIO_DQ, false, true, false, false);
+#endif
 }
 //-------------------
 
@@ -44,7 +51,7 @@ Boolean DS18B20_WriteReg(pInt16U Data)
 		{
 			OneWire_Skip();
 			OneWire_Write(DS18B20_COPY_SCRATCHPAD, 1);
-			DELAY_US(10000);
+			DELAY_MS(10);
 			OneWire_Depower();
 
 			{
@@ -73,7 +80,7 @@ Boolean DS18B20_ReadReg(pInt16U Data)
 	if(!DS18B20_ReadScratchpad(Scratchpad))
 		return false;
 
-	*Data = (Int16U)Scratchpad[REG_USER_BYTE_1] << 8 | Scratchpad[REG_USER_BYTE_2];
+	*Data = ((Int16U)Scratchpad[REG_USER_BYTE_1] << 8) | Scratchpad[REG_USER_BYTE_2];
 	return true;
 }
 //-------------------
@@ -89,8 +96,8 @@ Boolean DS18B20_ReadTemperatureC10(pInt16S Data)
 	if(!DS18B20_ReadScratchpad(Scratchpad))
 		return false;
 
-	Raw = (Int16S)((Int16U)Scratchpad[REG_TEMPERATURE_LSB] | ((Int16U)Scratchpad[REG_TEMPERATURE_MSB] << 8));
-	*Data = (Int16S)(((Int32S)Raw * 10) / 16);
+	Raw = (Int16S)((Int16U)Scratchpad[REG_TEMPERATURE_MSB] << 8 | Scratchpad[REG_TEMPERATURE_LSB]);
+	*Data = (Raw * 10) / 16;
 
 	return true;
 }
@@ -102,9 +109,16 @@ static Boolean DS18B20_StartConvert()
 		return false;
 
 	OneWire_Skip();
+#if ONEWIRE_THREE_PIN_BUS
 	OneWire_Write(DS18B20_CONVERT_T, 1);
-	DELAY_US(DS18B20_CONVERT_DELAY_US);
+	DELAY_MS(DS18B20_CONVERT_DELAY_MS);
 	OneWire_Depower();
+#else
+	OneWire_Write(DS18B20_CONVERT_T, 0);
+	OneWire_StrongPullupHold(true);
+	DELAY_MS(DS18B20_CONVERT_DELAY_MS);
+	OneWire_StrongPullupHold(false);
+#endif
 
 	return true;
 }

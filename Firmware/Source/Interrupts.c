@@ -18,13 +18,13 @@ void USART2_IRQHandler()
 	}
 }
 //-----------------------------------------
-
-void USART3_IRQHandler()
+//Сделана временная замена на время тестов на SVTU
+void USART1_IRQHandler()
 {
-	if(USARTx_RecieveCheck(USART3))
+	if(USARTx_RecieveCheck(USART1))
 	{
-		USARTx_RegisterToFIFO(USART3);
-		USARTx_OverrunFlagClear(USART3);
+		USARTx_RegisterToFIFO(USART1);
+		USARTx_OverrunFlagClear(USART1);
 	}
 }
 //-----------------------------------------

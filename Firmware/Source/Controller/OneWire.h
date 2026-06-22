@@ -25,6 +25,9 @@ void OneWire_WriteBit(Int8U value);
 Int8U OneWire_ReadBit();
 void OneWire_Depower();
 
+// Сильная подтяжка на время convert / copy: MOSFET (hasPowerPin) или push-pull (один DQ)
+void OneWire_StrongPullupHold(Boolean enable);
+
 // Поиск устройств на шине
 void OneWire_ResetSearch();
 void OneWire_TargetSearch(Int8U familyCode);

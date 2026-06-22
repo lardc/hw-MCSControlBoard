@@ -1,6 +1,5 @@
 ﻿#include "LowLevel.h"
 
-#include "DS18B20.h"
 #include "Delay.h"
 #include "Global.h"
 #include "SysConfig.h"
@@ -22,40 +21,6 @@ static void LL_SPI_LatchOut()
 	DELAY_US(TIME_SPI_DELAY_US);
 	GPIO_SetState(GPIO_SPI_SS, false);
 	DELAY_US(TIME_SPI_DELAY_US);
-}
-//-----------------------------
-
-void LL_InitGPIO()
-{
-	GPIO_InitPushPullOutput(GPIO_LED);
-	GPIO_InitPushPullOutput(GPIO_RS485_CTRL);
-	GPIO_InitPushPullOutput(GPIO_STPM_DIR);
-	GPIO_InitPushPullOutput(GPIO_STPM_STEP);
-	GPIO_InitPushPullOutput(GPIO_STPM_EN);
-	GPIO_InitPushPullOutput(GPIO_SPI_SS);
-	GPIO_InitPushPullOutput(GPIO_TEST);
-
-	GPIO_InitOpenDrainOutput(GPIO_SPI_LD, NoPull);
-	GPIO_InitOpenDrainOutput(GPIO_SPI_OE, NoPull);
-
-	GPIO_InitInput(GPIO_SEN_S1, NoPull);
-	GPIO_InitInput(GPIO_SEN_S3, NoPull);
-	GPIO_InitInput(GPIO_SEN_S2, NoPull);
-	GPIO_InitInput(GPIO_SEN_S4, NoPull);
-	GPIO_InitInput(GPIO_SEN_S5, NoPull);
-	GPIO_InitInput(GPIO_HOMING, NoPull);
-
-	GPIO_SetState(GPIO_LED, false);
-	GPIO_SetState(GPIO_RS485_CTRL, false);
-	GPIO_SetState(GPIO_STPM_DIR, false);
-	GPIO_SetState(GPIO_STPM_STEP, false);
-	GPIO_SetState(GPIO_STPM_EN, false);
-	GPIO_SetState(GPIO_SPI_SS, false);
-	GPIO_SetState(GPIO_TEST, false);
-	GPIO_SetState(GPIO_SPI_LD, false);
-	GPIO_SetState(GPIO_SPI_OE, true);
-
-	DS18B20_Init();
 }
 //-----------------------------
 

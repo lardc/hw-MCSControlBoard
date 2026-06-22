@@ -13,6 +13,7 @@
 #include "Measurement.h"
 #include "Logic.h"
 #include "ZwNFLASH.h"
+#include "ZwIWDG.h"
 #include "SaveToFlash.h"
 #include "DebugActions.h"
 
@@ -34,6 +35,7 @@ static void CONTROL_SetFans(Boolean State);
 void CONTROL_UpdateTRMTemperature();
 static void CONTROL_InitStoragePointers();
 static Boolean CONTROL_ShouldMonitorPressureFault();
+static void CONTROL_WatchDogUpdate();
 
 // Functions
 void CONTROL_Init()
@@ -89,6 +91,15 @@ void CONTROL_Idle()
 		RequestSaveToFlash = FALSE;
 		STF_SaveDiagData();
 	}
+
+	CONTROL_WatchDogUpdate();
+}
+// ----------------------------------------
+
+static void CONTROL_WatchDogUpdate()
+{
+	if(BOOT_LOADER_VARIABLE != BOOT_LOADER_REQUEST)
+		IWDG_Refresh();
 }
 // ----------------------------------------
 
