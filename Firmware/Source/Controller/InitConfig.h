@@ -4,8 +4,12 @@
 #include "stdinc.h"
 #include "SysConfig.h"
 
+// Variables
+extern Int16U INITCFG_PressureAdcBuffer[ADC_PRESSURE_BUF_SIZE];
+
+// Functions
 Boolean INITCFG_ConfigSystemClock();
-void INITCFG_ConfigIO();
+void INITCFG_ConfigGPIO();
 void INITCFG_ConfigUART();
 void INITCFG_ConfigTRMUART();
 void INITCFG_ConfigCAN();
@@ -17,7 +21,5 @@ void INITCFG_ConfigTimer15();
 void INITCFG_ConfigWatchDog();
 void INITCFG_ConfigADC();
 void INITCFG_ConfigDMA();
-
-extern Int16U INITCFG_PressureAdcBuffer[ADC_PRESSURE_BUF_SIZE];
 
 #endif // __INITCONFIG_H

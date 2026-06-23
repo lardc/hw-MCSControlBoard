@@ -1,4 +1,6 @@
-﻿#include "InitConfig.h"
+﻿// Header
+#include "InitConfig.h"
+// Includes
 #include "Board.h"
 #include "SysConfig.h"
 #include "BCCIxParams.h"
@@ -6,16 +8,19 @@
 #include "ZwSPI.h"
 #include "ZwDMA.h"
 #include "ZwUSART.h"
+#include "DS18B20.h"
 
+// Variables
 Int16U INITCFG_PressureAdcBuffer[ADC_PRESSURE_BUF_SIZE];
 
+// Functions
 Boolean INITCFG_ConfigSystemClock()
 {
 	return RCC_PLL_HSE_Config(QUARTZ_FREQUENCY, PREDIV_4, PLL_14);
 }
 //------------------------------------------------
 
-void INITCFG_ConfigIO()
+void INITCFG_ConfigGPIO()
 {
 	RCC_GPIO_Clk_EN(PORTA);
 	RCC_GPIO_Clk_EN(PORTB);
@@ -33,14 +38,43 @@ void INITCFG_ConfigIO()
 	GPIO_InitAltFunction(GPIO_ALT_SPI3_MISO, AltFn_6);
 	GPIO_InitAltFunction(GPIO_ALT_SPI3_MOSI, AltFn_6);
 
-	LL_InitGPIO();
+	GPIO_InitPushPullOutput(GPIO_LED);
+	GPIO_InitPushPullOutput(GPIO_RS485_CTRL);
+	GPIO_InitPushPullOutput(GPIO_STPM_DIR);
+	GPIO_InitPushPullOutput(GPIO_STPM_STEP);
+	GPIO_InitPushPullOutput(GPIO_STPM_EN);
+	GPIO_InitPushPullOutput(GPIO_SPI_SS);
+	GPIO_InitPushPullOutput(GPIO_TEST);
+
+	GPIO_InitOpenDrainOutput(GPIO_SPI_LD, NoPull);
+	GPIO_InitOpenDrainOutput(GPIO_SPI_OE, NoPull);
+
+	GPIO_InitInput(GPIO_SEN_S1, NoPull);
+	GPIO_InitInput(GPIO_SEN_S3, NoPull);
+	GPIO_InitInput(GPIO_SEN_S2, NoPull);
+	GPIO_InitInput(GPIO_SEN_S4, NoPull);
+	GPIO_InitInput(GPIO_SEN_S5, NoPull);
+	GPIO_InitInput(GPIO_HOMING, NoPull);
+
+	GPIO_SetState(GPIO_LED, false);
+	GPIO_SetState(GPIO_RS485_CTRL, false);
+	GPIO_SetState(GPIO_STPM_DIR, false);
+	GPIO_SetState(GPIO_STPM_STEP, false);
+	GPIO_SetState(GPIO_STPM_EN, false);
+	GPIO_SetState(GPIO_SPI_SS, false);
+	GPIO_SetState(GPIO_TEST, false);
+	GPIO_SetState(GPIO_SPI_LD, false);
+	GPIO_SetState(GPIO_SPI_OE, true);
+
+	DS18B20_Init();
 }
 //------------------------------------------------
 
 void INITCFG_ConfigUART()
 {
-	USARTx_Init(USART3, SYSCLK, USART_BAUDRATE);
-	USARTx_RecieveInterrupt(USART3, true);
+//Заменено на время тестов на SVTU
+	USARTx_Init(USART1, SYSCLK, USART_BAUDRATE);
+	USARTx_RecieveInterrupt(USART1, true);
 }
 //------------------------------------------------
 
@@ -56,7 +90,7 @@ void INITCFG_ConfigCAN()
 	RCC_CAN_Clk_EN(CAN_1_ClkEN);
 	NCAN_Init(SYSCLK, CAN_BAUDRATE, FALSE);
 	NCAN_FIFOInterrupt(TRUE);
-	NCAN_FilterInit(0, CAN_SLAVE_FILTER_ID, CAN_MASTER_FILTER_ID);
+	NCAN_FilterInit(0, CAN_SLAVE_FILTER_ID, CAN_SLAVE_NID_MASK);
 }
 //------------------------------------------------
 

@@ -163,10 +163,10 @@ void OneWire_Write(Int8U value, Int8U power)
 	for (Int8U bitMask = 0x01; bitMask; bitMask <<= 1)
 		OneWire_WriteBit((bitMask & value) ? 1 : 0);
 
-	if (!power)
-		OneWire_SetWriteLine(true);
-	else if (Bus.hasPowerPin)
+	if (power && Bus.hasPowerPin)
 		OneWire_SetPowerLine(true);
+	else
+		OneWire_SetWriteLine(true);
 }
 //-------------------
 
@@ -176,9 +176,7 @@ void OneWire_WriteBytes(const Int8U *buf, Int16U count, Boolean power)
 	for (Int16U i = 0; i < count; i++)
 		OneWire_Write(buf[i], 0);
 
-	if (!power)
-		OneWire_SetWriteLine(true);
-	else if (Bus.hasPowerPin)
+	if (power && Bus.hasPowerPin)
 		OneWire_SetPowerLine(true);
 }
 //-------------------
@@ -226,10 +224,25 @@ void OneWire_Skip()
 // Отключение parasite power и освобождение линии данных
 void OneWire_Depower()
 {
-	if (Bus.hasPowerPin)
+	if(Bus.hasPowerPin)
 		OneWire_SetPowerLine(false);
 
 	OneWire_SetWriteLine(true);
+}
+//-------------------
+
+void OneWire_StrongPullupHold(Boolean enable)
+{
+	if(Bus.hasPowerPin)
+	{
+		OneWire_SetPowerLine(enable);
+		return;
+	}
+
+	// Один DQ без MOSFET: push-pull на время convert. Нельзя GPIO_Init* — сброс в 0 прерывает convert.
+	GPIO_SetState(Bus.writePin, true);
+	GPIO_Config(Bus.writePin.Port, Bus.writePin.Pin, Output, enable ? PushPull : OpenDrain, HighSpeed, NoPull);
+	GPIO_SetState(Bus.writePin, true);
 }
 //-------------------
 

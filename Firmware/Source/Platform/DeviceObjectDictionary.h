@@ -86,8 +86,9 @@
 // 85-89
 #define REG_DBG_STEP_DIV					90	// Коэффициент деления шагов в отладочном режиме
 #define REG_DBG_STEPS_MAX					91	// Количество шагов для поворота в отладочном режиме
-// 92-94
-#define REG_SP__2							95
+//
+#define REG_DBG								92	// Отладочный регистр (DS18, OneWire search, …)
+// 93-95
 //
 // REGISTERS (volatile, 96+)
 // ----------------------------------------
@@ -119,9 +120,7 @@
 #define REG_CANA_DIAG_REC					124	// CAN REC
 // 125-158
 #define REG_SP__3							159
-// 160-169
-#define REG_DBG								170	// Отладочный регистр (DS18, OneWire search, …)
-// 171-255
+// 160-255
 //
 // REGISTERS (firmware info, 256+)
 // ----------------------------------------

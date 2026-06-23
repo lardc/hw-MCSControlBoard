@@ -1,8 +1,4 @@
-﻿// -----------------------------------------
-// Logic controller
-// ----------------------------------------
-
-#ifndef __CONTROLLER_H
+﻿#ifndef __CONTROLLER_H
 #define __CONTROLLER_H
 
 #include "OWENProtocol.h"

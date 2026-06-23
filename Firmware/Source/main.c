@@ -12,9 +12,9 @@ int main()
 	INITCFG_ConfigSystemClock();
 	
 	// Настройка портов
-	INITCFG_ConfigIO();
+	INITCFG_ConfigGPIO();
 
-	// USART3 — RS232 SCCI, USART2 — TRM (RS485, PA2/PA3)
+	// USART3 — RS232 SCCI , USART2 — TRM
 	INITCFG_ConfigUART();
 	INITCFG_ConfigTRMUART();
 

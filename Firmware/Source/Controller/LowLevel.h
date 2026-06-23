@@ -24,8 +24,6 @@
 
 #define SPI_IN_MASK_COIL_24V	((1u << SPI_IN_ADAPTER_COIL_24V) | (1u << SPI_IN_BUS_COIL_24V))
 
-void LL_InitGPIO();
-
 Boolean LL_FilterSafetyCircuit(Boolean NewState);
 
 void LL_SPI_SetOutBit(Int8U Bit, Boolean State);
