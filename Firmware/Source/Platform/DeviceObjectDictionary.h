@@ -34,10 +34,13 @@
 // 119-120
 #define ACT_DBG_MOTOR_START					121	// Запуск отладочного вращения моторов
 #define ACT_DBG_MOTOR_STOP					122	// Остановка отладочного вращения моторов
-#define ACT_DBG_DS18_READ					123 // Считать 2 байта памяти по OneWire в рег REG_DBG
-#define ACT_DBG_DS18_WRITE					124	// Записать 2 байта памяти по Onewire из рег REG_DBG
-#define ACT_DBG_ONEWIRE_SEARCH				125 // Поиск устройств OneWire, число найденных → REG_DBG
-#define ACT_DBG_DS18_READ_TEMP				126 // Тест считывания температуры из DS18
+#define ACT_DBG_DS18_READ					123 // Считать 2 байта DS18 в REG_DBG (десят.)
+#define ACT_DBG_DS18_WRITE					124	// Записать 2 байта DS18 из REG_DBG (десят.)
+#define ACT_DBG_ONEWIRE_SEARCH				125 // Поиск DS18B20 и DS2431, общее число найденных → REG_DBG
+#define ACT_DBG_DS18_READ_TEMP				126 // Температура DS18 в REG_DBG, 0.1°C (десят.)
+#define ACT_DBG_DS2431_ERASE				127 // Стирание EEPROM DS2431; REG_DBG — номер устройства (0, 1, …)
+#define ACT_DBG_DS2431_READ					128 // Чтение 2 байт с адреса 0; REG_DBG: вход — номер, выход — данные (десят.)
+#define ACT_DBG_DS2431_WRITE				129 // Запись 2 байт с адреса 0; REG_DBG — данные (десят.), устройство — из 127/128
 
 #define ACT_SAVE_TO_ROM						200	// Save parameters to EEPROM module
 #define ACT_RESTORE_FROM_ROM				201	// Restore parameters from EEPROM module
@@ -87,7 +90,7 @@
 #define REG_DBG_STEP_DIV					90	// Коэффициент деления шагов в отладочном режиме
 #define REG_DBG_STEPS_MAX					91	// Количество шагов для поворота в отладочном режиме
 //
-#define REG_DBG								92	// Отладочный регистр (DS18, OneWire search, …)
+#define REG_DBG								92	// Отладочный регистр: десятичные значения (номер устройства / данные)
 // 93-95
 //
 // REGISTERS (volatile, 96+)

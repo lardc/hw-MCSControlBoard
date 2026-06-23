@@ -9,6 +9,12 @@
 static Int8U SerialNumber[DS2431_ONE_WIRE_MAC_SIZE];
 static Boolean SkipRom = true;
 
+static const Int8U EraseRow[DS2431_ROW_SIZE] =
+{
+	DS2431_ERASE_BYTE, DS2431_ERASE_BYTE, DS2431_ERASE_BYTE, DS2431_ERASE_BYTE,
+	DS2431_ERASE_BYTE, DS2431_ERASE_BYTE, DS2431_ERASE_BYTE, DS2431_ERASE_BYTE
+};
+
 // Forward functions
 static void DS2431_StartTransmission();
 static Boolean DS2431_WriteInternal(Int16U address, const Int8U *buf, Int16U count, Boolean verify);
@@ -53,6 +59,65 @@ Boolean DS2431_Write(Int16U address, const Int8U *buf, Int16U count, Boolean ver
 
 	OneWire_Depower();
 	return ret;
+}
+//-------------------
+
+Boolean DS2431_EraseAll(Boolean verify)
+{
+	for (Int16U address = 0; address < DS2431_EEPROM_SIZE; address += DS2431_ROW_SIZE)
+	{
+		if (!DS2431_Write(address, EraseRow, DS2431_ROW_SIZE, verify))
+			return false;
+	}
+
+	return true;
+}
+//-------------------
+
+Boolean DS2431_ReadData(Int8U *buf, Int16U len)
+{
+	if (len > DS2431_EEPROM_SIZE)
+		return false;
+
+	if (len > 0)
+		DS2431_Read(0, buf, len);
+
+	return true;
+}
+//-------------------
+
+Boolean DS2431_WriteData(const Int8U *buf, Int16U len)
+{
+	Int8U row[DS2431_ROW_SIZE];
+
+	if (len > DS2431_EEPROM_SIZE)
+		return false;
+
+	for (Int16U address = 0; address < len; address += DS2431_ROW_SIZE)
+	{
+		Int16U chunk = len - address;
+
+		if (chunk > DS2431_ROW_SIZE)
+			chunk = DS2431_ROW_SIZE;
+
+		if (chunk == DS2431_ROW_SIZE)
+		{
+			if (!DS2431_Write(address, &buf[address], DS2431_ROW_SIZE, false))
+				return false;
+		}
+		else
+		{
+			DS2431_Read(address, row, DS2431_ROW_SIZE);
+
+			for (Int16U i = 0; i < chunk; i++)
+				row[i] = buf[address + i];
+
+			if (!DS2431_Write(address, row, DS2431_ROW_SIZE, false))
+				return false;
+		}
+	}
+
+	return true;
 }
 //-------------------
 
