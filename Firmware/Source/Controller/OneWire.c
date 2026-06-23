@@ -160,9 +160,7 @@ Int8U OneWire_ReadBit()
 // Запись байта. При power != 0 удерживает parasite power до вызова OneWire_Depower()
 void OneWire_Write(Int8U value, Int8U power)
 {
-	Int8U bitMask;
-
-	for (bitMask = 0x01; bitMask; bitMask <<= 1)
+	for (Int8U bitMask = 0x01; bitMask; bitMask <<= 1)
 		OneWire_WriteBit((bitMask & value) ? 1 : 0);
 
 	if (!power)
@@ -175,8 +173,7 @@ void OneWire_Write(Int8U value, Int8U power)
 // Запись буфера байтов
 void OneWire_WriteBytes(const Int8U *buf, Int16U count, Boolean power)
 {
-	Int16U i;
-	for (i = 0; i < count; i++)
+	for (Int16U i = 0; i < count; i++)
 		OneWire_Write(buf[i], 0);
 
 	if (!power)
@@ -189,10 +186,9 @@ void OneWire_WriteBytes(const Int8U *buf, Int16U count, Boolean power)
 // Чтение байта
 Int8U OneWire_Read()
 {
-	Int8U bitMask;
 	Int8U result = 0;
 
-	for (bitMask = 0x01; bitMask; bitMask <<= 1)
+	for (Int8U bitMask = 0x01; bitMask; bitMask <<= 1)
 	{
 		if (OneWire_ReadBit())
 			result |= bitMask;
@@ -205,9 +201,7 @@ Int8U OneWire_Read()
 // Чтение буфера байтов
 void OneWire_ReadBytes(Int8U *buf, Int16U count)
 {
-	Int16U i;
-
-	for (i = 0; i < count; i++)
+	for (Int16U i = 0; i < count; i++)
 		buf[i] = OneWire_Read();
 }
 //-------------------
@@ -215,11 +209,9 @@ void OneWire_ReadBytes(Int8U *buf, Int16U count)
 // Команда MATCH ROM (0x55) — выбор устройства по 64-битному адресу
 void OneWire_Select(const Int8U *rom)
 {
-	Int8U i;
-
 	OneWire_Write(MATCH_ROM, 0);
 
-	for (i = 0; i < 8; i++)
+	for (Int8U i = 0; i < 8; i++)
 		OneWire_Write(rom[i], 0);
 }
 //-------------------
@@ -244,13 +236,11 @@ void OneWire_Depower()
 // Сброс состояния поиска устройств на шине
 void OneWire_ResetSearch()
 {
-	Int8S i;
-
 	Bus.LastVariance = 0;
 	Bus.LastDeviceFlag = false;
 	Bus.LastFamilyVariance = 0;
 
-	for (i = 7; i >= 0; i--)
+	for (Int8S i = 7; i >= 0; i--)
 		Bus.ROM_NO[i] = 0;
 }
 //-------------------
@@ -258,10 +248,9 @@ void OneWire_ResetSearch()
 // Настройка поиска устройств заданного семейства (первый байт ROM)
 void OneWire_TargetSearch(Int8U familyCode)
 {
-	Int8U i;
-
 	Bus.ROM_NO[0] = familyCode;
-	for (i = 1; i < 8; i++)
+
+	for (Int8U i = 1; i < 8; i++)
 		Bus.ROM_NO[i] = 0;
 
 	Bus.LastVariance = 64;
@@ -278,7 +267,6 @@ Boolean OneWire_Search(Int8U *newAddr, Boolean searchMode)
 	Boolean searchResult;
 	Int8U idBit, cmpIdBit;
 	Int8U romByteMask, searchDirection;
-	Int8S i;
 
 	idBitNumber = 1;
 	lastZero = 0;
@@ -362,7 +350,7 @@ Boolean OneWire_Search(Int8U *newAddr, Boolean searchMode)
 	}
 	else
 	{
-		for (i = 0; i < 8; i++)
+		for (Int8S i = 0; i < 8; i++)
 			newAddr[i] = Bus.ROM_NO[i];
 	}
 
@@ -378,9 +366,8 @@ Int8U OneWire_Crc8(const Int8U *addr, Int8U len)
 	while (len--)
 	{
 		Int8U inbyte = *addr++;
-		Int8U i;
 
-		for (i = 8; i; i--)
+		for (Int8U i = 8; i; i--)
 		{
 			Int8U mix = (crc ^ inbyte) & 0x01;
 			crc >>= 1;
@@ -414,9 +401,8 @@ Int16U OneWire_Crc16(const Int8U *input, Int16U len, Int16U crc)
 {
 	static const Int8U oddparity[16] =
 		{ 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0 };
-	Int16U i;
 
-	for (i = 0; i < len; i++)
+	for (Int16U i = 0; i < len; i++)
 	{
 		Int16U cdata = input[i];
 		cdata = (cdata ^ crc) & 0xff;
