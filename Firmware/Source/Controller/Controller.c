@@ -264,6 +264,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 					*UserError = ERR_OPERATION_BLOCKED;
 
 				DataTable[REG_FAULT_REASON] = FAULT_NONE;
+				DataTable[REG_PROBLEM] = PROBLEM_NONE;
 			}
 			break;
 

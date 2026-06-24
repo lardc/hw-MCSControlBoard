@@ -129,7 +129,7 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 					break;
 				}
 
-				DataTable[REG_DBG] = ds18Count + ds2431Count;
+				DataTable[REG_DBG] = ds18Count + ds2431Count*1000;
 
 				if(DataTable[REG_DBG] == 0)
 					CONTROL_FinishedWithProblem(PROBLEM_ONEWIRE);
@@ -152,7 +152,7 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 				DbgDS2431DeviceIndex = (Int8U)DataTable[REG_DBG];
 
 				if(!DEBUG_SelectDS2431ByIndex(DbgDS2431DeviceIndex)
-						|| !DS2431_EraseAll(false))
+						|| !DS2431_EraseAll(true))
 					CONTROL_FinishedWithProblem(PROBLEM_ONEWIRE);
 			}
 			break;
@@ -173,6 +173,7 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 
 		case ACT_DBG_DS2431_WRITE:
 			{
+				// REG_DBG — данные; индекс устройства — из предшествующего READ (128) или ERASE (127)
 				Int16U value = DataTable[REG_DBG];
 				Int8U buf[2];
 
@@ -207,6 +208,9 @@ static Boolean DEBUG_SearchOneWireFamily(Int8U familyCode, Int16U *foundCount, I
 		if(!OneWire_CheckCrc8(addr, 7, addr[7]))
 			return false;
 
+		if(addr[0] != familyCode)
+			continue;
+
 		if(*foundCount == 0 && firstRom != NULL)
 		{
 			for (Int8U i = 0; i < 8; i++)
@@ -232,6 +236,9 @@ static Boolean DEBUG_SelectDS2431ByIndex(Int8U deviceIndex)
 	{
 		if(!OneWire_CheckCrc8(addr, 7, addr[7]))
 			return false;
+
+		if(addr[0] != DS2431_ONE_WIRE_FAMILY_CODE)
+			continue;
 
 		if(count == deviceIndex)
 		{
