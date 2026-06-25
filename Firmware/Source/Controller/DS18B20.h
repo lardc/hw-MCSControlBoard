@@ -46,7 +46,7 @@ void DS18B20_Begin(Int8U serialNumber[DS18B20_ONE_WIRE_MAC_SIZE]);
 Boolean DS18B20_WriteReg(pInt16U Data);
 Boolean DS18B20_ReadReg(pInt16U Data);
 
-// Температура в 0.1°C (например, 253 = 25.3°C)
-Boolean DS18B20_ReadTemperatureC10(pInt16S Data);
+// Температура в °C. Если запись не в float, то надо домножать на 10.
+Boolean DS18B20_ReadTemperature(pFloat32 Data);
 
 #endif /* DS18B20_H_ */

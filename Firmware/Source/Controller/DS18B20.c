@@ -105,7 +105,7 @@ Boolean DS18B20_ReadReg(pInt16U Data)
 }
 //-------------------
 
-Boolean DS18B20_ReadTemperatureC10(pInt16S Data)
+Boolean DS18B20_ReadTemperature(pFloat32 Data)
 {
 	Int8U Scratchpad[DS18B20_SCRATCHPAD_SIZE];
 	Int16S Raw;
@@ -117,7 +117,7 @@ Boolean DS18B20_ReadTemperatureC10(pInt16S Data)
 		return false;
 
 	Raw = (Int16S)((Int16U)Scratchpad[REG_TEMPERATURE_MSB] << 8 | Scratchpad[REG_TEMPERATURE_LSB]);
-	*Data = (Raw * 10) / 16;
+	*Data = Raw / 16;
 
 	return true;
 }

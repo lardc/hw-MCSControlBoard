@@ -138,10 +138,10 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 
 		case ACT_DBG_DS18_READ_TEMP:
 			{
-				Int16S temp;
+				float temp;
 
-				if(DS18B20_ReadTemperatureC10(&temp))
-					DataTable[REG_DBG] = temp;
+				if(DS18B20_ReadTemperature(&temp))
+					DataTable[REG_DBG] = (Int16U)(temp * 10);
 				else
 					CONTROL_FinishedWithProblem(PROBLEM_ONEWIRE);
 			}
