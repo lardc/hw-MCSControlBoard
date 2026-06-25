@@ -36,9 +36,9 @@
 #define ACT_DBG_MOTOR_STOP					122	// Остановка отладочного вращения моторов
 #define ACT_DBG_DS18_READ					123 // Считать 2 байта DS18 в REG_DBG (десят.)
 #define ACT_DBG_DS18_WRITE					124	// Записать 2 байта DS18 из REG_DBG (десят.)
-#define ACT_DBG_ONEWIRE_SEARCH				125 // Поиск DS18B20 и DS2431, общее число найденных → REG_DBG
+#define ACT_DBG_ONEWIRE_SEARCH				125 // Поиск DS18B20 и DS2431 → REG_DBG: ds18 + ds2431×1000 (напр. 2 и 3 → 3002)
 #define ACT_DBG_DS18_READ_TEMP				126 // Температура DS18 в REG_DBG, 0.1°C (десят.)
-#define ACT_DBG_DS2431_ERASE				127 // Стирание EEPROM DS2431; REG_DBG — номер устройства (0, 1, …)
+#define ACT_DBG_DS2431_ERASE				127 // Стирание области данных DS2431 (0x00..0x7F); REG_DBG — индекс устройства (0, 1, …)
 #define ACT_DBG_DS2431_READ					128 // Чтение 2 байт с адреса 0; REG_DBG: вход — номер, выход — данные (десят.)
 #define ACT_DBG_DS2431_WRITE				129 // Запись 2 байт с адреса 0; REG_DBG — данные (десят.), устройство — из 127/128
 

@@ -37,6 +37,9 @@
 static Int8U SerialNumber[DS2431_ONE_WIRE_MAC_SIZE];
 static Boolean SkipRom = true;
 
+static Int8U DeviceRom[DS2431_MAX_DEVICES][DS2431_ONE_WIRE_MAC_SIZE];
+static Int16U DeviceCount = 0;
+
 static const Int8U EraseRow[DS2431_ROW_SIZE] =
 {
 	DS2431_ERASE_BYTE, DS2431_ERASE_BYTE, DS2431_ERASE_BYTE, DS2431_ERASE_BYTE,
@@ -44,6 +47,7 @@ static const Int8U EraseRow[DS2431_ROW_SIZE] =
 };
 
 // Forward functions
+static Boolean DS2431_Select(Int8U deviceIndex);
 static Boolean DS2431_StartTransmission();
 static Boolean DS2431_WriteScratchpad(Int16U address, const Int8U *buf, Int8U count);
 static Boolean DS2431_ReadScratchpadRaw(Int8U *readBuf, Int16U len);
@@ -58,6 +62,50 @@ static Boolean DS2431_IsIdleBusResponse(const Int8U *readBuf, Int16U len);
 static Boolean DS2431_VerifyCopyAccepted();
 
 // Functions
+
+// Сканирование шины и заполнение таблицы ROM
+Boolean DS2431_Init()
+{
+	Int8U addr[DS2431_ONE_WIRE_MAC_SIZE];
+
+	DeviceCount = 0;
+
+	OneWire_ResetSearch();
+	OneWire_TargetSearch(DS2431_ONE_WIRE_FAMILY_CODE);
+
+	while(DeviceCount < DS2431_MAX_DEVICES && OneWire_Search(addr, true))
+	{
+		if(!OneWire_CheckCrc8(addr, 7, addr[7]))
+			return false;
+
+		if(addr[0] != DS2431_ONE_WIRE_FAMILY_CODE)
+			continue;
+
+		for(Int8U i = 0; i < DS2431_ONE_WIRE_MAC_SIZE; i++)
+			DeviceRom[DeviceCount][i] = addr[i];
+
+		DeviceCount++;
+	}
+
+	return true;
+}
+//-------------------
+
+Int16U DS2431_GetDeviceCount()
+{
+	return DeviceCount;
+}
+//-------------------
+
+static Boolean DS2431_Select(Int8U deviceIndex)
+{
+	if(deviceIndex >= DeviceCount)
+		return false;
+
+	DS2431_Begin(DeviceRom[deviceIndex]);
+	return true;
+}
+//-------------------
 
 // Сохранить ROM-адрес; далее обмен только через MATCH ROM (не SKIP)
 void DS2431_Begin(Int8U serialNumber[DS2431_ONE_WIRE_MAC_SIZE])
@@ -105,8 +153,11 @@ Boolean DS2431_Write(Int16U address, const Int8U *buf, Int16U count, Boolean ver
 //-------------------
 
 // Запись 0xFF в область данных 0x00..0x7F (по одной строке)
-Boolean DS2431_EraseAll(Boolean verify)
+Boolean DS2431_EraseAll(Int8U deviceIndex, Boolean verify)
 {
+	if(!DS2431_Select(deviceIndex))
+		return false;
+
 	for(Int16U address = 0; address < DS2431_EEPROM_SIZE; address += DS2431_ROW_SIZE)
 	{
 		if(!DS2431_Write(address, EraseRow, DS2431_ROW_SIZE, verify))
@@ -118,8 +169,11 @@ Boolean DS2431_EraseAll(Boolean verify)
 //-------------------
 
 // Чтение len байт с адреса 0 области данных
-Boolean DS2431_ReadArray(Int8U *buf, Int16U len)
+Boolean DS2431_ReadArray(Int8U deviceIndex, Int8U *buf, Int16U len)
 {
+	if(!DS2431_Select(deviceIndex))
+		return false;
+
 	if(len > DS2431_EEPROM_SIZE)
 		return false;
 
@@ -131,9 +185,12 @@ Boolean DS2431_ReadArray(Int8U *buf, Int16U len)
 //-------------------
 
 // Запись len байт с адреса 0; неполный хвост строки дополняется текущим содержимым EEPROM
-Boolean DS2431_WriteArray(const Int8U *buf, Int16U len)
+Boolean DS2431_WriteArray(Int8U deviceIndex, const Int8U *buf, Int16U len)
 {
 	Int8U row[DS2431_ROW_SIZE];
+
+	if(!DS2431_Select(deviceIndex))
+		return false;
 
 	if(len > DS2431_EEPROM_SIZE)
 		return false;	// запрос выходит за область данных 0x00..0x7F

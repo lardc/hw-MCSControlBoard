@@ -9,6 +9,7 @@
 #include "ZwDMA.h"
 #include "ZwUSART.h"
 #include "DS18B20.h"
+#include "DS2431.h"
 
 // Variables
 Int16U INITCFG_PressureAdcBuffer[ADC_PRESSURE_BUF_SIZE];
@@ -67,6 +68,7 @@ void INITCFG_ConfigGPIO()
 	GPIO_SetState(GPIO_SPI_OE, true);
 
 	DS18B20_Init();
+	DS2431_Init();
 }
 //------------------------------------------------
 

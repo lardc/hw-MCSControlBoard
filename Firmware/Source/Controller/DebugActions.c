@@ -11,7 +11,7 @@
 #include "Controller.h"
 
 // Variables
-static Int8U DbgDS2431DeviceIndex = 0;
+static Int8U DS2431DeviceIndex = 0;
 
 // Functions
 bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
@@ -145,62 +145,37 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 
 		case ACT_DBG_DS2431_ERASE:
 			{
-				Int8U addr[8];
+				DS2431DeviceIndex = (Int8U)DataTable[REG_DBG];
 
-				DbgDS2431DeviceIndex = (Int8U)DataTable[REG_DBG];
-
-				if(!OneWire_SelectByIndex(DS2431_ONE_WIRE_FAMILY_CODE, DbgDS2431DeviceIndex, addr))
+				if(!DS2431_EraseAll(DS2431DeviceIndex, true))
 					CONTROL_FinishedWithProblem(PROBLEM_ONEWIRE);
-				else
-				{
-					DS2431_Begin(addr);
-
-					if(!DS2431_EraseAll(true))
-						CONTROL_FinishedWithProblem(PROBLEM_ONEWIRE);
-				}
 			}
 			break;
 
 		case ACT_DBG_DS2431_READ:
 			{
-				Int8U addr[8];
 				Int8U buf[2];
 
-				DbgDS2431DeviceIndex = (Int8U)DataTable[REG_DBG];
+				DS2431DeviceIndex = (Int8U)DataTable[REG_DBG];
 
-				if(!OneWire_SelectByIndex(DS2431_ONE_WIRE_FAMILY_CODE, DbgDS2431DeviceIndex, addr))
+				if(!DS2431_ReadArray(DS2431DeviceIndex, buf, sizeof(buf)))
 					CONTROL_FinishedWithProblem(PROBLEM_ONEWIRE);
 				else
-				{
-					DS2431_Begin(addr);
-
-					if(!DS2431_ReadArray(buf, sizeof(buf)))
-						CONTROL_FinishedWithProblem(PROBLEM_ONEWIRE);
-					else
-						DataTable[REG_DBG] = ((Int16U)buf[0] << 8) | buf[1];
-				}
+					DataTable[REG_DBG] = ((Int16U)buf[0] << 8) | buf[1];
 			}
 			break;
 
 		case ACT_DBG_DS2431_WRITE:
 			{
-				// REG_DBG — данные; индекс устройства — из предшествующего READ (128) или ERASE (127)
-				Int8U addr[8];
+				// REG_DBG — данные (десят.); индекс устройства — из предшествующего READ (128) или ERASE (127)
 				Int16U value = DataTable[REG_DBG];
 				Int8U buf[2];
 
 				buf[0] = (Int8U)((value >> 8) & 0xFF);
 				buf[1] = (Int8U)(value & 0xFF);
 
-				if(!OneWire_SelectByIndex(DS2431_ONE_WIRE_FAMILY_CODE, DbgDS2431DeviceIndex, addr))
+				if(!DS2431_WriteArray(DS2431DeviceIndex, buf, sizeof(buf)))
 					CONTROL_FinishedWithProblem(PROBLEM_ONEWIRE);
-				else
-				{
-					DS2431_Begin(addr);
-
-					if(!DS2431_WriteArray(buf, sizeof(buf)))
-						CONTROL_FinishedWithProblem(PROBLEM_ONEWIRE);
-				}
 			}
 			break;
 

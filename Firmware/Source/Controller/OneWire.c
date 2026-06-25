@@ -236,6 +236,8 @@ void OneWire_Depower()
 }
 //-------------------
 
+// Сильная подтяжка для parasite power на время convert / copy (DS18B20, DS2431).
+// hasPowerPin — включить линию PWR (MOSFET); иначе DQ переключается в push-pull и удерживает высокий уровень.
 void OneWire_StrongPullupHold(Boolean enable)
 {
 	if(Bus.hasPowerPin)
