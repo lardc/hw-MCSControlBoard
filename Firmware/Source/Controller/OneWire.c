@@ -8,20 +8,6 @@
 // Reset
 #define LINE_RETRIES_UNTIL_FREE	125
 
-typedef struct __OneWireBus
-{
-	GPIO_PortPinSetting writePin;
-	GPIO_PortPinSetting readPin;
-	GPIO_PortPinSetting powerPin;
-	Boolean hasPowerPin;
-	Boolean invertWrite;
-	Boolean invertPower;
-	Int8U ROM_NO[8];
-	Int8U LastVariance;
-	Int8U LastFamilyVariance;
-	Boolean LastDeviceFlag;
-} OneWireBus;
-
 static OneWireBus Bus;
 
 // Отключение прерываний с сохранением Primask
@@ -56,32 +42,30 @@ static void OneWire_SetPowerLine(Boolean active)
 //-------------------
 
 // Инициализация шины
-void OneWire_Init(GPIO_PortPinSetting writePin, GPIO_PortPinSetting readPin, GPIO_PortPinSetting powerPin,
-		Boolean usePowerPin, Boolean useSinglePin, Boolean invertWrite, Boolean invertPower)
+void OneWire_Init(OneWireBus Config)
 {
-	Bus.writePin = writePin;
-	Bus.readPin = useSinglePin ? writePin : readPin;
-	Bus.powerPin = powerPin;
-	Bus.hasPowerPin = usePowerPin;
-	Bus.invertWrite = invertWrite;
-	Bus.invertPower = invertPower;
+	Bus = Config;
 
-	if(useSinglePin)
-		GPIO_InitOpenDrainOutput(writePin, NoPull);
+	if(Bus.useSinglePin)
+	{
+		Bus.writePin = Bus.readPin;
+		Bus.powerPin = Bus.readPin;
+
+		GPIO_InitOpenDrainOutput(Bus.writePin, NoPull);
+	}
 	else
 	{
 		GPIO_InitPushPullOutput(Bus.writePin);
 		GPIO_InitInput(Bus.readPin, NoPull);
-	}
 
-	if(Bus.hasPowerPin)
-	{
-		GPIO_InitOpenDrainOutput(Bus.powerPin, NoPull);
-		OneWire_SetPowerLine(false);
+		if(Bus.hasPowerPin)
+		{
+			GPIO_InitOpenDrainOutput(Bus.powerPin, NoPull);
+			OneWire_SetPowerLine(false);
+		}
 	}
 
 	OneWire_SetWriteLine(true);
-
 	OneWire_ResetSearch();
 }
 //-------------------

@@ -4,10 +4,24 @@
 #include "stdinc.h"
 #include "ZwGPIO.h"
 
+typedef struct __OneWireBus
+{
+	GPIO_PortPinSetting writePin;
+	GPIO_PortPinSetting readPin;
+	GPIO_PortPinSetting powerPin;
+	Boolean useSinglePin;
+	Boolean hasPowerPin;
+	Boolean invertWrite;
+	Boolean invertPower;
+	Int8U ROM_NO[8];
+	Int8U LastVariance;
+	Int8U LastFamilyVariance;
+	Boolean LastDeviceFlag;
+} OneWireBus, *pOneWireBus;
+
 // Инициализация шины: writePin, readPin, powerPin, usePowerPin, useSinglePin,
 // invertWrite/invertPower — инверсия логики управляющих пинов
-void OneWire_Init(GPIO_PortPinSetting writePin, GPIO_PortPinSetting readPin, GPIO_PortPinSetting powerPin,
-		Boolean usePowerPin, Boolean useSinglePin, Boolean invertWrite, Boolean invertPower);
+void OneWire_Init(OneWireBus Config);
 
 // Обмен данными
 Int8U OneWire_Reset();

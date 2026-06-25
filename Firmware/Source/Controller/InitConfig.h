@@ -10,6 +10,7 @@ extern Int16U INITCFG_PressureAdcBuffer[ADC_PRESSURE_BUF_SIZE];
 // Functions
 Boolean INITCFG_ConfigSystemClock();
 void INITCFG_ConfigGPIO();
+void INITCFG_ConfigOneWire();
 void INITCFG_ConfigUART();
 void INITCFG_ConfigTRMUART();
 void INITCFG_ConfigCAN();

@@ -10,6 +10,7 @@
 #include "ZwUSART.h"
 #include "DS18B20.h"
 #include "DS2431.h"
+#include "OneWire.h"
 
 // Variables
 Int16U INITCFG_PressureAdcBuffer[ADC_PRESSURE_BUF_SIZE];
@@ -66,7 +67,18 @@ void INITCFG_ConfigGPIO()
 	GPIO_SetState(GPIO_TEST, false);
 	GPIO_SetState(GPIO_SPI_LD, false);
 	GPIO_SetState(GPIO_SPI_OE, true);
+}
+//------------------------------------------------
 
+void INITCFG_ConfigOneWire()
+{
+	// Общая инициализация шины
+	OneWireBus Config;
+	Config.useSinglePin =	true;
+	Config.readPin =		GPIO_DQ;
+	OneWire_Init(Config);
+
+	// Инициализация устройств
 	DS18B20_Init();
 	DS2431_Init();
 }
@@ -74,7 +86,7 @@ void INITCFG_ConfigGPIO()
 
 void INITCFG_ConfigUART()
 {
-//Заменено на время тестов на SVTU
+	// Заменено на время тестов на SVTU
 	USARTx_Init(USART1, SYSCLK, USART_BAUDRATE);
 	USARTx_RecieveInterrupt(USART1, true);
 }

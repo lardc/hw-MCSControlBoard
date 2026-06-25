@@ -53,17 +53,6 @@ void DS18B20_Init()
 {
 	Int8U addr[DS18B20_ONE_WIRE_MAC_SIZE];
 
-#if ONEWIRE_THREE_PIN_BUS
-	bool UsePowerPin = true;
-	bool SinglePin = false;
-	bool InvertWrite = true;
-	bool InvertPower = true;
-
-	OneWire_Init(GPIO_DQ_CTRL, GPIO_DQ_IN, GPIO_DQ_PWR, UsePowerPin, SinglePin, InvertWrite, InvertPower);
-#else
-	OneWire_Init(GPIO_DQ, GPIO_DQ, GPIO_DQ, false, true, false, false);
-#endif
-
 	OneWire_ResetSearch();
 	OneWire_TargetSearch(DS18B20_FAMILY_CODE);
 

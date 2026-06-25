@@ -14,6 +14,9 @@ int main()
 	// Настройка портов
 	INITCFG_ConfigGPIO();
 
+	// Настройка OneWire
+	INITCFG_ConfigOneWire();
+
 	// USART3 — RS232 SCCI , USART2 — TRM
 	INITCFG_ConfigUART();
 	INITCFG_ConfigTRMUART();
