@@ -1,6 +1,13 @@
 #include "OneWire.h"
 #include "Delay.h"
 
+// 1-Wire ROM commands
+#define MATCH_ROM				0x55
+#define SKIP_ROM 				0xCC
+
+// Reset
+#define LINE_RETRIES_UNTIL_FREE	125
+
 typedef struct __OneWireBus
 {
 	GPIO_PortPinSetting writePin;

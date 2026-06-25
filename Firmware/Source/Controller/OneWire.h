@@ -4,10 +4,6 @@
 #include "stdinc.h"
 #include "ZwGPIO.h"
 
-#define LINE_RETRIES_UNTIL_FREE	125
-#define MATCH_ROM				0x55
-#define SKIP_ROM 				0xCC
-
 // Инициализация шины: writePin, readPin, powerPin, usePowerPin, useSinglePin,
 // invertWrite/invertPower — инверсия логики управляющих пинов
 void OneWire_Init(GPIO_PortPinSetting writePin, GPIO_PortPinSetting readPin, GPIO_PortPinSetting powerPin,
