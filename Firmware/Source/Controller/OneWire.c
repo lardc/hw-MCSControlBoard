@@ -43,10 +43,8 @@ static Boolean OneWire_ReadLine()
 // Управление линией parasite power (сильная подтяжка к питанию)
 static void OneWire_SetPowerLine(Boolean active)
 {
-	if (!Bus.hasPowerPin)
-		return;
-
-	GPIO_SetState(Bus.powerPin, Bus.invertPower ? !active : active);
+	if(Bus.hasPowerPin)
+		GPIO_SetState(Bus.powerPin, Bus.invertPower ? !active : active);
 }
 //-------------------
 
@@ -61,7 +59,7 @@ void OneWire_Init(GPIO_PortPinSetting writePin, GPIO_PortPinSetting readPin, GPI
 	Bus.invertWrite = invertWrite;
 	Bus.invertPower = invertPower;
 
-	if (useSinglePin)
+	if(useSinglePin)
 		GPIO_InitOpenDrainOutput(writePin, NoPull);
 	else
 	{
@@ -69,7 +67,7 @@ void OneWire_Init(GPIO_PortPinSetting writePin, GPIO_PortPinSetting readPin, GPI
 		GPIO_InitInput(Bus.readPin, NoPull);
 	}
 
-	if (Bus.hasPowerPin)
+	if(Bus.hasPowerPin)
 	{
 		GPIO_InitOpenDrainOutput(Bus.powerPin, NoPull);
 		OneWire_SetPowerLine(false);
@@ -93,11 +91,11 @@ Int8U OneWire_Reset()
 	// Ожидание освобождения линии
 	do
 	{
-		if (--retries == 0)
+		if(--retries == 0)
 			return 0;
 		DELAY_US(2);
 	}
-	while (!OneWire_ReadLine());
+	while(!OneWire_ReadLine());
 
 	OneWire_SetWriteLine(false);
 	DELAY_US(480);
@@ -117,7 +115,7 @@ Int8U OneWire_Reset()
 void OneWire_WriteBit(Int8U value)
 {
 	Int32U Primask;
-	if (value & 1)
+	if(value & 1)
 	{
 		Primask = OneWire_irq_save();
 		OneWire_SetWriteLine(false);
@@ -160,10 +158,10 @@ Int8U OneWire_ReadBit()
 // Запись байта. При power != 0 удерживает parasite power до вызова OneWire_Depower()
 void OneWire_Write(Int8U value, Int8U power)
 {
-	for (Int8U bitMask = 0x01; bitMask; bitMask <<= 1)
+	for(Int8U bitMask = 0x01; bitMask; bitMask <<= 1)
 		OneWire_WriteBit((bitMask & value) ? 1 : 0);
 
-	if (power && Bus.hasPowerPin)
+	if(power && Bus.hasPowerPin)
 		OneWire_SetPowerLine(true);
 	else
 		OneWire_SetWriteLine(true);
@@ -173,10 +171,10 @@ void OneWire_Write(Int8U value, Int8U power)
 // Запись буфера байтов
 void OneWire_WriteBytes(const Int8U *buf, Int16U count, Boolean power)
 {
-	for (Int16U i = 0; i < count; i++)
+	for(Int16U i = 0; i < count; i++)
 		OneWire_Write(buf[i], 0);
 
-	if (power && Bus.hasPowerPin)
+	if(power && Bus.hasPowerPin)
 		OneWire_SetPowerLine(true);
 }
 //-------------------
@@ -186,9 +184,9 @@ Int8U OneWire_Read()
 {
 	Int8U result = 0;
 
-	for (Int8U bitMask = 0x01; bitMask; bitMask <<= 1)
+	for(Int8U bitMask = 0x01; bitMask; bitMask <<= 1)
 	{
-		if (OneWire_ReadBit())
+		if(OneWire_ReadBit())
 			result |= bitMask;
 	}
 
@@ -199,7 +197,7 @@ Int8U OneWire_Read()
 // Чтение буфера байтов
 void OneWire_ReadBytes(Int8U *buf, Int16U count)
 {
-	for (Int16U i = 0; i < count; i++)
+	for(Int16U i = 0; i < count; i++)
 		buf[i] = OneWire_Read();
 }
 //-------------------
@@ -209,7 +207,7 @@ void OneWire_Select(const Int8U *rom)
 {
 	OneWire_Write(MATCH_ROM, 0);
 
-	for (Int8U i = 0; i < 8; i++)
+	for(Int8U i = 0; i < 8; i++)
 		OneWire_Write(rom[i], 0);
 }
 //-------------------
@@ -234,15 +232,14 @@ void OneWire_Depower()
 void OneWire_StrongPullupHold(Boolean enable)
 {
 	if(Bus.hasPowerPin)
-	{
 		OneWire_SetPowerLine(enable);
-		return;
+	else
+	{
+		// Один DQ без MOSFET: push-pull на время convert
+		GPIO_SetState(Bus.writePin, true);
+		GPIO_Config(Bus.writePin.Port, Bus.writePin.Pin, Output, enable ? PushPull : OpenDrain, HighSpeed, NoPull);
+		GPIO_SetState(Bus.writePin, true);
 	}
-
-	// Один DQ без MOSFET: push-pull на время convert. Нельзя GPIO_Init* — сброс в 0 прерывает convert.
-	GPIO_SetState(Bus.writePin, true);
-	GPIO_Config(Bus.writePin.Port, Bus.writePin.Pin, Output, enable ? PushPull : OpenDrain, HighSpeed, NoPull);
-	GPIO_SetState(Bus.writePin, true);
 }
 //-------------------
 
@@ -253,7 +250,7 @@ void OneWire_ResetSearch()
 	Bus.LastDeviceFlag = false;
 	Bus.LastFamilyVariance = 0;
 
-	for (Int8S i = 7; i >= 0; i--)
+	for(Int8S i = 7; i >= 0; i--)
 		Bus.ROM_NO[i] = 0;
 }
 //-------------------
@@ -263,7 +260,7 @@ void OneWire_TargetSearch(Int8U familyCode)
 {
 	Bus.ROM_NO[0] = familyCode;
 
-	for (Int8U i = 1; i < 8; i++)
+	for(Int8U i = 1; i < 8; i++)
 		Bus.ROM_NO[i] = 0;
 
 	Bus.LastVariance = 64;
@@ -287,9 +284,9 @@ Boolean OneWire_Search(Int8U *newAddr, Boolean searchMode)
 	romByteMask = 1;
 	searchResult = false;
 
-	if (!Bus.LastDeviceFlag)
+	if(!Bus.LastDeviceFlag)
 	{
-		if (!OneWire_Reset())
+		if(!OneWire_Reset())
 		{
 			Bus.LastVariance = 0;
 			Bus.LastDeviceFlag = false;
@@ -297,7 +294,7 @@ Boolean OneWire_Search(Int8U *newAddr, Boolean searchMode)
 			return false;
 		}
 
-		if (searchMode)
+		if(searchMode)
 			OneWire_Write(0xF0, 0);
 		else
 			OneWire_Write(0xEC, 0);
@@ -307,27 +304,27 @@ Boolean OneWire_Search(Int8U *newAddr, Boolean searchMode)
 			idBit = OneWire_ReadBit();
 			cmpIdBit = OneWire_ReadBit();
 
-			if ((idBit == 1) && (cmpIdBit == 1))
+			if((idBit == 1) && (cmpIdBit == 1))
 				break;
 
-			if (idBit != cmpIdBit)
+			if(idBit != cmpIdBit)
 				searchDirection = idBit;
 			else
 			{
-				if (idBitNumber < Bus.LastVariance)
+				if(idBitNumber < Bus.LastVariance)
 					searchDirection = ((Bus.ROM_NO[romByteNumber] & romByteMask) > 0);
 				else
 					searchDirection = (idBitNumber == Bus.LastVariance);
 
-				if (searchDirection == 0)
+				if(searchDirection == 0)
 				{
 					lastZero = idBitNumber;
-					if (lastZero < 9)
+					if(lastZero < 9)
 						Bus.LastFamilyVariance = lastZero;
 				}
 			}
 
-			if (searchDirection == 1)
+			if(searchDirection == 1)
 				Bus.ROM_NO[romByteNumber] |= romByteMask;
 			else
 				Bus.ROM_NO[romByteNumber] &= ~romByteMask;
@@ -337,24 +334,24 @@ Boolean OneWire_Search(Int8U *newAddr, Boolean searchMode)
 			idBitNumber++;
 			romByteMask <<= 1;
 
-			if (romByteMask == 0)
+			if(romByteMask == 0)
 			{
 				romByteNumber++;
 				romByteMask = 1;
 			}
 		}
-		while (romByteNumber < 8);
+		while(romByteNumber < 8);
 
-		if (!(idBitNumber < 65))
+		if(!(idBitNumber < 65))
 		{
 			Bus.LastVariance = lastZero;
-			if (Bus.LastVariance == 0)
+			if(Bus.LastVariance == 0)
 				Bus.LastDeviceFlag = true;
 			searchResult = true;
 		}
 	}
 
-	if (!searchResult || !Bus.ROM_NO[0])
+	if(!searchResult || !Bus.ROM_NO[0])
 	{
 		Bus.LastVariance = 0;
 		Bus.LastDeviceFlag = false;
@@ -363,7 +360,7 @@ Boolean OneWire_Search(Int8U *newAddr, Boolean searchMode)
 	}
 	else
 	{
-		for (Int8S i = 0; i < 8; i++)
+		for(Int8S i = 0; i < 8; i++)
 			newAddr[i] = Bus.ROM_NO[i];
 	}
 
@@ -376,15 +373,15 @@ Int8U OneWire_Crc8(const Int8U *addr, Int8U len)
 {
 	Int8U crc = 0;
 
-	while (len--)
+	while(len--)
 	{
 		Int8U inbyte = *addr++;
 
-		for (Int8U i = 8; i; i--)
+		for(Int8U i = 8; i; i--)
 		{
 			Int8U mix = (crc ^ inbyte) & 0x01;
 			crc >>= 1;
-			if (mix)
+			if(mix)
 				crc ^= 0x8C;
 			inbyte >>= 1;
 		}
@@ -415,13 +412,13 @@ Int16U OneWire_Crc16(const Int8U *input, Int16U len, Int16U crc)
 	static const Int8U oddparity[16] =
 		{ 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0 };
 
-	for (Int16U i = 0; i < len; i++)
+	for(Int16U i = 0; i < len; i++)
 	{
 		Int16U cdata = input[i];
 		cdata = (cdata ^ crc) & 0xff;
 		crc >>= 8;
 
-		if (oddparity[cdata & 0x0F] ^ oddparity[cdata >> 4])
+		if(oddparity[cdata & 0x0F] ^ oddparity[cdata >> 4])
 			crc ^= 0xC001;
 
 		cdata <<= 6;
