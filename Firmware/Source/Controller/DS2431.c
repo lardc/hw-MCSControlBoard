@@ -5,6 +5,30 @@
 #include "OneWire.h"
 #include "Delay.h"
 
+// EEPROM layout
+#define DS2431_ROW_SIZE					8
+
+// Scratchpad ES byte (Ending Offset)
+#define DS2431_ES_OFFSET_MASK			0x07
+#define DS2431_ES_PF_FLAG				0x20	// programming failure
+#define DS2431_ES_AA_FLAG				0x80	// authorization accepted
+
+// Scratchpad read buffer layout
+#define DS2431_CMD_SIZE					3
+#define DS2431_CRC_SIZE					2
+#define DS2431_BUFFER_SIZE				(DS2431_ROW_SIZE + DS2431_CMD_SIZE + DS2431_CRC_SIZE)
+
+// DS2431 function commands
+#define DS2431_WRITE_SCRATCHPAD			0x0F
+#define DS2431_READ_SCRATCHPAD			0xAA
+#define DS2431_COPY_SCRATCHPAD			0x55
+#define DS2431_READ_MEMORY				0xF0
+
+// Erase
+#define DS2431_ERASE_BYTE				0xFF
+
+// Timing and retries
+#define DS2431_READ_RETRY				3
 #define DS2431_COPY_TIMEOUT				10
 #define DS2431_COPY_DELAY_MS			25
 #define DS2431_BUS_RECOVERY_MS			2
