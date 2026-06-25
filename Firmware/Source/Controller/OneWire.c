@@ -375,6 +375,69 @@ Boolean OneWire_Search(Int8U *newAddr, Boolean searchMode)
 }
 //-------------------
 
+// Подсчёт устройств заданного family code на шине
+Boolean OneWire_SearchFamily(Int8U familyCode, Int16U *foundCount, Int8U firstRom[8])
+{
+	Int8U addr[8];
+
+	*foundCount = 0;
+
+	OneWire_ResetSearch();
+	OneWire_TargetSearch(familyCode);
+
+	while(OneWire_Search(addr, true))
+	{
+		if(!OneWire_CheckCrc8(addr, 7, addr[7]))
+			return false;
+
+		if(addr[0] != familyCode)
+			continue;
+
+		if(*foundCount == 0 && firstRom != NULL)
+		{
+			for(Int8U i = 0; i < 8; i++)
+				firstRom[i] = addr[i];
+		}
+
+		(*foundCount)++;
+	}
+
+	return true;
+}
+//-------------------
+
+// ROM-адрес устройства по family code и индексу (0 — первое устройство)
+Boolean OneWire_SelectByIndex(Int8U familyCode, Int8U deviceIndex, Int8U rom[8])
+{
+	Int8U addr[8];
+	Int16U count = 0;
+
+	OneWire_ResetSearch();
+	OneWire_TargetSearch(familyCode);
+
+	while(OneWire_Search(addr, true))
+	{
+		if(!OneWire_CheckCrc8(addr, 7, addr[7]))
+			return false;
+
+		if(addr[0] != familyCode)
+			continue;
+
+		if(count == deviceIndex)
+		{
+			for(Int8U i = 0; i < 8; i++)
+				rom[i] = addr[i];
+
+			return true;
+		}
+
+		count++;
+	}
+
+	return false;
+}
+//-------------------
+
 // Расчёт 8-битного CRC
 Int8U OneWire_Crc8(const Int8U *addr, Int8U len)
 {

@@ -118,7 +118,7 @@ Boolean DS2431_EraseAll(Boolean verify)
 //-------------------
 
 // Чтение len байт с адреса 0 области данных
-Boolean DS2431_ReadData(Int8U *buf, Int16U len)
+Boolean DS2431_ReadArray(Int8U *buf, Int16U len)
 {
 	if(len > DS2431_EEPROM_SIZE)
 		return false;
@@ -131,7 +131,7 @@ Boolean DS2431_ReadData(Int8U *buf, Int16U len)
 //-------------------
 
 // Запись len байт с адреса 0; неполный хвост строки дополняется текущим содержимым EEPROM
-Boolean DS2431_WriteData(const Int8U *buf, Int16U len)
+Boolean DS2431_WriteArray(const Int8U *buf, Int16U len)
 {
 	Int8U row[DS2431_ROW_SIZE];
 

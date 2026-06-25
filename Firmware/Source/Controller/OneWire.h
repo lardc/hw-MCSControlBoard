@@ -29,6 +29,12 @@ void OneWire_ResetSearch();
 void OneWire_TargetSearch(Int8U familyCode);
 Boolean OneWire_Search(Int8U *newAddr, Boolean searchMode);
 
+// Подсчёт устройств заданного family code. firstRom — ROM первого найденного (NULL, если не нужен).
+Boolean OneWire_SearchFamily(Int8U familyCode, Int16U *foundCount, Int8U firstRom[8]);
+
+// ROM-адрес устройства по family code и индексу (0 — первое устройство).
+Boolean OneWire_SelectByIndex(Int8U familyCode, Int8U deviceIndex, Int8U rom[8]);
+
 // Контрольные суммы Dallas
 Int8U OneWire_Crc8(const Int8U *addr, Int8U len);
 Boolean OneWire_CheckCrc8(const Int8U *data, Int8U len, Int8U receivedCrc);

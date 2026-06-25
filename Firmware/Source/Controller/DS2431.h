@@ -24,9 +24,9 @@ Boolean DS2431_Write(Int16U address, const Int8U *buf, Int16U count, Boolean ver
 Boolean DS2431_EraseAll(Boolean verify);
 
 // Чтение массива с адреса 0. len не должен превышать DS2431_EEPROM_SIZE.
-Boolean DS2431_ReadData(Int8U *buf, Int16U len);
+Boolean DS2431_ReadArray(Int8U *buf, Int16U len);
 
 // Запись массива с адреса 0. len не должен превышать DS2431_EEPROM_SIZE.
-Boolean DS2431_WriteData(const Int8U *buf, Int16U len);
+Boolean DS2431_WriteArray(const Int8U *buf, Int16U len);
 
 #endif /* DS2431_H_ */
