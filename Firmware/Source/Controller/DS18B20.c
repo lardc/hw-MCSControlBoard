@@ -136,7 +136,7 @@ Boolean DS18B20_ReadTemperature(pFloat32 Data)
 		return false;
 
 	Raw = (Int16S)((Int16U)Scratchpad[REG_TEMPERATURE_MSB] << 8 | Scratchpad[REG_TEMPERATURE_LSB]);
-	*Data = Raw / 16;
+	*Data = Raw / 16.0f;
 
 	return true;
 }

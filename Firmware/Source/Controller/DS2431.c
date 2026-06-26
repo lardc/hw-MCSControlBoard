@@ -34,10 +34,10 @@
 #define DS2431_BUS_RECOVERY_MS			2
 
 // Variables
-static Int8U SerialNumber[DS2431_ONE_WIRE_MAC_SIZE];
+static Int8U SerialNumber[DS2431_MAC_SIZE];
 static Boolean SkipRom = true;
 
-static Int8U DeviceRom[DS2431_MAX_DEVICES][DS2431_ONE_WIRE_MAC_SIZE];
+static Int8U DeviceRom[DS2431_MAX_DEVICES][DS2431_MAC_SIZE];
 static Int16U DeviceCount = 0;
 
 static const Int8U EraseRow[DS2431_ROW_SIZE] =
@@ -66,22 +66,22 @@ static Boolean DS2431_VerifyCopyAccepted();
 // Сканирование шины и заполнение таблицы ROM
 Boolean DS2431_Init()
 {
-	Int8U addr[DS2431_ONE_WIRE_MAC_SIZE];
+	Int8U addr[DS2431_MAC_SIZE];
 
 	DeviceCount = 0;
 
 	OneWire_ResetSearch();
-	OneWire_TargetSearch(DS2431_ONE_WIRE_FAMILY_CODE);
+	OneWire_TargetSearch(DS2431_FAMILY_CODE);
 
 	while(DeviceCount < DS2431_MAX_DEVICES && OneWire_Search(addr, true))
 	{
 		if(!OneWire_CheckCrc8(addr, 7, addr[7]))
-			return false;
-
-		if(addr[0] != DS2431_ONE_WIRE_FAMILY_CODE)
 			continue;
 
-		for(Int8U i = 0; i < DS2431_ONE_WIRE_MAC_SIZE; i++)
+		if(addr[0] != DS2431_FAMILY_CODE)
+			continue;
+
+		for(Int8U i = 0; i < DS2431_MAC_SIZE; i++)
 			DeviceRom[DeviceCount][i] = addr[i];
 
 		DeviceCount++;
@@ -108,9 +108,9 @@ static Boolean DS2431_Select(Int8U deviceIndex)
 //-------------------
 
 // Сохранить ROM-адрес; далее обмен только через MATCH ROM (не SKIP)
-void DS2431_Begin(Int8U serialNumber[DS2431_ONE_WIRE_MAC_SIZE])
+void DS2431_Begin(Int8U serialNumber[DS2431_MAC_SIZE])
 {
-	for(Int8U i = 0; i < DS2431_ONE_WIRE_MAC_SIZE; i++)
+	for(Int8U i = 0; i < DS2431_MAC_SIZE; i++)
 		SerialNumber[i] = serialNumber[i];
 
 	SkipRom = false;
@@ -180,6 +180,9 @@ Boolean DS2431_ReadArray(Int8U deviceIndex, Int8U *buf, Int16U len)
 	if(len == 0)
 		return true;
 
+	if(buf == NULL)
+		return false;
+
 	return DS2431_Read(0, buf, len);
 }
 //-------------------
@@ -194,6 +197,9 @@ Boolean DS2431_WriteArray(Int8U deviceIndex, const Int8U *buf, Int16U len)
 
 	if(len > DS2431_EEPROM_SIZE)
 		return false;	// запрос выходит за область данных 0x00..0x7F
+
+	if(len > 0 && buf == NULL)
+		return false;
 
 	for(Int16U address = 0; address < len; address += DS2431_ROW_SIZE)
 	{

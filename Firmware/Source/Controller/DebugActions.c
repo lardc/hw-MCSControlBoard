@@ -119,7 +119,7 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 				DataTable[REG_DBG] = 0;
 
 				if(!OneWire_SearchFamily(DS18B20_FAMILY_CODE, &ds18Count, NULL)
-						|| !OneWire_SearchFamily(DS2431_ONE_WIRE_FAMILY_CODE, &ds2431Count, NULL))
+						|| !OneWire_SearchFamily(DS2431_FAMILY_CODE, &ds2431Count, NULL))
 				{
 					CONTROL_FinishedWithProblem(PROBLEM_ONEWIRE);
 					break;
@@ -137,7 +137,7 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 				float temp;
 
 				if(DS18B20_ReadTemperature(&temp))
-					DataTable[REG_DBG] = (Int16U)(temp * 10);
+					DataTable[REG_DBG] = temp;
 				else
 					CONTROL_FinishedWithProblem(PROBLEM_ONEWIRE);
 			}

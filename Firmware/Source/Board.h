@@ -25,6 +25,7 @@ GPIO_PortPinSettingMacro GPIO_ALT_SPI3_MISO		= {GPIOB, Pin_4};
 GPIO_PortPinSettingMacro GPIO_ALT_SPI3_MOSI		= {GPIOB, Pin_5};
 
 // Application GPIO
+//Заменены некоторые выходы пинов на другие на время тестов на SVTU;
 GPIO_PortPinSettingMacro GPIO_LED				= {GPIOA, Pin_8};
 GPIO_PortPinSettingMacro GPIO_RS485_CTRL		= {GPIOA, Pin_1};
 GPIO_PortPinSettingMacro GPIO_DQ_PWR			= {GPIOA, Pin_5};

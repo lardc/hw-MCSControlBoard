@@ -3,10 +3,10 @@
 
 #include "stdinc.h"
 
-#define DS2431_ONE_WIRE_MAC_SIZE		8
-#define DS2431_ONE_WIRE_FAMILY_CODE		0x2D
-#define DS2431_EEPROM_SIZE				128
-#define DS2431_MAX_DEVICES				8
+#define DS2431_MAC_SIZE			8
+#define DS2431_FAMILY_CODE		0x2D
+#define DS2431_EEPROM_SIZE		128
+#define DS2431_MAX_DEVICES		8
 
 // Сканирование шины и сохранение ROM всех найденных DS2431 (шина 1-Wire уже инициализирована).
 Boolean DS2431_Init();
@@ -15,7 +15,7 @@ Int16U DS2431_GetDeviceCount();
 
 // Установить ROM-адрес устройства
 // После вызова адресация идёт через MATCH ROM вместо SKIP ROM.
-void DS2431_Begin(Int8U serialNumber[DS2431_ONE_WIRE_MAC_SIZE]);
+void DS2431_Begin(Int8U serialNumber[DS2431_MAC_SIZE]);
 
 // Чтение нескольких байт из EEPROM. false — нет ответа на шине.
 Boolean DS2431_Read(Int16U address, Int8U *buf, Int16U len);
