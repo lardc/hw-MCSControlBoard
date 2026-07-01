@@ -79,7 +79,7 @@ void INITCFG_ConfigOneWire()
 	OneWire_Init(Config);
 
 	// Инициализация устройств
-	DS18B20_Init();
+	DS18B20_Init(Config.hasPowerPin);
 	DS2431_Init();
 }
 //------------------------------------------------

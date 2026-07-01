@@ -41,7 +41,7 @@
 
 // Variables
 static Int8U SerialNumber[DS18B20_ONE_WIRE_MAC_SIZE];
-static Boolean SkipRom = true;
+static Boolean SkipRom = true, PowerPin = false;
 
 // Forward functions
 static Boolean DS18B20_StartTransmission();
@@ -49,8 +49,9 @@ static Boolean DS18B20_ReadScratchpad(Int8U *Scratchpad);
 static Boolean DS18B20_StartConvert();
 
 // Functions
-void DS18B20_Init()
+void DS18B20_Init(Boolean HasPowerPin)
 {
+	PowerPin = HasPowerPin;
 	Int8U addr[DS18B20_ONE_WIRE_MAC_SIZE];
 
 	OneWire_ResetSearch();
@@ -161,16 +162,19 @@ static Boolean DS18B20_StartConvert()
 	if(!DS18B20_StartTransmission())
 		return false;
 
-#if ONEWIRE_THREE_PIN_BUS
-	OneWire_Write(DS18B20_CONVERT_T, 1);
-	DELAY_MS(DS18B20_CONVERT_DELAY_MS);
-	OneWire_Depower();
-#else
-	OneWire_Write(DS18B20_CONVERT_T, 0);
-	OneWire_StrongPullupHold(true);
-	DELAY_MS(DS18B20_CONVERT_DELAY_MS);
-	OneWire_StrongPullupHold(false);
-#endif
+	if(PowerPin)
+	{
+		OneWire_Write(DS18B20_CONVERT_T, 1);
+		DELAY_MS(DS18B20_CONVERT_DELAY_MS);
+		OneWire_Depower();
+	}
+	else
+	{
+		OneWire_Write(DS18B20_CONVERT_T, 0);
+		OneWire_StrongPullupHold(true);
+		DELAY_MS(DS18B20_CONVERT_DELAY_MS);
+		OneWire_StrongPullupHold(false);
+	}
 
 	return true;
 }

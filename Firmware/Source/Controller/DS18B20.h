@@ -6,7 +6,7 @@
 #define DS18B20_ONE_WIRE_MAC_SIZE		8
 #define DS18B20_FAMILY_CODE				0x28
 
-void DS18B20_Init();
+void DS18B20_Init(Boolean HasPowerPin);
 
 // Установить ROM-адрес (family code + serial + CRC из OneWire_Search).
 // После вызова адресация идёт через MATCH ROM вместо SKIP ROM.
