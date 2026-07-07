@@ -13,6 +13,23 @@
 #define MODBUS_FRAME_GAP_MIN_TICKS		2
 #define MODBUS_TIME_TICK_US				1000
 
+// Variables
+//
+typedef struct __ModbusInterface
+{
+	ModbusFunc_SendByte			IO_SendByte;
+	ModbusFunc_GetBytesToReceive	IO_GetBytesToReceive;
+	ModbusFunc_ReceiveByte		IO_ReceiveByte;
+	ModbusFunc_SetTxMode		IO_SetTxMode;
+	Int32U						BaudRate;
+	Int16U						FrameGapTicks;
+	Int16U						ResponseTimeoutTicks;
+	volatile Int64U				*pTimeCounter;
+	Int8U						LastExceptionCode;
+} ModbusInterface, *pModbusInterface;
+
+static ModbusInterface Interface;
+
 // Forward functions
 //
 static Int16U Modbus_CalcFrameGapTicks(Int32U BaudRate);
@@ -23,20 +40,19 @@ static ModbusError Modbus_ReceiveFrame(pModbusInterface Interface, pInt8U Buffer
 // Functions
 //
 // Инициализация интерфейса Modbus и сохранение указателей на функции обмена
-void Modbus_Init(pModbusInterface Interface,
-		ModbusFunc_SendByte SendByte, ModbusFunc_GetBytesToReceive GetBytesToReceive,
+void Modbus_Init(ModbusFunc_SendByte SendByte, ModbusFunc_GetBytesToReceive GetBytesToReceive,
 		ModbusFunc_ReceiveByte ReceiveByte, ModbusFunc_SetTxMode SetTxMode,
 		Int32U BaudRate, volatile Int64U *pTimeCounter, Int16U ResponseTimeoutTicks)
 {
-	Interface->IO_SendByte = SendByte;
-	Interface->IO_GetBytesToReceive = GetBytesToReceive;
-	Interface->IO_ReceiveByte = ReceiveByte;
-	Interface->IO_SetTxMode = SetTxMode;
-	Interface->BaudRate = BaudRate;
-	Interface->pTimeCounter = pTimeCounter;
-	Interface->ResponseTimeoutTicks = ResponseTimeoutTicks;
-	Interface->LastExceptionCode = 0;
-	Interface->FrameGapTicks = Modbus_CalcFrameGapTicks(BaudRate);
+	Interface.IO_SendByte = SendByte;
+	Interface.IO_GetBytesToReceive = GetBytesToReceive;
+	Interface.IO_ReceiveByte = ReceiveByte;
+	Interface.IO_SetTxMode = SetTxMode;
+	Interface.BaudRate = BaudRate;
+	Interface.pTimeCounter = pTimeCounter;
+	Interface.ResponseTimeoutTicks = ResponseTimeoutTicks;
+	Interface.LastExceptionCode = 0;
+	Interface.FrameGapTicks = Modbus_CalcFrameGapTicks(BaudRate);
 }
 // ----------------------------------------
 
@@ -180,8 +196,7 @@ Int16U Modbus_BuildWriteMultipleRegs(Int8U Slave, Int16U Address, Int16U Count, 
 // ----------------------------------------
 
 // Проверка адреса, кода функции и CRC у ответа slave-устройства
-ModbusError Modbus_ValidateResponse(pInt8U Buffer, Int16U Length, Int8U ExpectedSlave, Int8U ExpectedFunction,
-		pModbusInterface Interface)
+ModbusError Modbus_ValidateResponse(pInt8U Buffer, Int16U Length, Int8U ExpectedSlave, Int8U ExpectedFunction)
 {
 	if(Length < MODBUS_MIN_FRAME_SIZE)
 		return MODBUS_ERR_FRAME_BREAK;
@@ -194,8 +209,7 @@ ModbusError Modbus_ValidateResponse(pInt8U Buffer, Int16U Length, Int8U Expected
 
 	if(Buffer[1] == (Int8U)(ExpectedFunction | 0x80))
 	{
-		if(Interface != NULL)
-			Interface->LastExceptionCode = Buffer[2];
+		Interface.LastExceptionCode = Buffer[2];
 
 		return MODBUS_ERR_SLAVE_EXCEPTION;
 	}
@@ -208,30 +222,36 @@ ModbusError Modbus_ValidateResponse(pInt8U Buffer, Int16U Length, Int8U Expected
 // ----------------------------------------
 
 // Отправка Modbus запроса и приём ответа с базовой обработкой ошибок
-ModbusError Modbus_SendReceive(pModbusInterface Interface, pInt8U TxBuffer, Int16U TxLength,
-		pInt8U RxBuffer, Int16U RxBufferSize, pInt16U RxLength)
+ModbusError Modbus_SendReceive(pInt8U TxBuffer, Int16U TxLength, pInt8U RxBuffer, Int16U RxBufferSize, pInt16U RxLength)
 {
 	ModbusError error;
 
-	if(Interface == NULL || Interface->IO_SendByte == NULL || Interface->IO_GetBytesToReceive == NULL
-			|| Interface->IO_ReceiveByte == NULL || TxBuffer == NULL || RxBuffer == NULL
+	if(Interface.IO_SendByte == NULL || Interface.IO_GetBytesToReceive == NULL
+			|| Interface.IO_ReceiveByte == NULL || Interface.pTimeCounter == NULL || TxBuffer == NULL || RxBuffer == NULL
 			|| RxLength == NULL || TxLength < MODBUS_MIN_FRAME_SIZE)
 		return MODBUS_ERR_FRAME_BREAK;
 
-	Interface->LastExceptionCode = 0;
+	Interface.LastExceptionCode = 0;
 
-	while(Interface->IO_GetBytesToReceive())
-		Interface->IO_ReceiveByte();
+	while(Interface.IO_GetBytesToReceive())
+		Interface.IO_ReceiveByte();
 
-	Modbus_WaitFrameGap(Interface);
-	Modbus_SendBuffer(Interface, TxBuffer, TxLength);
-	Modbus_WaitFrameGap(Interface);
+	Modbus_WaitFrameGap(&Interface);
+	Modbus_SendBuffer(&Interface, TxBuffer, TxLength);
+	Modbus_WaitFrameGap(&Interface);
 
-	error = Modbus_ReceiveFrame(Interface, RxBuffer, RxBufferSize, RxLength);
+	error = Modbus_ReceiveFrame(&Interface, RxBuffer, RxBufferSize, RxLength);
 	if(error != MODBUS_OK)
 		return error;
 
-	return Modbus_ValidateResponse(RxBuffer, *RxLength, TxBuffer[0], TxBuffer[1], Interface);
+	return Modbus_ValidateResponse(RxBuffer, *RxLength, TxBuffer[0], TxBuffer[1]);
+}
+// ----------------------------------------
+
+// Получение кода последнего exception-ответа slave
+Int8U Modbus_GetLastExceptionCode()
+{
+	return Interface.LastExceptionCode;
 }
 // ----------------------------------------
 

@@ -23,23 +23,9 @@ typedef Int16U (*ModbusFunc_GetBytesToReceive)(void);
 typedef Int16U (*ModbusFunc_ReceiveByte)(void);
 typedef void (*ModbusFunc_SetTxMode)(Boolean State);
 
-typedef struct __ModbusInterface
-{
-	ModbusFunc_SendByte			IO_SendByte;
-	ModbusFunc_GetBytesToReceive	IO_GetBytesToReceive;
-	ModbusFunc_ReceiveByte		IO_ReceiveByte;
-	ModbusFunc_SetTxMode		IO_SetTxMode;
-	Int32U						BaudRate;
-	Int16U						FrameGapTicks;
-	Int16U						ResponseTimeoutTicks;
-	volatile Int64U				*pTimeCounter;
-	Int8U						LastExceptionCode;
-} ModbusInterface, *pModbusInterface;
-
 // Functions
 //
-void Modbus_Init(pModbusInterface Interface,
-		ModbusFunc_SendByte SendByte, ModbusFunc_GetBytesToReceive GetBytesToReceive,
+void Modbus_Init(ModbusFunc_SendByte SendByte, ModbusFunc_GetBytesToReceive GetBytesToReceive,
 		ModbusFunc_ReceiveByte ReceiveByte, ModbusFunc_SetTxMode SetTxMode,
 		Int32U BaudRate, volatile Int64U *pTimeCounter, Int16U ResponseTimeoutTicks);
 
@@ -50,10 +36,9 @@ Int16U Modbus_BuildReadHoldingRegs(Int8U Slave, Int16U Address, Int16U Count, pI
 Int16U Modbus_BuildWriteSingleReg(Int8U Slave, Int16U Address, Int16U Value, pInt8U Buffer);
 Int16U Modbus_BuildWriteMultipleRegs(Int8U Slave, Int16U Address, Int16U Count, pInt16U Values, pInt8U Buffer);
 
-ModbusError Modbus_ValidateResponse(pInt8U Buffer, Int16U Length, Int8U ExpectedSlave, Int8U ExpectedFunction,
-		pModbusInterface Interface);
+ModbusError Modbus_ValidateResponse(pInt8U Buffer, Int16U Length, Int8U ExpectedSlave, Int8U ExpectedFunction);
 
-ModbusError Modbus_SendReceive(pModbusInterface Interface, pInt8U TxBuffer, Int16U TxLength,
-		pInt8U RxBuffer, Int16U RxBufferSize, pInt16U RxLength);
+ModbusError Modbus_SendReceive(pInt8U TxBuffer, Int16U TxLength, pInt8U RxBuffer, Int16U RxBufferSize, pInt16U RxLength);
+Int8U Modbus_GetLastExceptionCode();
 
 #endif /* CONTROLLER_MODBUS_H_ */

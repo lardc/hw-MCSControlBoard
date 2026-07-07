@@ -11,6 +11,8 @@
 #include "DS18B20.h"
 #include "DS2431.h"
 #include "OneWire.h"
+#include "Modbus.h"
+#include "Controller.h"
 
 // Variables
 Int16U INITCFG_PressureAdcBuffer[ADC_PRESSURE_BUF_SIZE];
@@ -81,6 +83,16 @@ void INITCFG_ConfigOneWire()
 	// Инициализация устройств
 	DS18B20_Init(Config.hasPowerPin);
 	DS2431_Init();
+}
+//------------------------------------------------
+
+void INITCFG_ConfigModbus()
+{
+	// Общая инициализация шины
+	Int16U TimeoutTicks = 100;
+
+	Modbus_Init((ModbusFunc_SendByte)USART2_SendChar, (ModbusFunc_GetBytesToReceive)USART2_GetBytesToReceive,
+			(ModbusFunc_ReceiveByte)USART2_ReceiveChar, LL_RS485_SetTxMode, USART_BAUDRATE, &CONTROL_TimeCounter, TimeoutTicks);
 }
 //------------------------------------------------
 
