@@ -5,9 +5,9 @@
 //
 #define MODBUS_MAX_FRAME_SIZE			256
 #define MODBUS_RESPONSE_TIMEOUT_TICKS	100
-#define MODBUS_FC_READ_HOLDING_REGS		3
-#define MODBUS_FC_WRITE_SINGLE_REG		6
-#define MODBUS_FC_WRITE_MULTIPLE_REGS	16
+#define MODBUS_FC_READ_HOLDING_REGS		0x03
+#define MODBUS_FC_WRITE_SINGLE_REG		0x06
+#define MODBUS_FC_WRITE_MULTIPLE_REGS	0x10
 #define MODBUS_MIN_FRAME_SIZE			5
 #define MODBUS_CHAR_BITS				11
 #define MODBUS_FRAME_GAP_MIN_TICKS		2
@@ -33,9 +33,9 @@ static ModbusInterface Interface;
 // Forward functions
 //
 static Int16U Modbus_CalcFrameGapTicks(Int32U BaudRate);
-static void Modbus_SendBuffer(pModbusInterface Interface, pInt8U Buffer, Int16U Length);
-static void Modbus_WaitFrameGap(pModbusInterface Interface);
-static ModbusError Modbus_ReceiveFrame(pModbusInterface Interface, pInt8U Buffer, Int16U BufferSize, pInt16U Length);
+static void Modbus_SendBuffer(pInt8U Buffer, Int16U Length);
+static void Modbus_WaitFrameGap();
+static ModbusError Modbus_ReceiveFrame(pInt8U Buffer, Int16U BufferSize, pInt16U Length);
 
 // Functions
 //
@@ -59,20 +59,20 @@ void Modbus_Init(ModbusFunc_SendByte SendByte, ModbusFunc_GetBytesToReceive GetB
 // Расчёт межкадровой паузы Modbus RTU в тиках внутреннего таймера
 static Int16U Modbus_CalcFrameGapTicks(Int32U BaudRate)
 {
-	Int32U charTimeUs, t35Us;
-	Int16U ticks;
+	Int32U CharTimeUs, T35Us;
+	Int16U Ticks;
 
 	if(BaudRate == 0)
 		return MODBUS_FRAME_GAP_MIN_TICKS;
 
-	charTimeUs = (MODBUS_CHAR_BITS * 1000000UL) / BaudRate;
-	t35Us = (charTimeUs * 35UL) / 10UL;
-	ticks = (Int16U)((t35Us + MODBUS_TIME_TICK_US - 1) / MODBUS_TIME_TICK_US);
+	CharTimeUs = (MODBUS_CHAR_BITS * 1000000UL) / BaudRate;
+	T35Us = (CharTimeUs * 35UL) / 10UL;
+	Ticks = (Int16U)((T35Us + MODBUS_TIME_TICK_US - 1) / MODBUS_TIME_TICK_US);
 
-	if(ticks < MODBUS_FRAME_GAP_MIN_TICKS)
-		ticks = MODBUS_FRAME_GAP_MIN_TICKS;
+	if(Ticks < MODBUS_FRAME_GAP_MIN_TICKS)
+		Ticks = MODBUS_FRAME_GAP_MIN_TICKS;
 
-	return ticks;
+	return Ticks;
 }
 // ----------------------------------------
 
@@ -101,20 +101,20 @@ Int16U Modbus_CRC16(pInt8U Data, Int16U Length)
 // Проверка CRC у принятого Modbus кадра
 Boolean Modbus_CheckCRC(pInt8U Buffer, Int16U Length)
 {
-	Int16U crcReceived;
+	Int16U CrcReceived;
 
 	if(Length < MODBUS_MIN_FRAME_SIZE)
 		return FALSE;
 
-	crcReceived = Buffer[Length - 2] | ((Int16U)Buffer[Length - 1] << 8);
-	return Modbus_CRC16(Buffer, Length - 2) == crcReceived;
+	CrcReceived = Buffer[Length - 2] | ((Int16U)Buffer[Length - 1] << 8);
+	return Modbus_CRC16(Buffer, Length - 2) == CrcReceived;
 }
 // ----------------------------------------
 
 // Упаковка запроса чтения holding-регистров с добавлением CRC
 Int16U Modbus_BuildReadHoldingRegs(Int8U Slave, Int16U Address, Int16U Count, pInt8U Buffer)
 {
-	Int16U length = 6;
+	Int16U Length = 6;
 	Int16U crc;
 
 	if(Buffer == NULL || Count == 0 || Count > 125)
@@ -127,18 +127,18 @@ Int16U Modbus_BuildReadHoldingRegs(Int8U Slave, Int16U Address, Int16U Count, pI
 	Buffer[4] = (Int8U)(Count >> 8);
 	Buffer[5] = (Int8U)(Count & 0xFF);
 
-	crc = Modbus_CRC16(Buffer, length);
-	Buffer[length++] = (Int8U)(crc & 0xFF);
-	Buffer[length++] = (Int8U)(crc >> 8);
+	crc = Modbus_CRC16(Buffer, Length);
+	Buffer[Length++] = (Int8U)(crc & 0xFF);
+	Buffer[Length++] = (Int8U)(crc >> 8);
 
-	return length;
+	return Length;
 }
 // ----------------------------------------
 
 // Упаковка запроса записи одного регистра с добавлением CRC
 Int16U Modbus_BuildWriteSingleReg(Int8U Slave, Int16U Address, Int16U Value, pInt8U Buffer)
 {
-	Int16U length = 6;
+	Int16U Length = 6;
 	Int16U crc;
 
 	if(Buffer == NULL)
@@ -151,26 +151,26 @@ Int16U Modbus_BuildWriteSingleReg(Int8U Slave, Int16U Address, Int16U Value, pIn
 	Buffer[4] = (Int8U)(Value >> 8);
 	Buffer[5] = (Int8U)(Value & 0xFF);
 
-	crc = Modbus_CRC16(Buffer, length);
-	Buffer[length++] = (Int8U)(crc & 0xFF);
-	Buffer[length++] = (Int8U)(crc >> 8);
+	crc = Modbus_CRC16(Buffer, Length);
+	Buffer[Length++] = (Int8U)(crc & 0xFF);
+	Buffer[Length++] = (Int8U)(crc >> 8);
 
-	return length;
+	return Length;
 }
 // ----------------------------------------
 
 // Упаковка запроса записи нескольких регистров с добавлением CRC
 Int16U Modbus_BuildWriteMultipleRegs(Int8U Slave, Int16U Address, Int16U Count, pInt16U Values, pInt8U Buffer)
 {
-	Int16U i, length, byteCount, crc;
+	Int16U i, Length, ByteCount, crc;
 
 	if(Buffer == NULL || Values == NULL || Count == 0 || Count > 123)
 		return 0;
 
-	byteCount = Count * 2;
-	length = 7 + byteCount;
+	ByteCount = Count * 2;
+	Length = 7 + ByteCount;
 
-	if(length + 2 > MODBUS_MAX_FRAME_SIZE)
+	if(Length + 2 > MODBUS_MAX_FRAME_SIZE)
 		return 0;
 
 	Buffer[0] = Slave;
@@ -179,7 +179,7 @@ Int16U Modbus_BuildWriteMultipleRegs(Int8U Slave, Int16U Address, Int16U Count, 
 	Buffer[3] = (Int8U)(Address & 0xFF);
 	Buffer[4] = (Int8U)(Count >> 8);
 	Buffer[5] = (Int8U)(Count & 0xFF);
-	Buffer[6] = (Int8U)byteCount;
+	Buffer[6] = (Int8U)ByteCount;
 
 	for(i = 0; i < Count; ++i)
 	{
@@ -187,11 +187,11 @@ Int16U Modbus_BuildWriteMultipleRegs(Int8U Slave, Int16U Address, Int16U Count, 
 		Buffer[8 + i * 2] = (Int8U)(Values[i] & 0xFF);
 	}
 
-	crc = Modbus_CRC16(Buffer, length);
-	Buffer[length++] = (Int8U)(crc & 0xFF);
-	Buffer[length++] = (Int8U)(crc >> 8);
+	crc = Modbus_CRC16(Buffer, Length);
+	Buffer[Length++] = (Int8U)(crc & 0xFF);
+	Buffer[Length++] = (Int8U)(crc >> 8);
 
-	return length;
+	return Length;
 }
 // ----------------------------------------
 
@@ -224,7 +224,7 @@ ModbusError Modbus_ValidateResponse(pInt8U Buffer, Int16U Length, Int8U Expected
 // Отправка Modbus запроса и приём ответа с базовой обработкой ошибок
 ModbusError Modbus_SendReceive(pInt8U TxBuffer, Int16U TxLength, pInt8U RxBuffer, Int16U RxBufferSize, pInt16U RxLength)
 {
-	ModbusError error;
+	ModbusError ErrorCode;
 
 	if(Interface.IO_SendByte == NULL || Interface.IO_GetBytesToReceive == NULL
 			|| Interface.IO_ReceiveByte == NULL || Interface.pTimeCounter == NULL || TxBuffer == NULL || RxBuffer == NULL
@@ -236,13 +236,13 @@ ModbusError Modbus_SendReceive(pInt8U TxBuffer, Int16U TxLength, pInt8U RxBuffer
 	while(Interface.IO_GetBytesToReceive())
 		Interface.IO_ReceiveByte();
 
-	Modbus_WaitFrameGap(&Interface);
-	Modbus_SendBuffer(&Interface, TxBuffer, TxLength);
-	Modbus_WaitFrameGap(&Interface);
+	Modbus_WaitFrameGap();
+	Modbus_SendBuffer(TxBuffer, TxLength);
+	Modbus_WaitFrameGap();
 
-	error = Modbus_ReceiveFrame(&Interface, RxBuffer, RxBufferSize, RxLength);
-	if(error != MODBUS_OK)
-		return error;
+	ErrorCode = Modbus_ReceiveFrame(RxBuffer, RxBufferSize, RxLength);
+	if(ErrorCode != MODBUS_OK)
+		return ErrorCode;
 
 	return Modbus_ValidateResponse(RxBuffer, *RxLength, TxBuffer[0], TxBuffer[1]);
 }
@@ -256,65 +256,65 @@ Int8U Modbus_GetLastExceptionCode()
 // ----------------------------------------
 
 // Передача буфера в линию с переключением RS485 в режим передачи
-static void Modbus_SendBuffer(pModbusInterface Interface, pInt8U Buffer, Int16U Length)
+static void Modbus_SendBuffer(pInt8U Buffer, Int16U Length)
 {
 	Int16U i;
 
-	if(Interface->IO_SetTxMode != NULL)
-		Interface->IO_SetTxMode(TRUE);
+	if(Interface.IO_SetTxMode != NULL)
+		Interface.IO_SetTxMode(TRUE);
 
 	for(i = 0; i < Length; ++i)
-		Interface->IO_SendByte(Buffer[i]);
+		Interface.IO_SendByte(Buffer[i]);
 
-	if(Interface->IO_SetTxMode != NULL)
-		Interface->IO_SetTxMode(FALSE);
+	if(Interface.IO_SetTxMode != NULL)
+		Interface.IO_SetTxMode(FALSE);
 }
 // ----------------------------------------
 
 // Выдержка межкадровой паузы по внутреннему таймеру
-static void Modbus_WaitFrameGap(pModbusInterface Interface)
+static void Modbus_WaitFrameGap()
 {
-	Int64U startTime = *Interface->pTimeCounter;
+	Int64U StartTime = *Interface.pTimeCounter;
 
-	while(*Interface->pTimeCounter - startTime < Interface->FrameGapTicks);
+	while(*Interface.pTimeCounter - StartTime < Interface.FrameGapTicks);
 }
 // ----------------------------------------
 
 // Приём Modbus кадра до паузы на линии или до таймаута ожидания
-static ModbusError Modbus_ReceiveFrame(pModbusInterface Interface, pInt8U Buffer, Int16U BufferSize, pInt16U Length)
+static ModbusError Modbus_ReceiveFrame(pInt8U Buffer, Int16U BufferSize, pInt16U Length)
 {
-	Int64U startTime = *Interface->pTimeCounter;
-	Int64U lastByteTime = 0;
-	Int16U received = 0;
-	Boolean frameStarted = FALSE;
+	Int64U StartTime = *Interface.pTimeCounter;
+	Int64U LastByteTime = 0;
+	Int16U Received = 0;
+	Boolean FrameStarted = FALSE;
 
 	*Length = 0;
 
-	while(*Interface->pTimeCounter - startTime <= Interface->ResponseTimeoutTicks)
+	while(*Interface.pTimeCounter - StartTime <= Interface.ResponseTimeoutTicks)
 	{
-		while(Interface->IO_GetBytesToReceive())
+		while(Interface.IO_GetBytesToReceive())
 		{
-			if(received >= BufferSize)
+			if(Received >= BufferSize)
 				return MODBUS_ERR_BUFFER_OVERFLOW;
 
-			Buffer[received++] = (Int8U)Interface->IO_ReceiveByte();
-			lastByteTime = *Interface->pTimeCounter;
-			frameStarted = TRUE;
+			Buffer[Received++] = (Int8U)Interface.IO_ReceiveByte();
+			LastByteTime = *Interface.pTimeCounter;
+			FrameStarted = TRUE;
 		}
 
-		if(frameStarted && (*Interface->pTimeCounter - lastByteTime) >= Interface->FrameGapTicks)
+		if(FrameStarted && (*Interface.pTimeCounter - LastByteTime) >= Interface.FrameGapTicks)
 			break;
 	}
 
-	*Length = received;
+	*Length = Received;
 
-	if(received == 0)
+	if(Received == 0)
 		return MODBUS_ERR_TIMEOUT;
 
-	if(received < MODBUS_MIN_FRAME_SIZE)
+	if(Received < MODBUS_MIN_FRAME_SIZE)
 		return MODBUS_ERR_FRAME_BREAK;
 
-	if(!frameStarted || (*Interface->pTimeCounter - lastByteTime) < Interface->FrameGapTicks)
+	if(!FrameStarted || (*Interface.pTimeCounter - LastByteTime) < Interface.FrameGapTicks)
 		return MODBUS_ERR_FRAME_BREAK;
 
 	return MODBUS_OK;

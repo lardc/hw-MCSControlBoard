@@ -20,6 +20,7 @@ int main()
 	// USART3 — RS232 SCCI , USART2 — TRM
 	INITCFG_ConfigUART();
 	INITCFG_ConfigTRMUART();
+	INITCFG_ConfigModbus();
 
 	// Настройка CAN и SPI
 	INITCFG_ConfigCAN();
