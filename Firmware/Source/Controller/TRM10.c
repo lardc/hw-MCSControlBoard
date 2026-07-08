@@ -178,36 +178,36 @@ static Boolean TRM10_WriteUint16Reg(Int8U Slave, Int16U RegAddress, Int16U Value
 // ----------------------------------------
 
 // Чтение измеренной температуры (Fun1)
-float TRM10_ReadTemp(Int16U Address, pTRMError error)
+float TRM10_ReadTemp(Int8U Address, pTRMError error)
 {
-	return TRM10_ReadFloatReg((Int8U)Address, TRM10_REG_FUN1, error);
+	return TRM10_ReadFloatReg(Address, TRM10_REG_FUN1, error);
 }
 // ----------------------------------------
 
 // Чтение выходной мощности (out.P)
-float TRM10_ReadPower(Int16U Address, pTRMError error)
+float TRM10_ReadPower(Int8U Address, pTRMError error)
 {
-	return TRM10_ReadFloatReg((Int8U)Address, TRM10_REG_OUT_P, error);
+	return TRM10_ReadFloatReg(Address, TRM10_REG_OUT_P, error);
 }
 // ----------------------------------------
 
 // Установка уставки регулятора (SP1)
-void TRM10_SetTemp(Int16U Address, float Temperature, pTRMError error)
+void TRM10_SetTemp(Int8U Address, float Temperature, pTRMError error)
 {
-	TRM10_WriteFloatReg((Int8U)Address, TRM10_REG_SP1, Temperature, error);
+	TRM10_WriteFloatReg(Address, TRM10_REG_SP1, Temperature, error);
 }
 // ----------------------------------------
 
 // Запуск регулирования (CtrL = RUN)
-void TRM10_Start(Int16U Address, pTRMError error)
+void TRM10_Start(Int8U Address, pTRMError error)
 {
-	TRM10_WriteUint16Reg((Int8U)Address, TRM10_REG_CTRL, TRM10_CTRL_RUN, error);
+	TRM10_WriteUint16Reg(Address, TRM10_REG_CTRL, TRM10_CTRL_RUN, error);
 }
 // ----------------------------------------
 
 // Останов регулирования (CtrL = STOP)
-void TRM10_Stop(Int16U Address, pTRMError error)
+void TRM10_Stop(Int8U Address, pTRMError error)
 {
-	TRM10_WriteUint16Reg((Int8U)Address, TRM10_REG_CTRL, TRM10_CTRL_STOP, error);
+	TRM10_WriteUint16Reg(Address, TRM10_REG_CTRL, TRM10_CTRL_STOP, error);
 }
 // ----------------------------------------
