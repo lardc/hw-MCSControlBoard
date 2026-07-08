@@ -15,7 +15,8 @@ typedef enum __ModbusError
 	MODBUS_ERR_SLAVE_EXCEPTION	= 4,
 	MODBUS_ERR_WRONG_SLAVE		= 5,
 	MODBUS_ERR_WRONG_FUNCTION	= 6,
-	MODBUS_ERR_BUFFER_OVERFLOW	= 7
+	MODBUS_ERR_BUFFER_OVERFLOW	= 7,
+	MODBUS_ERR_BAD_INIT			= 8
 } ModbusError, *pModbusError;
 
 typedef void (*ModbusFunc_SendByte)(Int16U Value);

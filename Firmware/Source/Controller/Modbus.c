@@ -230,7 +230,7 @@ ModbusError Modbus_SendReceive(pInt8U TxBuffer, Int16U TxLength, pInt8U RxBuffer
 	if(Interface.IO_SendByte == NULL || Interface.IO_GetBytesToReceive == NULL
 			|| Interface.IO_ReceiveByte == NULL || Interface.pTimeCounter == NULL || TxBuffer == NULL || RxBuffer == NULL
 			|| RxLength == NULL || TxLength < MODBUS_MIN_FRAME_SIZE)
-		return MODBUS_ERR_FRAME_BREAK;
+		return MODBUS_ERR_BAD_INIT;
 
 	Interface.LastExceptionCode = 0;
 
