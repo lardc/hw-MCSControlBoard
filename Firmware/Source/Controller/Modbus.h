@@ -29,16 +29,9 @@ void Modbus_Init(ModbusFunc_SendByte SendByte, ModbusFunc_GetBytesToReceive GetB
 		ModbusFunc_ReceiveByte ReceiveByte, ModbusFunc_SetTxMode SetTxMode,
 		Int32U BaudRate, volatile Int64U *pTimeCounter, Int16U ResponseTimeoutTicks);
 
-Int16U Modbus_CRC16(pInt8U Data, Int16U Length);
-Boolean Modbus_CheckCRC(pInt8U Buffer, Int16U Length);
-
 Int16U Modbus_BuildReadHoldingRegs(Int8U Slave, Int16U Address, Int16U Count, pInt8U Buffer);
-Int16U Modbus_BuildWriteSingleReg(Int8U Slave, Int16U Address, Int16U Value, pInt8U Buffer);
 Int16U Modbus_BuildWriteMultipleRegs(Int8U Slave, Int16U Address, Int16U Count, pInt16U Values, pInt8U Buffer);
 
-ModbusError Modbus_ValidateResponse(pInt8U Buffer, Int16U Length, Int8U ExpectedSlave, Int8U ExpectedFunction);
-
 ModbusError Modbus_SendReceive(pInt8U TxBuffer, Int16U TxLength, pInt8U RxBuffer, Int16U RxBufferSize, pInt16U RxLength);
-Int8U Modbus_GetLastExceptionCode();
 
 #endif /* CONTROLLER_MODBUS_H_ */

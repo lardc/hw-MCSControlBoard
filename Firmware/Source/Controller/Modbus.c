@@ -4,10 +4,11 @@
 // Definitions
 //
 #define MODBUS_MAX_FRAME_SIZE			256
-#define MODBUS_RESPONSE_TIMEOUT_TICKS	100
+
 #define MODBUS_FC_READ_HOLDING_REGS		0x03
 #define MODBUS_FC_WRITE_SINGLE_REG		0x06
 #define MODBUS_FC_WRITE_MULTIPLE_REGS	0x10
+
 #define MODBUS_MIN_FRAME_SIZE			5
 #define MODBUS_CHAR_BITS				11
 #define MODBUS_FRAME_GAP_MIN_TICKS		2
@@ -22,8 +23,8 @@ typedef struct __ModbusInterface
 	ModbusFunc_ReceiveByte		IO_ReceiveByte;
 	ModbusFunc_SetTxMode		IO_SetTxMode;
 	Int32U						BaudRate;
-	Int16U						FrameGapTicks;
-	Int16U						ResponseTimeoutTicks;
+	Int16U						FrameGap;
+	Int16U						ResponseTimeout;
 	volatile Int64U				*pTimeCounter;
 	Int8U						LastExceptionCode;
 } ModbusInterface, *pModbusInterface;
@@ -50,9 +51,9 @@ void Modbus_Init(ModbusFunc_SendByte SendByte, ModbusFunc_GetBytesToReceive GetB
 	Interface.IO_SetTxMode = SetTxMode;
 	Interface.BaudRate = BaudRate;
 	Interface.pTimeCounter = pTimeCounter;
-	Interface.ResponseTimeoutTicks = ResponseTimeoutTicks;
+	Interface.ResponseTimeout = ResponseTimeoutTicks;
 	Interface.LastExceptionCode = 0;
-	Interface.FrameGapTicks = Modbus_CalcFrameGapTicks(BaudRate);
+	Interface.FrameGap = Modbus_CalcFrameGapTicks(BaudRate);
 }
 // ----------------------------------------
 
@@ -276,7 +277,7 @@ static void Modbus_WaitFrameGap()
 {
 	Int64U StartTime = *Interface.pTimeCounter;
 
-	while(*Interface.pTimeCounter - StartTime < Interface.FrameGapTicks);
+	while(*Interface.pTimeCounter - StartTime < Interface.FrameGap);
 }
 // ----------------------------------------
 
@@ -290,7 +291,7 @@ static ModbusError Modbus_ReceiveFrame(pInt8U Buffer, Int16U BufferSize, pInt16U
 
 	*Length = 0;
 
-	while(*Interface.pTimeCounter - StartTime <= Interface.ResponseTimeoutTicks)
+	while(*Interface.pTimeCounter - StartTime <= Interface.ResponseTimeout)
 	{
 		while(Interface.IO_GetBytesToReceive())
 		{
@@ -302,7 +303,7 @@ static ModbusError Modbus_ReceiveFrame(pInt8U Buffer, Int16U BufferSize, pInt16U
 			FrameStarted = TRUE;
 		}
 
-		if(FrameStarted && (*Interface.pTimeCounter - LastByteTime) >= Interface.FrameGapTicks)
+		if(FrameStarted && (*Interface.pTimeCounter - LastByteTime) >= Interface.FrameGap)
 			break;
 	}
 
@@ -314,7 +315,7 @@ static ModbusError Modbus_ReceiveFrame(pInt8U Buffer, Int16U BufferSize, pInt16U
 	if(Received < MODBUS_MIN_FRAME_SIZE)
 		return MODBUS_ERR_FRAME_BREAK;
 
-	if(!FrameStarted || (*Interface.pTimeCounter - LastByteTime) < Interface.FrameGapTicks)
+	if(!FrameStarted || (*Interface.pTimeCounter - LastByteTime) < Interface.FrameGap)
 		return MODBUS_ERR_FRAME_BREAK;
 
 	return MODBUS_OK;
