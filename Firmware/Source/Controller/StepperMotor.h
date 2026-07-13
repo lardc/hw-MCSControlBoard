@@ -12,9 +12,7 @@
 typedef struct __SM_Params
 {
 	Int16U NewPosition;
-	Int16U SlowDownDistance;
 	Int16U MaxSpeed;
-	Int16U SlowSpeed;
 	Int16U MinSpeed;
 } SM_Params, *pSM_Params;
 

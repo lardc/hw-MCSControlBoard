@@ -39,8 +39,6 @@ Boolean LL_HomeSensorActuate();
 
 void LL_SetTestLine(Boolean State);
 void LL_RS485_SetTxMode(Boolean State);
-
-void LL_SwitchStep(Boolean State);
 void LL_SwitchUpDir(Boolean State);
 Boolean LL_IsDirUp();
 

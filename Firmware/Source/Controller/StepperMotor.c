@@ -106,8 +106,8 @@ void SM_LogicHandler()
 
 		if(StepsToGo <= SM_SPEED_CHANGE_STEPS)
 		{
-			DecelTarget = SM_MaxCycles+ (Int16U)((SM_MinCycles - SM_MaxCycles) * (SM_SPEED_CHANGE_STEPS - StepsToGo)
-							/ SM_SPEED_CHANGE_STEPS);
+			DecelTarget = SM_MaxCycles + (Int16U)((SM_MinCycles - SM_MaxCycles) * (SM_SPEED_CHANGE_STEPS - StepsToGo)
+					/ SM_SPEED_CHANGE_STEPS);
 
 			if(DecelTarget > Target)
 				Target = DecelTarget;
@@ -149,6 +149,12 @@ void SM_GoToPosition(pSM_Params Params)
 
 	SM_StartSteps = SM_GlobalStepsCounter;
 	SM_DestSteps = SM_PosToSteps(Params->NewPosition);
+
+	if(SM_DestSteps == SM_GlobalStepsCounter)
+	{
+		SM_StopMotion();
+		return;
+	}
 
 	SM_UpDirection(SM_DestSteps > SM_GlobalStepsCounter);
 

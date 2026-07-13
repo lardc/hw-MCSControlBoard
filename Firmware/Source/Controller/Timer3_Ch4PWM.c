@@ -2,10 +2,8 @@
 #include "Timer3_Ch4PWM.h"
 
 // Includes
-#include "Board.h"
 #include "ZwTIM.h"
 #include "ZwRCC.h"
-#include "ZwGPIO.h"
 #include "math.h"
 
 // Defines
@@ -30,9 +28,6 @@ void T3Ch4PWM_Init(uint32_t SystemClock, uint32_t Period)
 	// Расчёт размерности ШИМ
 	uint32_t Prescaler = (uint32_t)((float)SystemClock / 1000000 * Period / 65536);
 	PWMBase = (uint32_t)((SystemClock / ((Prescaler + 1) * 1000000)) * Period);
-
-	// Настройка выхода STEP (PB1, TIM3_CH4, AF2)
-	GPIO_InitAltFunction(GPIO_STPM_STEP, AltFn_2);
 
 	// Стандартная инициализация
 	TIM_Clock_En(TIM_3);

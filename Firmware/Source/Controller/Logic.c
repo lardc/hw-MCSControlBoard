@@ -47,9 +47,7 @@ static void LOGIC_PrepareHoming()
 	SM_Params Params;
 
 	Params.NewPosition = DataTable[REG_HOMING_OFFSET];
-	Params.SlowDownDistance = 0;
 	Params.MaxSpeed = DataTable[REG_HOMING_SPEED];
-	Params.SlowSpeed = DataTable[REG_HOMING_SPEED];
 	Params.MinSpeed = DataTable[REG_HOMING_SPEED];
 
 	SM_GoToPosition(&Params);
