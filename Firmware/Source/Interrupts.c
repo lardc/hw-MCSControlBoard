@@ -6,6 +6,7 @@
 #include "Global.h"
 #include "StepperMotor.h"
 #include "ZwUSART.h"
+#include "ZwTIM.h"
 
 // Functions
 //
@@ -62,6 +63,16 @@ void TIM1_UP_TIM16_IRQHandler(void)
 	{
 		SM_TimerHandler();
 		TIM_StatusClear(TIM1);
+	}
+}
+//-----------------------------------------
+
+void TIM3_IRQHandler(void)
+{
+	if(TIM_StatusCheck(TIM3))
+	{
+		SM_TimerHandler();
+		TIM_StatusClear(TIM3);
 	}
 }
 //-----------------------------------------

@@ -19,6 +19,7 @@ void INITCFG_ConfigSPI();
 void INITCFG_ConfigRS485();
 void INITCFG_ConfigTimer7();
 void INITCFG_ConfigTimer1();
+void INITCFG_PWM();
 void INITCFG_ConfigTimer15();
 void INITCFG_ConfigWatchDog();
 void INITCFG_ConfigADC();

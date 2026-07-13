@@ -13,6 +13,7 @@
 #include "OneWire.h"
 #include "Modbus.h"
 #include "Controller.h"
+#include "Timer3_Ch4PWM.h"
 
 // Variables
 Int16U INITCFG_PressureAdcBuffer[ADC_PRESSURE_BUF_SIZE];
@@ -45,7 +46,7 @@ void INITCFG_ConfigGPIO()
 	GPIO_InitPushPullOutput(GPIO_LED);
 	GPIO_InitPushPullOutput(GPIO_RS485_CTRL);
 	GPIO_InitPushPullOutput(GPIO_STPM_DIR);
-	GPIO_InitPushPullOutput(GPIO_STPM_STEP);
+	GPIO_InitAltFunction(GPIO_STPM_STEP, AltFn_2);
 	GPIO_InitPushPullOutput(GPIO_STPM_EN);
 	GPIO_InitPushPullOutput(GPIO_SPI_SS);
 	GPIO_InitPushPullOutput(GPIO_TEST);
@@ -63,7 +64,6 @@ void INITCFG_ConfigGPIO()
 	GPIO_SetState(GPIO_LED, false);
 	GPIO_SetState(GPIO_RS485_CTRL, false);
 	GPIO_SetState(GPIO_STPM_DIR, false);
-	GPIO_SetState(GPIO_STPM_STEP, false);
 	GPIO_SetState(GPIO_STPM_EN, false);
 	GPIO_SetState(GPIO_SPI_SS, false);
 	GPIO_SetState(GPIO_TEST, false);
@@ -147,6 +147,14 @@ void INITCFG_ConfigTimer1()
 	TIM_Config(TIM1, SYSCLK, TIMER1_uS);
 	TIM_Interupt(TIM1, 1, true);
 	TIM_Start(TIM1);
+}
+//------------------------------------------------
+
+void INITCFG_PWM()
+{
+	uint32_t Period = 100;
+
+	T3Ch4PWM_Init(SYSCLK, Period);
 }
 //------------------------------------------------
 
