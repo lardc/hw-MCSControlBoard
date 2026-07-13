@@ -6,9 +6,6 @@
 #include "ZwRCC.h"
 #include "math.h"
 
-// Defines
-#define T3CH4PWM_MAX_OUTPUT	0.95f
-
 // Variables
 static uint32_t PWMBase = 0;
 
@@ -44,7 +41,7 @@ void T3Ch4PWM_Init(uint32_t SystemClock, uint32_t Period)
 	TIM3->CCR4 = 0;
 
 	// Сброс выхода
-	T3Ch4PWM_SetDutyCycle(0);
+	T3Ch4PWM_SetFrequency(0);
 
 	// Инициализация обновления регистров
 	TIM3->SR &= ~TIM_SR_UIF;
@@ -57,7 +54,7 @@ void T3Ch4PWM_Init(uint32_t SystemClock, uint32_t Period)
 }
 //------------------------------------------------
 
-void T3Ch4PWM_SetDutyCycle(float Value)
+void T3Ch4PWM_SetFrequency(float Value)
 {
 	// Проверка выходного на насыщение
 	float MaxOutput = T3CH4PWM_MAX_OUTPUT * PWMBase;
@@ -89,7 +86,7 @@ void T3Ch4PWM_Start()
 
 void T3Ch4PWM_Stop()
 {
-	T3Ch4PWM_SetDutyCycle(0);
+	T3Ch4PWM_SetFrequency(0);
 	TIM_Stop(TIM3);
 
 	// Запрет прерывания и очистка флага

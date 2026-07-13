@@ -14,7 +14,6 @@
 
 // Definitions
 #define SM_SPEED_CHANGE_STEPS		(2 * SM_FULL_ROUND_STEPS)	// Длина линейного разгона/торможения, шаги
-#define T3CH4PWM_MAX_HALF_PERIOD	0.95f
 
 // Types
 typedef void (*xTimerAlterHandler)();
@@ -106,7 +105,7 @@ void SM_LogicHandler()
 
 		if(StepsToGo <= SM_SPEED_CHANGE_STEPS)
 		{
-			DecelTarget = SM_MaxCycles + (Int16U)((SM_MinCycles - SM_MaxCycles) * (SM_SPEED_CHANGE_STEPS - StepsToGo)
+			DecelTarget = SM_MinCycles + (Int16U)((SM_MaxCycles - SM_MinCycles) * (SM_SPEED_CHANGE_STEPS - StepsToGo)
 					/ SM_SPEED_CHANGE_STEPS);
 
 			if(DecelTarget > Target)
@@ -162,7 +161,7 @@ void SM_GoToPosition(pSM_Params Params)
 	SM_MaxCycles = SM_SpeedToHalfPeriod(Params->MinSpeed);
 	SM_CyclesToToggle = SM_MaxCycles;
 
-	T3Ch4PWM_SetDutyCycle(SM_CyclesToToggle);
+	T3Ch4PWM_SetFrequency(SM_CyclesToToggle);
 	T3Ch4PWM_Start();
 }
 // ----------------------------------------
@@ -175,7 +174,7 @@ void SM_Homing()
 	SM_UpDirection(FALSE);
 	SM_CyclesToToggle = SM_SpeedToHalfPeriod(DataTable[REG_HOMING_SPEED]);
 
-	T3Ch4PWM_SetDutyCycle(SM_CyclesToToggle);
+	T3Ch4PWM_SetFrequency(SM_CyclesToToggle);
 	T3Ch4PWM_Start();
 }
 // ----------------------------------------
@@ -217,7 +216,7 @@ Int16U SM_SpeedToHalfPeriod(Int16U Speed)
 	TimerClk = SYSCLK / (TIM3->PSC + 1);
 	StepsPerSec = (Int32U)Speed * 1000ul * SM_FULL_ROUND_STEPS / SM_MOVING_RER_ROUND;
 	HalfPeriod = TimerClk / (2 * StepsPerSec);
-	MaxHalfPeriod = (Int32U)(T3Ch4PWM_GetPWMBase() * T3CH4PWM_MAX_HALF_PERIOD);
+	MaxHalfPeriod = (Int32U)(T3Ch4PWM_GetPWMBase() * T3CH4PWM_MAX_OUTPUT);
 
 	if(HalfPeriod < 1)
 		HalfPeriod = 1;
@@ -250,7 +249,7 @@ void SM_ToggleHalfPeriodToTarget(Int16U Target)
 		else if(SM_CyclesToToggle > Target)
 			--SM_CyclesToToggle;
 
-		T3Ch4PWM_SetDutyCycle(SM_CyclesToToggle);
+		T3Ch4PWM_SetFrequency(SM_CyclesToToggle);
 	}
 }
 // ----------------------------------------

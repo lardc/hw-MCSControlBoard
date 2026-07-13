@@ -26,8 +26,8 @@ static Int16U SMD_DivisorToHalfPeriod(Int16U Divisor)
 
 	// Коэффициент деления задан в тиках системного таймера 50 мкс
 	TimerClk = SYSCLK / (TIM3->PSC + 1);
-	HalfPeriod = (Int32U)Divisor * TIMER1_uS * TimerClk / 1000000ul;
-	MaxHalfPeriod = (Int32U)(T3Ch4PWM_GetPWMBase() * 0.95f);
+	HalfPeriod = (Int32U)(Divisor * TIMER1_uS * (TimerClk * 0.000001));
+	MaxHalfPeriod = (Int32U)(T3Ch4PWM_GetPWMBase() * T3CH4PWM_MAX_OUTPUT);
 
 	if(HalfPeriod < 1)
 		HalfPeriod = 1;
@@ -66,7 +66,7 @@ void SMD_ConnectHandler()
 	TicksMaxCounter = DataTable[REG_DBG_STEPS_MAX];
 
 	SM_ConnectAlterHandler(&SMD_LogicHandler);
-	T3Ch4PWM_SetDutyCycle(SMD_DivisorToHalfPeriod(StepDivisorLimit));
+	T3Ch4PWM_SetFrequency(SMD_DivisorToHalfPeriod(StepDivisorLimit));
 	T3Ch4PWM_Start();
 }
 // ----------------------------------------
