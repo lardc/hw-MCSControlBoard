@@ -60,10 +60,7 @@ void TIM7_IRQHandler()
 void TIM1_UP_TIM16_IRQHandler(void)
 {
 	if(TIM_StatusCheck(TIM1))
-	{
-		SM_TimerHandler();
 		TIM_StatusClear(TIM1);
-	}
 }
 //-----------------------------------------
 

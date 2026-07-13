@@ -34,9 +34,9 @@ static void LOGIC_PrepareClamping(Boolean Clamp)
 	SM_Params Params;
 
 	if(Clamp)
-		SM_Config(&Params, LOGIC_GetClampHeightMm(), TRUE);
+		SM_Config(&Params, LOGIC_GetClampHeightMm());
 	else
-		SM_Config(&Params, 0, FALSE);
+		SM_Config(&Params, 0);
 
 	SM_GoToPosition(&Params);
 }

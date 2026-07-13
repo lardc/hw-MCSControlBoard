@@ -24,9 +24,8 @@ typedef struct __SM_Params
 void SM_TimerHandler();
 // Connect alter handler for timer processing
 void SM_ConnectAlterHandler(void *Handler);
-// Fill config per MCS TT: max=REG_POS_SPEED_MAX(12), slow=REG_POS_SPEED_MIN(10),
-// slowDown=REG_SLOW_DOWN_DIST(13), min=REG_CLAMP_SPEED_MIN(16)
-void SM_Config(pSM_Params Params, Int16U PositionMm, Boolean UseSlowdown);
+// Config Stepper Motor
+void SM_Config(pSM_Params Params, Int16U PositionMm);
 // New position in mm, speed in mm/s
 void SM_GoToPosition(pSM_Params Params);
 Boolean SM_IsPositioningDone();

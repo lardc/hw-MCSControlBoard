@@ -9,11 +9,12 @@
 // Includes
 #include "SysConfig.h"
 #include "Global.h"
+#include "Timer3_Ch4PWM.h"
 #include <stdlib.h>
 
 // Definitions
-#define SM_SPEED_CHANGE_STEPS		(2 * SM_FULL_ROUND_STEPS)	// Acceleration in steps
-#define SM_STEPS_RESERVE			10			// Safety area of steps to destination position
+#define SM_SPEED_CHANGE_STEPS		(2 * SM_FULL_ROUND_STEPS)	// Длина линейного разгона/торможения, шаги
+#define T3CH4PWM_MAX_HALF_PERIOD	0.95f
 
 // Types
 typedef void (*xTimerAlterHandler)();
@@ -21,16 +22,17 @@ typedef void (*xTimerAlterHandler)();
 // Variables
 static xTimerAlterHandler AlterHandler = NULL;
 
-static Int32S SM_GlobalStepsCounter = 0, SM_DestSteps = 0;
-static Int16U SM_LowSpeedSteps, SM_CyclesToToggle, SM_LowSpeedCycles, SM_MinCycles, SM_MaxCycles;
+static Int32S SM_GlobalStepsCounter = 0, SM_DestSteps = 0, SM_StartSteps = 0;
+static Int16U SM_CyclesToToggle, SM_MinCycles, SM_MaxCycles;	// MinCycles - быстрый ход, MaxCycles - медленный ход
 static Boolean SM_HomingFlag = FALSE, SM_RequestStopFlag = FALSE;
 
 // Forward functions
 void SM_LogicHandler();
-Int16U SM_SpeedToCycles(Int16U Speed);
+Int16U SM_SpeedToHalfPeriod(Int16U Speed);
 Int32U SM_PosToSteps(Int16U NewPos);
 void SM_UpDirection(Boolean State);
-void SM_ToggleCyclesToTarget(Int16U Target);
+void SM_ToggleHalfPeriodToTarget(Int16U Target);
+void SM_StopMotion();
 
 // Functions
 //
@@ -46,123 +48,133 @@ void SM_TimerHandler()
 }
 // -----------------------------------------
 
-// Connect alter handler for timer processing
+// Подключение альтернативного обработчика таймера (диагностика)
 void SM_ConnectAlterHandler(void *Handler)
 {
+	T3Ch4PWM_Stop();
 	AlterHandler = (xTimerAlterHandler)Handler;
 }
 // ----------------------------------------
 
-// Main logic handler
+// Основной обработчик логики (вызывается на каждый шаг по прерыванию TIM3)
 void SM_LogicHandler()
 {
-	static Boolean TickHigh = FALSE;
-	static Int16U SM_CycleCounter = 0;
+	Int32U StepsToGo, StepsTraveled;
+	Int16U Target, AccelTarget, DecelTarget;
 
-	if(!SM_IsPositioningDone() || SM_HomingFlag)
+	if(SM_IsPositioningDone() && !SM_HomingFlag)
 	{
-		// Генератор шагов
-		if(++SM_CycleCounter >= SM_CyclesToToggle)
+		SM_StopMotion();
+		return;
+	}
+
+	if(SM_HomingFlag)
+	{
+		// Условие завершения хоуминга
+		if(LL_HomeSensorActuate())
 		{
-			SM_CycleCounter = 0;
-			LL_SwitchStep(TickHigh = !TickHigh);
-
-			// Счёт для перемещения по нарастающему фронту тиков
-			if(TickHigh)
-			{
-				if(SM_HomingFlag)
-				{
-					// Условие завершения хоуминга
-					if(LL_HomeSensorActuate())
-					{
-						SM_HomingFlag = FALSE;
-						SM_DestSteps = SM_GlobalStepsCounter = 0;
-					}
-				}
-				else
-				{
-					// Проверка условия позиционирования
-					SM_GlobalStepsCounter += (LL_IsDirUp()) ? 1 : -1;
-					Int32U StepsToPos = abs(SM_DestSteps - SM_GlobalStepsCounter);
-
-					// 1-2. acceleration to Vmax or running at Vmax
-					if(StepsToPos > SM_SPEED_CHANGE_STEPS + SM_LowSpeedSteps + SM_STEPS_RESERVE)
-						SM_ToggleCyclesToTarget(SM_MinCycles);
-
-					// 3-4. acceleration or deceleration to Vend
-					else if(StepsToPos > (Int32U)SM_SPEED_CHANGE_STEPS * SM_MinCycles / SM_LowSpeedCycles + SM_STEPS_RESERVE)
-						SM_ToggleCyclesToTarget(SM_LowSpeedCycles);
-
-					// 5. deceleration to Vmin
-					else
-						SM_ToggleCyclesToTarget(SM_MaxCycles);
-				}
-			}
-
-			// По спаду фронта обработка запросов на остановку
-			else if(SM_RequestStopFlag)
-			{
-				SM_RequestStopFlag = FALSE;
-				SM_HomingFlag = FALSE;
-				SM_DestSteps = SM_GlobalStepsCounter;
-			}
+			SM_HomingFlag = FALSE;
+			SM_DestSteps = SM_GlobalStepsCounter = 0;
+			SM_StopMotion();
+			return;
 		}
+	}
+	else
+	{
+		// Счёт шагов позиционирования
+		SM_GlobalStepsCounter += (LL_IsDirUp()) ? 1 : -1;
+
+		if(SM_IsPositioningDone())
+		{
+			SM_StopMotion();
+			return;
+		}
+
+		// Линейный разгон и торможение
+		StepsToGo = abs(SM_DestSteps - SM_GlobalStepsCounter);
+		StepsTraveled = abs(SM_GlobalStepsCounter - SM_StartSteps);
+		Target = SM_MinCycles;
+
+		if(StepsTraveled < SM_SPEED_CHANGE_STEPS)
+		{
+			AccelTarget = SM_MaxCycles
+					- (Int16U)((SM_MaxCycles - SM_MinCycles) * StepsTraveled / SM_SPEED_CHANGE_STEPS);
+
+			if(AccelTarget > Target)
+				Target = AccelTarget;
+		}
+
+		if(StepsToGo <= SM_SPEED_CHANGE_STEPS)
+		{
+			DecelTarget = SM_MaxCycles+ (Int16U)((SM_MinCycles - SM_MaxCycles) * (SM_SPEED_CHANGE_STEPS - StepsToGo)
+							/ SM_SPEED_CHANGE_STEPS);
+
+			if(DecelTarget > Target)
+				Target = DecelTarget;
+		}
+
+		SM_ToggleHalfPeriodToTarget(Target);
+	}
+
+	// Обработка запроса на остановку
+	if(SM_RequestStopFlag)
+	{
+		SM_RequestStopFlag = FALSE;
+		SM_HomingFlag = FALSE;
+		SM_DestSteps = SM_GlobalStepsCounter;
 	}
 }
 // -----------------------------------------
 
-// Up or down direction
+// Направление вращения
 void SM_UpDirection(Boolean State)
 {
 	LL_SwitchUpDir(State);
 }
 // ----------------------------------------
 
-// MCS cycle speed profile (regs 10, 12, 13, 16)
-void SM_Config(pSM_Params Params, Int16U PositionMm, Boolean UseSlowdown)
+// Заполнение профиля скоростей (рег. 12, 16)
+void SM_Config(pSM_Params Params, Int16U PositionMm)
 {
 	Params->NewPosition = PositionMm;
 	Params->MaxSpeed = DataTable[REG_POS_SPEED_MAX];
-	Params->SlowSpeed = DataTable[REG_POS_SPEED_MIN];
 	Params->MinSpeed = DataTable[REG_CLAMP_SPEED_MIN];
-
-	if(UseSlowdown)
-		Params->SlowDownDistance = DataTable[REG_SLOW_DOWN_DIST];
-	else
-	{
-		Params->SlowDownDistance = 0;
-		Params->SlowSpeed = Params->MaxSpeed;
-	}
 }
 // ----------------------------------------
 
-// New position in mm, speed in mm/s
+// Переход в новую позицию, мм; скорости в мм/с
 void SM_GoToPosition(pSM_Params Params)
 {
 	SM_RequestStopFlag = FALSE;
 
-	SM_LowSpeedSteps = SM_PosToSteps(Params->SlowDownDistance);
+	SM_StartSteps = SM_GlobalStepsCounter;
 	SM_DestSteps = SM_PosToSteps(Params->NewPosition);
 
 	SM_UpDirection(SM_DestSteps > SM_GlobalStepsCounter);
 
-	SM_MinCycles = SM_SpeedToCycles(Params->MaxSpeed);
-	SM_LowSpeedCycles = SM_SpeedToCycles(Params->SlowSpeed);
-	SM_CyclesToToggle = SM_MaxCycles = SM_SpeedToCycles(Params->MinSpeed);
+	SM_MinCycles = SM_SpeedToHalfPeriod(Params->MaxSpeed);
+	SM_MaxCycles = SM_SpeedToHalfPeriod(Params->MinSpeed);
+	SM_CyclesToToggle = SM_MaxCycles;
+
+	T3Ch4PWM_SetDutyCycle(SM_CyclesToToggle);
+	T3Ch4PWM_Start();
 }
 // ----------------------------------------
 
-// Homing
+// Хоуминг
 void SM_Homing()
 {
 	SM_RequestStopFlag = FALSE;
 	SM_HomingFlag = TRUE;
 	SM_UpDirection(FALSE);
-	SM_CyclesToToggle = SM_SpeedToCycles(DataTable[REG_HOMING_SPEED]);
+	SM_CyclesToToggle = SM_SpeedToHalfPeriod(DataTable[REG_HOMING_SPEED]);
+
+	T3Ch4PWM_SetDutyCycle(SM_CyclesToToggle);
+	T3Ch4PWM_Start();
 }
 // ----------------------------------------
 
-// Is homing done?
+// Хоуминг завершён?
 Boolean SM_IsHomingDone()
 {
 	return !SM_HomingFlag && SM_IsPositioningDone();
@@ -181,18 +193,32 @@ void SM_RequestStop()
 }
 // ----------------------------------------
 
-// Position in mm to steps converter
+// Перевод позиции, мм, в шаги
 Int32U SM_PosToSteps(Int16U NewPos)
 {
 	return 1000ul * NewPos * SM_FULL_ROUND_STEPS / SM_MOVING_RER_ROUND;
 }
 // ----------------------------------------
 
-// Speed in mm/s to cycles to toggle raw converter
-Int16U SM_SpeedToCycles(Int16U Speed)
+// Перевод скорости, мм/с, в полупериод ШИМ
+Int16U SM_SpeedToHalfPeriod(Int16U Speed)
 {
-	Int32U res = 1000ul * SM_MOVING_RER_ROUND / TIMER1_uS / SM_FULL_ROUND_STEPS / Speed;
-	return (res == 0) ? 1 : res;
+	Int32U TimerClk, StepsPerSec, HalfPeriod, MaxHalfPeriod;
+
+	if(Speed == 0)
+		Speed = 1;
+
+	TimerClk = SYSCLK / (TIM3->PSC + 1);
+	StepsPerSec = (Int32U)Speed * 1000ul * SM_FULL_ROUND_STEPS / SM_MOVING_RER_ROUND;
+	HalfPeriod = TimerClk / (2 * StepsPerSec);
+	MaxHalfPeriod = (Int32U)(T3Ch4PWM_GetPWMBase() * T3CH4PWM_MAX_HALF_PERIOD);
+
+	if(HalfPeriod < 1)
+		HalfPeriod = 1;
+	else if(HalfPeriod > MaxHalfPeriod)
+		HalfPeriod = MaxHalfPeriod;
+
+	return (Int16U)HalfPeriod;
 }
 // ----------------------------------------
 
@@ -200,10 +226,12 @@ void SM_ResetZeroPoint()
 {
 	SM_HomingFlag = FALSE;
 	SM_DestSteps = SM_GlobalStepsCounter = 0;
+	SM_StopMotion();
 }
 // ----------------------------------------
 
-void SM_ToggleCyclesToTarget(Int16U Target)
+// Плавное изменение скорости ШИМ
+void SM_ToggleHalfPeriodToTarget(Int16U Target)
 {
 	static Int16U EnableCounter = 0;
 
@@ -215,6 +243,15 @@ void SM_ToggleCyclesToTarget(Int16U Target)
 			++SM_CyclesToToggle;
 		else if(SM_CyclesToToggle > Target)
 			--SM_CyclesToToggle;
+
+		T3Ch4PWM_SetDutyCycle(SM_CyclesToToggle);
 	}
+}
+// ----------------------------------------
+
+// Остановка ШИМ
+void SM_StopMotion()
+{
+	T3Ch4PWM_Stop();
 }
 // ----------------------------------------

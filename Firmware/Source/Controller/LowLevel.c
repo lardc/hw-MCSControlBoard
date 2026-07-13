@@ -119,12 +119,6 @@ void LL_RS485_SetTxMode(Boolean State)
 }
 //-----------------------------
 
-void LL_SwitchStep(Boolean State)
-{
-	GPIO_SetState(GPIO_STPM_STEP, State);
-}
-//-----------------------------
-
 void LL_SwitchUpDir(Boolean State)
 {
 	GPIO_SetState(GPIO_STPM_DIR, !State);
