@@ -239,6 +239,12 @@ void SM_ResetZeroPoint()
 void SM_ToggleHalfPeriodToTarget(Int16U Target)
 {
 	static Int16U EnableCounter = 0;
+	// Сброс при достижении целевого полупериода
+	if(SM_CyclesToToggle == Target)
+	{
+		EnableCounter = 0;
+		return;
+	}
 
 	if(++EnableCounter > DataTable[REG_SM_TOGGLE_ACCELERATION])
 	{
