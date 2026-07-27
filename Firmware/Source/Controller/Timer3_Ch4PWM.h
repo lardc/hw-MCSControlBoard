@@ -9,9 +9,10 @@
 
 // Functions
 void T3Ch4PWM_Init(uint32_t SystemClock, uint32_t Period);
-void T3Ch4PWM_SetFrequency(float Value);
+// Cycles — полный период STEP (TIM3->ARR), тики; скважность 50%
+void T3Ch4PWM_SetFrequency(uint32_t Cycles);
 void T3Ch4PWM_Start();
 void T3Ch4PWM_Stop();
-uint32_t T3Ch4PWM_GetPWMBase();
+uint32_t T3Ch4PWM_GetMaxCycles();
 
 #endif // __TIMER3_CH4PWM_H

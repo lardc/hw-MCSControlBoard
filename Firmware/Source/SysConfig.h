@@ -22,6 +22,7 @@
 // Timers
 #define TIMER7_uS						1000		// в мкс
 #define TIMER1_uS						50			// в мкс
+#define TIMER3_PWM_uS					100			// в мкс
 // ----------------------------------------------
 
 // CAN

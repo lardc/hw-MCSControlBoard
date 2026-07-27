@@ -4,7 +4,6 @@
 // Includes
 #include "ZwTIM.h"
 #include "ZwRCC.h"
-#include "math.h"
 
 // Variables
 static uint32_t PWMBase = 0;
@@ -54,27 +53,27 @@ void T3Ch4PWM_Init(uint32_t SystemClock, uint32_t Period)
 }
 //------------------------------------------------
 
-void T3Ch4PWM_SetFrequency(float Value)
+uint32_t T3Ch4PWM_GetMaxCycles()
 {
-	// Проверка выходного на насыщение
-	float MaxOutput = T3CH4PWM_MAX_OUTPUT * PWMBase;
-	float absValue = fabsf(Value);
-	uint32_t HalfPeriod = (uint32_t)(absValue > MaxOutput ? MaxOutput : absValue);
+	return (uint32_t)(PWMBase * T3CH4PWM_MAX_OUTPUT * 2.0f);
+}
+//------------------------------------------------
 
-	if(HalfPeriod == 0)
+void T3Ch4PWM_SetFrequency(uint32_t Cycles)
+{
+	uint32_t MaxCycles = T3Ch4PWM_GetMaxCycles();
+
+	if(Cycles == 0)
 	{
 		TIM3->CCR4 = 0;
 		return;
 	}
 
-	// Установка частоты ШИМ со скважностью 50%
-	T3Ch4PWM_ApplyPeriod(2 * HalfPeriod);
-}
-//------------------------------------------------
+	// Насыщение: не выходим за 95% от удвоенной базы ARR
+	if(Cycles > MaxCycles)
+		Cycles = MaxCycles;
 
-uint32_t T3Ch4PWM_GetPWMBase()
-{
-	return PWMBase;
+	T3Ch4PWM_ApplyPeriod(Cycles);
 }
 //------------------------------------------------
 

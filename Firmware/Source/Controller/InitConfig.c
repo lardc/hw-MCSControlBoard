@@ -42,11 +42,11 @@ void INITCFG_ConfigGPIO()
 	GPIO_InitAltFunction(GPIO_ALT_SPI3_SCK, AltFn_6);
 	GPIO_InitAltFunction(GPIO_ALT_SPI3_MISO, AltFn_6);
 	GPIO_InitAltFunction(GPIO_ALT_SPI3_MOSI, AltFn_6);
+	GPIO_InitAltFunction(GPIO_STPM_STEP, AltFn_2);
 
 	GPIO_InitPushPullOutput(GPIO_LED);
 	GPIO_InitPushPullOutput(GPIO_RS485_CTRL);
 	GPIO_InitPushPullOutput(GPIO_STPM_DIR);
-	GPIO_InitAltFunction(GPIO_STPM_STEP, AltFn_2);
 	GPIO_InitPushPullOutput(GPIO_STPM_EN);
 	GPIO_InitPushPullOutput(GPIO_SPI_SS);
 	GPIO_InitPushPullOutput(GPIO_TEST);
@@ -152,9 +152,7 @@ void INITCFG_ConfigTimer1()
 
 void INITCFG_PWM()
 {
-	uint32_t Period = 100;
-
-	T3Ch4PWM_Init(SYSCLK, Period);
+	T3Ch4PWM_Init(SYSCLK, TIMER3_PWM_uS);
 }
 //------------------------------------------------
 
