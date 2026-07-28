@@ -2,19 +2,30 @@
 #include "Timer3_Ch4PWM.h"
 
 // Includes
+#include "SysConfig.h"
 #include "ZwTIM.h"
 #include "ZwRCC.h"
+
+#define T3CH4PWM_UPDATE_TIMEOUT_LOOPS	(2ul * SYSCLK)
 
 // Variables
 static uint32_t PWMBase = 0;
 
 // Functions
+static void T3Ch4PWM_WaitUpdateFlag()
+{
+	uint32_t Timeout = T3CH4PWM_UPDATE_TIMEOUT_LOOPS;
+
+	while(!(TIM3->SR & TIM_SR_UIF) && Timeout > 0)
+		--Timeout;
+}
+
 static void T3Ch4PWM_ApplyPeriod(uint32_t PeriodTicks)
 {
 	if(PeriodTicks < 2)
 		PeriodTicks = 2;
 
-	TIM3->ARR = PeriodTicks;
+	TIM3->ARR = PeriodTicks - 1;
 	TIM3->CCR4 = PeriodTicks / 2;
 }
 //------------------------------------------------
@@ -29,7 +40,7 @@ void T3Ch4PWM_Init(uint32_t SystemClock, uint32_t Period)
 	TIM_Clock_En(TIM_3);
 
 	TIM3->PSC = Prescaler;
-	TIM3->ARR = PWMBase;
+	TIM3->ARR = PWMBase - 1;
 	TIM3->CR1 |= TIM_CR1_ARPE;
 
 	// Канал 4 - STEP шагового двигателя
@@ -45,7 +56,7 @@ void T3Ch4PWM_Init(uint32_t SystemClock, uint32_t Period)
 	// Инициализация обновления регистров
 	TIM3->SR = ~TIM_SR_UIF;
 	TIM3->EGR |= TIM_EGR_UG;
-	while(!(TIM3->SR & TIM_SR_UIF));
+	T3Ch4PWM_WaitUpdateFlag();
 	TIM3->SR = ~TIM_SR_UIF;
 
 	// Разрешение прерывания
@@ -70,7 +81,7 @@ void T3Ch4PWM_SetPeriodTicks(uint32_t Cycles)
 		return;
 	}
 
-	// Насыщение: не выходим за 95% от удвоенной базы ARR
+	// Насыщение: не выходим за 95% от базового периода и за предел ARR
 	if(Cycles > MaxCycles)
 		Cycles = MaxCycles;
 
@@ -95,7 +106,7 @@ void T3Ch4PWM_Stop()
 
 	// Форсирование обновления регистров таймера
 	TIM3->EGR |= TIM_EGR_UG;
-	while(!(TIM3->SR & TIM_SR_UIF));
+	T3Ch4PWM_WaitUpdateFlag();
 	TIM3->SR = ~TIM_SR_UIF;
 
 	// Разрешение прерывания
