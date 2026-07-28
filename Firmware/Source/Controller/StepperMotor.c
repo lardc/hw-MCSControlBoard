@@ -22,8 +22,9 @@ typedef enum __MotorState
 {
 	MS_None	= 0,
 	MS_Stop = 1,
-	MS_Homing = 2,
-	MS_Movement = 3
+	MS_HomingSearch = 2,
+	MS_HomingRelease = 3,
+	MS_Movement = 4
 } MotorState;
 
 static volatile MotorState Motor_State = MS_None;
@@ -31,7 +32,7 @@ static volatile MotorState Motor_State = MS_None;
 // Variables
 static xTimerAlterHandler AlterHandler = NULL;
 
-static Int32S SM_GlobalStepsCounter = 0, SM_DestSteps = 0, SM_StartSteps = 0;
+static volatile Int32S SM_GlobalStepsCounter = 0, SM_DestSteps = 0, SM_StartSteps = 0;
 static Int16U SM_CyclesToToggle, SM_MinCycles, SM_MaxCycles;	// MinCycles — быстрый ход, MaxCycles — медленный ход
 
 // Forward functions
@@ -59,8 +60,9 @@ void SM_TimerHandler()
 // Подключение альтернативного обработчика таймера (диагностика)
 void SM_ConnectAlterHandler(void *Handler)
 {
-	T3Ch4PWM_Stop();
+	SM_StopMotion();
 	AlterHandler = (xTimerAlterHandler)Handler;
+
 }
 // ----------------------------------------
 
@@ -75,8 +77,15 @@ void SM_LogicHandler()
 			SM_DestSteps = SM_GlobalStepsCounter;
 			SM_StopMotion();
 			break;
-		case MS_Homing:
+		case MS_HomingSearch:
 			if(LL_HomeSensorActuate())
+			{
+				SM_UpDirection(TRUE);
+				Motor_State = MS_HomingRelease;
+			}
+			break;
+		case MS_HomingRelease:
+			if(!LL_HomeSensorActuate())
 			{
 				SM_DestSteps = SM_GlobalStepsCounter = 0;
 				SM_StopMotion();
@@ -161,7 +170,7 @@ void SM_GoToPosition(pSM_Params Params)
 	SM_MaxCycles = SM_SpeedToCycles(Params->MinSpeed);
 	SM_CyclesToToggle = SM_MaxCycles;
 
-	T3Ch4PWM_SetFrequency(SM_CyclesToToggle);
+	T3Ch4PWM_SetPeriodTicks(SM_CyclesToToggle);
 	T3Ch4PWM_Start();
 	Motor_State = MS_Movement;
 }
@@ -170,11 +179,19 @@ void SM_GoToPosition(pSM_Params Params)
 // Хоуминг
 void SM_Homing()
 {
-	Motor_State = MS_Homing;
-	SM_UpDirection(FALSE);
+	if(LL_HomeSensorActuate())
+	{
+		SM_UpDirection(TRUE);
+		Motor_State = MS_HomingRelease;
+	}
+	else
+	{
+		SM_UpDirection(FALSE);
+		Motor_State = MS_HomingSearch;
+	}
 	SM_CyclesToToggle = SM_SpeedToCycles(DataTable[REG_HOMING_SPEED]);
 
-	T3Ch4PWM_SetFrequency(SM_CyclesToToggle);
+	T3Ch4PWM_SetPeriodTicks(SM_CyclesToToggle);
 	T3Ch4PWM_Start();
 }
 // ----------------------------------------
@@ -254,7 +271,7 @@ void SM_ToggleCyclesToTarget(Int16U Target)
 		else if(SM_CyclesToToggle > Target)
 			--SM_CyclesToToggle;
 
-		T3Ch4PWM_SetFrequency(SM_CyclesToToggle);
+		T3Ch4PWM_SetPeriodTicks(SM_CyclesToToggle);
 	}
 }
 // ----------------------------------------

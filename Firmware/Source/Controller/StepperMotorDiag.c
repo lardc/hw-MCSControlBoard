@@ -66,7 +66,7 @@ void SMD_ConnectHandler()
 	TicksMaxCounter = DataTable[REG_DBG_STEPS_MAX];
 
 	SM_ConnectAlterHandler(&SMD_LogicHandler);
-	T3Ch4PWM_SetFrequency(SMD_DivisorToCycles(StepDivisorLimit));
+	T3Ch4PWM_SetPeriodTicks(SMD_DivisorToCycles(StepDivisorLimit));
 	T3Ch4PWM_Start();
 }
 // ----------------------------------------

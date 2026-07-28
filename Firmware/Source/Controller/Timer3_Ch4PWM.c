@@ -40,13 +40,13 @@ void T3Ch4PWM_Init(uint32_t SystemClock, uint32_t Period)
 	TIM3->CCR4 = 0;
 
 	// Сброс выхода
-	T3Ch4PWM_SetFrequency(0);
+	T3Ch4PWM_SetPeriodTicks(0);
 
 	// Инициализация обновления регистров
-	TIM3->SR &= ~TIM_SR_UIF;
+	TIM3->SR = ~TIM_SR_UIF;
 	TIM3->EGR |= TIM_EGR_UG;
 	while(!(TIM3->SR & TIM_SR_UIF));
-	TIM3->SR &= ~TIM_SR_UIF;
+	TIM3->SR = ~TIM_SR_UIF;
 
 	// Разрешение прерывания
 	TIM_Interupt(TIM3, 0, true);
@@ -55,11 +55,12 @@ void T3Ch4PWM_Init(uint32_t SystemClock, uint32_t Period)
 
 uint32_t T3Ch4PWM_GetMaxCycles()
 {
-	return (uint32_t)(PWMBase * T3CH4PWM_MAX_OUTPUT * 2.0f);
+	uint32_t MaxCycles = (uint32_t)(PWMBase * T3CH4PWM_MAX_OUTPUT);
+	return (MaxCycles > 65535ul) ? 65535ul : MaxCycles;
 }
 //------------------------------------------------
 
-void T3Ch4PWM_SetFrequency(uint32_t Cycles)
+void T3Ch4PWM_SetPeriodTicks(uint32_t Cycles)
 {
 	uint32_t MaxCycles = T3Ch4PWM_GetMaxCycles();
 
@@ -85,17 +86,17 @@ void T3Ch4PWM_Start()
 
 void T3Ch4PWM_Stop()
 {
-	T3Ch4PWM_SetFrequency(0);
+	T3Ch4PWM_SetPeriodTicks(0);
 	TIM_Stop(TIM3);
 
 	// Запрет прерывания и очистка флага
 	TIM3->DIER &= ~TIM_DIER_UIE;
-	TIM3->SR &= ~TIM_SR_UIF;
+	TIM3->SR = ~TIM_SR_UIF;
 
 	// Форсирование обновления регистров таймера
 	TIM3->EGR |= TIM_EGR_UG;
 	while(!(TIM3->SR & TIM_SR_UIF));
-	TIM3->SR &= ~TIM_SR_UIF;
+	TIM3->SR = ~TIM_SR_UIF;
 
 	// Разрешение прерывания
 	TIM3->DIER |= TIM_DIER_UIE;

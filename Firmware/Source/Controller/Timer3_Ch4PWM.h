@@ -10,7 +10,7 @@
 // Functions
 void T3Ch4PWM_Init(uint32_t SystemClock, uint32_t Period);
 // Cycles — полный период STEP (TIM3->ARR), тики; скважность 50%
-void T3Ch4PWM_SetFrequency(uint32_t Cycles);
+void T3Ch4PWM_SetPeriodTicks(uint32_t Cycles);
 void T3Ch4PWM_Start();
 void T3Ch4PWM_Stop();
 uint32_t T3Ch4PWM_GetMaxCycles();
