@@ -26,6 +26,7 @@ void SM_ConnectAlterHandler(void *Handler);
 void SM_Config(pSM_Params Params, Int16U PositionMm);
 // New position in mm, speed in mm/s
 void SM_GoToPosition(pSM_Params Params);
+Boolean SM_IsBusy();
 Boolean SM_IsPositioningDone();
 // Homing
 void SM_Homing();

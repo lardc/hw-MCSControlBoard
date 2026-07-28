@@ -32,6 +32,7 @@ static volatile MotorState Motor_State = MS_None;
 // Variables
 static xTimerAlterHandler AlterHandler = NULL;
 
+static volatile Boolean SM_HomingDoneFlag = FALSE;
 static volatile Int32S SM_GlobalStepsCounter = 0, SM_DestSteps = 0, SM_StartSteps = 0;
 static Int16U SM_CyclesToToggle, SM_MinCycles, SM_MaxCycles;	// MinCycles — быстрый ход, MaxCycles — медленный ход
 
@@ -60,6 +61,7 @@ void SM_TimerHandler()
 // Подключение альтернативного обработчика таймера (диагностика)
 void SM_ConnectAlterHandler(void *Handler)
 {
+	SM_HomingDoneFlag = FALSE;
 	SM_StopMotion();
 	AlterHandler = (xTimerAlterHandler)Handler;
 
@@ -87,6 +89,7 @@ void SM_LogicHandler()
 		case MS_HomingRelease:
 			if(!LL_HomeSensorActuate())
 			{
+				SM_HomingDoneFlag = TRUE;
 				SM_DestSteps = SM_GlobalStepsCounter = 0;
 				SM_StopMotion();
 				return;
@@ -155,6 +158,7 @@ void SM_Config(pSM_Params Params, Int16U PositionMm)
 // Переход в новую позицию, мм; скорости в мм/с
 void SM_GoToPosition(pSM_Params Params)
 {
+	SM_HomingDoneFlag = FALSE;
 	SM_StartSteps = SM_GlobalStepsCounter;
 	SM_DestSteps = SM_PosToSteps(Params->NewPosition);
 
@@ -179,6 +183,7 @@ void SM_GoToPosition(pSM_Params Params)
 // Хоуминг
 void SM_Homing()
 {
+	SM_HomingDoneFlag = FALSE;
 	if(LL_HomeSensorActuate())
 	{
 		SM_UpDirection(TRUE);
@@ -196,10 +201,16 @@ void SM_Homing()
 }
 // ----------------------------------------
 
+Boolean SM_IsBusy()
+{
+	return Motor_State != MS_None;
+}
+// ----------------------------------------
+
 // Хоуминг завершён?
 Boolean SM_IsHomingDone()
 {
-	return (Motor_State == MS_None) && SM_IsPositioningDone();
+	return (Motor_State == MS_None) && SM_HomingDoneFlag;
 }
 // ----------------------------------------
 
@@ -211,6 +222,7 @@ Boolean SM_IsPositioningDone()
 
 void SM_RequestStop()
 {
+	SM_HomingDoneFlag = FALSE;
 	Motor_State = MS_Stop;
 }
 // ----------------------------------------
@@ -246,6 +258,7 @@ Int16U SM_SpeedToCycles(Int16U Speed)
 
 void SM_ResetZeroPoint()
 {
+	SM_HomingDoneFlag = FALSE;
 	SM_DestSteps = SM_GlobalStepsCounter = 0;
 	SM_StopMotion();
 }

@@ -337,7 +337,7 @@ static Boolean CONTROL_ShouldMonitorPressureFault()
 	if(LL_SPI_GetInBit(SPI_IN_ADAPTER_HELD) || LL_SPI_GetInBit(SPI_IN_BUS_HELD))
 		return TRUE;
 
-	return !SM_IsHomingDone() || !SM_IsPositioningDone();
+	return SM_IsBusy();
 }
 // ----------------------------------------
 
