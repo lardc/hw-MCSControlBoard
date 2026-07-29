@@ -6,7 +6,7 @@
 #define __DEV_OBJ_DIC_H
 
 
-// ACTIONS
+// Команды
 //
 #define ACT_CLR_FAULT						3	// Clear fault
 #define ACT_CLR_WARNING						4	// Clear warning
@@ -54,8 +54,8 @@
 
 #define ACT_FLASH_DIAG_TO_EP				340	// Выполнить чтение массива из памяти отладочной информации в EP
 
-// REGISTERS (NV writable, 0-95)
-//
+// Регистры
+// Сохраняемые регистры
 // 0-9
 #define REG_POS_SPEED_MIN					10	// Минимальная скорость перемещения при позиционировании (мм/сек)
 #define REG_POS_SPEED_LOW					11	// Пониженная скорость перемещения при позиционировании (мм/сек)
@@ -72,7 +72,11 @@
 #define REG_PRESSURE_OFFSET 				30	// Смещение давления
 #define REG_PRESSURE_K						31  // Линейный коэффициент давления x1000
 #define REG_PRESSURE_OK						32	// Корректное давление системы бар x1000
-// 33-70
+// 33-63
+
+// Несохраняемые регистры чтения-записи
+//
+//64-70
 #define REG_DEV_CASE						71	// Код корпуса прибора (задание Master для сверки)
 #define REG_TEMP_SETPOINT					72	// Уставка температуры (С х10)
 #define REG_ADAPTER_ID						73	// Код адаптера в идентификаторе 1-Wire
@@ -92,9 +96,8 @@
 //
 #define REG_DBG								92	// Отладочный регистр
 // 93-95
-//
-// REGISTERS (volatile, 96+)
-// ----------------------------------------
+
+// Регистры только чтение
 #define REG_DEV_STATE						96	// Device state
 #define REG_FAULT_REASON					97	// Fault reason in the case DeviceState -> FAULT
 #define REG_DISABLE_REASON					98	// Fault reason in the case DeviceState -> DISABLED
@@ -125,7 +128,6 @@
 #define REG_SP__3							159
 // 160-255
 //
-// REGISTERS (firmware info, 256+)
 // ----------------------------------------
 #define REG_FWINFO_SLAVE_NID				256	// Device CAN slave node ID
 #define REG_FWINFO_MASTER_NID				257	// Device CAN master node ID (if presented)
@@ -138,8 +140,7 @@
 #define OPRESULT_OK								1	// Operation was successful
 #define OPRESULT_FAIL							2	// Operation failed
 
-// FAULT CODES
-//
+//  Fault codes
 #define FAULT_NONE							0	// No fault
 //
 #define FAULT_TRM							4	// TRM communication fault
@@ -149,21 +150,17 @@
 #define FAULT_SELFTEST						10	// Ошибка самодиагностики оптронов
 #define FAULT_SPI_TIMEOUT					11	// Таймаут ожидания SPI-входа
 
-// PROBLEM CODES
-//
+// Problem
 #define PROBLEM_NONE						0	// No problem
 #define PROBLEM_ONEWIRE						1	// OneWire failed task
 
-// DISABLE CODES
-//
+// Disable
 #define DISABLE_NONE						0	// No fault
 
-// WARNING CODES
-//
+//  Warning
 #define WARNING_NONE						0	// No warning
 
-// USER ERROR CODES
-//
+//  User Errors
 #define ERR_NONE							0	// No error
 #define ERR_CONFIGURATION_LOCKED			1	// Device is locked for writing
 #define ERR_OPERATION_BLOCKED				2	// Operation can't be done due to current device state
