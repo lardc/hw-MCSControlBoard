@@ -47,7 +47,8 @@
 #define ACT_DBG_LABEL_SHOW_AMOUNT			131 // Считывание количества меток из чипов памяти в отладочный регистр
 #define ACT_DBG_LABEL_ERASE					132 // Удаление меток из чипов памяти
 #define ACT_DBG_LABEL_WRITE					133 // Запись меток на чип памяти. DBG - тип данных, DBG2 - сами данные.
-#define ACT_DBG_LABEL_READ_DATA				134 // Считывание меток в отладочные регистры. DBG - тип данных, DBG2 - сами данные.
+#define ACT_DBG_LABEL_READ_DATA				134 // Считывание меток в отладочные регистры.При считывании DBG - индекс метки,
+												// после считывания -  DBG - тип данных, DBG2 - сами данные.
 
 #define ACT_SAVE_TO_ROM						200	// Save parameters to EEPROM module
 #define ACT_RESTORE_FROM_ROM				201	// Restore parameters from EEPROM module

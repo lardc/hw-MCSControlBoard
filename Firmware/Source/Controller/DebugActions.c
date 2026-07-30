@@ -13,6 +13,7 @@
 
 // Variables
 static Int8U DS2431DeviceIndex = 0;
+MemLabelEntry Labels[MEM_LABEL_MAX_LABELS];
 
 // Functions
 bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
@@ -181,22 +182,34 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 			break;
 
 		case ACT_DBG_LABEL_FIND:
-			{
-				MemLabelEntry Labels[MEM_LABEL_MAX_LABELS];
-				DataTable[REG_DBG] = MemLabel_Read(0, Labels, MEM_LABEL_MAX_LABELS);
-			}
+			DataTable[REG_DBG] = (MemLabel_Read(0, Labels, MEM_LABEL_MAX_LABELS) > 0) ? 1 : 0;
 			break;
 
 		case ACT_DBG_LABEL_SHOW_AMOUNT:
+			DataTable[REG_DBG] = MemLabel_Read(0, Labels, MEM_LABEL_MAX_LABELS);
 			break;
 
 		case ACT_DBG_LABEL_ERASE:
+			MemLabel_EraseAll(0);
 			break;
 
 		case ACT_DBG_LABEL_WRITE:
+			{
+				MemLabelEntry DataEntry;
+
+				DataEntry.Type = (Int8U)DataTable[REG_DBG];
+				DataEntry.Value = DataTable[REG_DBG2];
+				MemLabel_AddOne(0, DataEntry);
+			}
 			break;
 
 		case ACT_DBG_LABEL_READ_DATA:
+			{
+				Int8U Index = DataTable[REG_DBG];
+				MemLabel_Read(0, Labels, MEM_LABEL_MAX_LABELS);
+				DataTable[REG_DBG] = Labels[Index].Type;
+				DataTable[REG_DBG2] = Labels[Index].Value;
+			}
 			break;
 
 		default:
