@@ -5,7 +5,10 @@
 #include "stdinc.h"
 #include "DS2431.h"
 
-// Variables
+// Defines
+#define MEM_LABEL_LABEL_SIZE		3
+#define MEM_LABEL_MAX_LABELS		(DS2431_EEPROM_SIZE / MEM_LABEL_LABEL_SIZE)
+// Types
 typedef struct __MemLabelEntry
 {
 	Int8U Type;

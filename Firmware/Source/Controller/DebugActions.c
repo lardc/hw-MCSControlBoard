@@ -9,6 +9,7 @@
 #include "DS2431.h"
 #include "OneWire.h"
 #include "Controller.h"
+#include "MemLabel.h"
 
 // Variables
 static Int8U DS2431DeviceIndex = 0;
@@ -177,6 +178,25 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 				if(!DS2431_WriteArray(DS2431DeviceIndex, buf, sizeof(buf)))
 					CONTROL_FinishedWithProblem(PROBLEM_ONEWIRE);
 			}
+			break;
+
+		case ACT_DBG_LABEL_FIND:
+			{
+				MemLabelEntry Labels[MEM_LABEL_MAX_LABELS];
+				DataTable[REG_DBG] = MemLabel_Read(0, Labels, MEM_LABEL_MAX_LABELS);
+			}
+			break;
+
+		case ACT_DBG_LABEL_SHOW_AMOUNT:
+			break;
+
+		case ACT_DBG_LABEL_ERASE:
+			break;
+
+		case ACT_DBG_LABEL_WRITE:
+			break;
+
+		case ACT_DBG_LABEL_READ_DATA:
 			break;
 
 		default:
