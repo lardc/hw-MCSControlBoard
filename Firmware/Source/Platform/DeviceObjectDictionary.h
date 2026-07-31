@@ -145,19 +145,19 @@
 #define REG_FWINFO_STR_BEGIN				261	// Begining of the information string record
 
 // Operation results
-#define OPRESULT_NONE							0	// No information or not finished
-#define OPRESULT_OK								1	// Operation was successful
-#define OPRESULT_FAIL							2	// Operation failed
+#define OPRESULT_NONE						0	// No information or not finished
+#define OPRESULT_OK							1	// Operation was successful
+#define OPRESULT_FAIL						2	// Operation failed
 
 //  Fault codes
-#define FAULT_NONE							0	// No fault
+#define DF_NONE								0	// No fault
 //
-#define FAULT_TRM							4	// TRM communication fault
-#define FAULT_PRESSURE						5	// Давление ниже нормы
+#define DF_TRM								4	// TRM communication fault
+#define DF_PRESSURE							5	// Давление ниже нормы
 // 6-8
-#define FAULT_ADAPTER_MISMATCH				9	// Несовпадение идентификатора адаптера
-#define FAULT_SELFTEST						10	// Ошибка самодиагностики оптронов
-#define FAULT_SPI_TIMEOUT					11	// Таймаут ожидания SPI-входа
+#define DF_ADAPTER_MISMATCH					9	// Несовпадение идентификатора адаптера
+#define DF_SELFTEST							10	// Ошибка самодиагностики оптронов
+#define DF_SPI_TIMEOUT						11	// Таймаут ожидания SPI-входа
 
 // Problem
 #define PROBLEM_NONE						0	// No problem

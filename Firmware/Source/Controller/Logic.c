@@ -89,7 +89,7 @@ static Boolean LOGIC_WaitSpiInBit(Int8U Bit)
 		return TRUE;
 
 	if(CONTROL_TimeCounter > LOGIC_WaitDeadline)
-		CONTROL_SwitchToFault(FAULT_SPI_TIMEOUT);
+		CONTROL_SwitchToFault(DF_SPI_TIMEOUT);
 
 	return FALSE;
 }
@@ -261,7 +261,7 @@ static void LOGIC_MonitorCycleFaults()
 
 	if(DataTable[REG_ADAPTER_MATCH] == ADAPTER_MATCH_FAIL
 			&& (CONTROL_State == DS_Clamping || CONTROL_State == DS_ClampingDone))
-		CONTROL_SwitchToFault(FAULT_ADAPTER_MISMATCH);
+		CONTROL_SwitchToFault(DF_ADAPTER_MISMATCH);
 }
 // ----------------------------------------
 
@@ -285,7 +285,7 @@ static void LOGIC_ProcessSelfTest()
 	if(DataTable[REG_SELFTEST_RESULT] == 0)
 		CONTROL_SetDeviceState(DS_Ready, DSS_None);
 	else
-		CONTROL_SwitchToFault(FAULT_SELFTEST);
+		CONTROL_SwitchToFault(DF_SELFTEST);
 }
 // ----------------------------------------
 
@@ -344,7 +344,7 @@ void LOGIC_Process()
 					if(MEAS_IsPressureOk())
 						CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterHold_ConnectAdapter);
 					else if(CONTROL_TimeCounter > LOGIC_StateTimeout)
-						CONTROL_SwitchToFault(FAULT_PRESSURE);
+						CONTROL_SwitchToFault(DF_PRESSURE);
 					break;
 
 				case DSS_AdapterHold_ConnectAdapter:
@@ -377,7 +377,7 @@ void LOGIC_Process()
 							if(LOGIC_ValidateAdapter())
 								CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterHold_Done);
 							else
-								CONTROL_SwitchToFault(FAULT_ADAPTER_MISMATCH);
+								CONTROL_SwitchToFault(DF_ADAPTER_MISMATCH);
 						}
 						else
 							CONTROL_SetDeviceState(DS_Ready, DSS_None);
@@ -386,6 +386,7 @@ void LOGIC_Process()
 
 				case DSS_AdapterHold_Done:
 					CONTROL_SetDeviceState(DS_Ready, DSS_None);
+					DataTable[REG_OP_RESULT] = OPRESULT_OK;
 					break;
 
 				default:
@@ -475,7 +476,7 @@ void LOGIC_Process()
 						if(error != TRME_None)
 						{
 							DataTable[REG_TRM_ERROR] = error;
-							CONTROL_SwitchToFault(FAULT_TRM);
+							CONTROL_SwitchToFault(DF_TRM);
 							break;
 						}
 
@@ -492,6 +493,7 @@ void LOGIC_Process()
 
 				case DSS_AdapterRelease_Done:
 					CONTROL_SetDeviceState(DS_Ready, DSS_None);
+					DataTable[REG_OP_RESULT] = OPRESULT_OK;
 					break;
 
 				default:

@@ -37,6 +37,7 @@ void CONTROL_UpdateTRMTemperature();
 static void CONTROL_InitStoragePointers();
 static Boolean CONTROL_ShouldMonitorPressureFault();
 static void CONTROL_WatchDogUpdate();
+void CONTROL_ResetOutputRegisters();
 
 // Functions
 void CONTROL_Init()
@@ -107,12 +108,19 @@ static void CONTROL_WatchDogUpdate()
 static void CONTROL_FillWPPartDefault()
 {
 	DataTable[REG_DEV_STATE] = (Int16U)DS_None;
-	DataTable[REG_FAULT_REASON] = FAULT_NONE;
+	DataTable[REG_FAULT_REASON] = DF_NONE;
 	DataTable[REG_DISABLE_REASON] = DISABLE_NONE;
 	DataTable[REG_WARNING] = WARNING_NONE;
 	DataTable[REG_PROBLEM] = PROBLEM_NONE;
 	DataTable[REG_ADAPTER_MATCH] = ADAPTER_MATCH_NONE;
 	DataTable[REG_ADAPTER_MISMATCH] = ADAPTER_MISMATCH_NONE;
+}
+// ----------------------------------------
+
+void CONTROL_ResetOutputRegisters()
+{
+	DataTable[REG_PROBLEM] = PROBLEM_NONE;
+	DataTable[REG_OP_RESULT] = OPRESULT_NONE;
 }
 // ----------------------------------------
 
@@ -182,7 +190,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 				}
 
 				ClampingDuration = CONTROL_TimeCounter;
-				DataTable[REG_PROBLEM] = PROBLEM_NONE;
+				CONTROL_ResetOutputRegisters();
 				CONTROL_SetDeviceState(DS_Clamping, DSS_None);
 			}
 			else
@@ -206,7 +214,10 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 
 		case ACT_RELEASE_ADAPTER:
 			if(CONTROL_State == DS_None || CONTROL_State == DS_Ready)
+			{
+				CONTROL_ResetOutputRegisters();
 				CONTROL_SetDeviceState(DS_AdapterRelease, DSS_AdapterRelease_Bus);
+			}
 			else
 				*UserError = ERR_OPERATION_BLOCKED;
 			break;
@@ -215,7 +226,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 			if(CONTROL_State == DS_None || CONTROL_State == DS_Ready)
 			{
 				DataTable[REG_ADAPTER_MATCH] = ADAPTER_MATCH_NONE;
-				DataTable[REG_PROBLEM] = PROBLEM_NONE;
+				CONTROL_ResetOutputRegisters();
 				CONTROL_SetDeviceState(DS_AdapterHold, DSS_AdapterHold_CheckPressure);
 			}
 			else
@@ -248,7 +259,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 
 					if(error != TRME_None)
 					{
-						CONTROL_SwitchToFault(FAULT_TRM);
+						CONTROL_SwitchToFault(DF_TRM);
 						DataTable[REG_TRM_ERROR] = error;
 						*UserError = ERR_TRM_COMM_ERR;
 					}
@@ -265,7 +276,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 				else if(CONTROL_State == DS_Disabled)
 					*UserError = ERR_OPERATION_BLOCKED;
 
-				DataTable[REG_FAULT_REASON] = FAULT_NONE;
+				DataTable[REG_FAULT_REASON] = DF_NONE;
 				DataTable[REG_PROBLEM] = PROBLEM_NONE;
 			}
 			break;
@@ -319,6 +330,7 @@ void CONTROL_SwitchToFault(Int16U Reason)
 {
 	CONTROL_SetDeviceState(DS_Fault, DSS_None);
 	DataTable[REG_FAULT_REASON] = Reason;
+	DataTable[REG_OP_RESULT] = OPRESULT_FAIL;
 }
 // ----------------------------------------
 
@@ -337,7 +349,7 @@ void CONTROL_UpdateTRMTemperature()
 	// Фолт при ошибке срабатывает только после завершения операции зажатия
 	if(CONTROL_State == DS_Ready && error != TRME_None)
 	{
-		CONTROL_SwitchToFault(FAULT_TRM);
+		CONTROL_SwitchToFault(DF_TRM);
 		DataTable[REG_TEMP_CH1] = 0;
 		DataTable[REG_TRM_ERROR] = error;
 		error = TRME_None;
@@ -369,7 +381,7 @@ void CONTROL_UpdatePressureOK()
 			&& CONTROL_TimeCounter > PressureOkTime + PNEUMATIC_READ_PAUSE)
 	{
 		DataTable[REG_DBG] = Pressure;
-		CONTROL_SwitchToFault(FAULT_PRESSURE);
+		CONTROL_SwitchToFault(DF_PRESSURE);
 	}
 }
 // ----------------------------------------
