@@ -130,7 +130,19 @@ Boolean LOGIC_AdapterIdRead(pAdapterIdentifier Id)
 	Int8U LabelCount;
 	Int8U FilledCount = 0;
 
+	if(DS2431_GetDeviceCount() == 0)
+	{
+		CONTROL_FinishedWithProblem(PROBLEM_OW_NO_DEVICE);
+		return FALSE;
+	}
+
 	LabelCount = MemLabel_Read(0, Labels, MEM_LABEL_MAX_LABELS);
+	if(LabelCount == 0 && DS2431_GetLastError() != DS2431_OK)
+	{
+		CONTROL_FinishedWithProblem(CONTROL_ProblemFromDs2431());
+		return FALSE;
+	}
+
 	for(Int8U i = 0; i < LabelCount; i++)
 	{
 		switch(Labels[i].Type)
@@ -161,7 +173,10 @@ Boolean LOGIC_AdapterIdRead(pAdapterIdentifier Id)
 	}
 
 	if(FilledCount < 5)
+	{
+		CONTROL_FinishedWithProblem(PROBLEM_MISSING_LABEL);
 		return FALSE;
+	}
 
 	LOGIC_AdapterIdPublish(Id);
 	return TRUE;
@@ -365,7 +380,7 @@ void LOGIC_Process()
 								CONTROL_SwitchToFault(FAULT_ADAPTER_MISMATCH);
 						}
 						else
-							CONTROL_SwitchToFault(FAULT_ADAPTER_MISMATCH);
+							CONTROL_SetDeviceState(DS_Ready, DSS_None);
 					}
 					break;
 

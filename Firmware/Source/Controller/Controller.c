@@ -12,6 +12,7 @@
 #include "LowLevel.h"
 #include "Measurement.h"
 #include "Logic.h"
+#include "DS2431.h"
 #include "ZwNFLASH.h"
 #include "ZwIWDG.h"
 #include "SaveToFlash.h"
@@ -214,6 +215,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 			if(CONTROL_State == DS_None || CONTROL_State == DS_Ready)
 			{
 				DataTable[REG_ADAPTER_MATCH] = ADAPTER_MATCH_NONE;
+				DataTable[REG_PROBLEM] = PROBLEM_NONE;
 				CONTROL_SetDeviceState(DS_AdapterHold, DSS_AdapterHold_CheckPressure);
 			}
 			else
@@ -296,6 +298,20 @@ void CONTROL_FinishedWithProblem(Int16U Problem)
 {
 	DataTable[REG_OP_RESULT] = OPRESULT_FAIL;
 	DataTable[REG_PROBLEM] = Problem;
+}
+// ----------------------------------------
+
+Int16U CONTROL_ProblemFromDs2431()
+{
+	switch(DS2431_GetLastError())
+	{
+		case DS2431_ERR_LINE:		return PROBLEM_OW_ERROR_LINE;
+		case DS2431_ERR_NO_DEVICE:	return PROBLEM_OW_NO_DEVICE;
+		case DS2431_ERR_VERIFY:		return PROBLEM_OW_VERIFY;
+		case DS2431_ERR_PARAM:		return PROBLEM_OW_PARAM;
+		case DS2431_OK:
+		default:					return PROBLEM_NONE;
+	}
 }
 // ----------------------------------------
 

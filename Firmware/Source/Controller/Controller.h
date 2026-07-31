@@ -66,6 +66,7 @@ void CONTROL_UpdatePressureOK();
 void CONTROL_SetDeviceState(DeviceState NewState, DeviceSubState NewSubState);
 void CONTROL_SwitchToFault(Int16U Reason);
 void CONTROL_FinishedWithProblem(Int16U Problem);
+Int16U CONTROL_ProblemFromDs2431();
 void CONTROL_Halt();
 
 #endif // __CONTROLLER_H

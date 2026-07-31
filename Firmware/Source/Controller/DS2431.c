@@ -39,6 +39,7 @@ static Boolean SkipRom = true;
 
 static Int8U DeviceRom[DS2431_MAX_DEVICES][DS2431_MAC_SIZE];
 static Int16U DeviceCount = 0;
+static DS2431Error LastError = DS2431_OK;
 
 static const Int8U EraseRow[DS2431_ROW_SIZE] =
 {
@@ -47,6 +48,7 @@ static const Int8U EraseRow[DS2431_ROW_SIZE] =
 };
 
 // Forward functions
+static void DS2431_SetError(DS2431Error Error);
 static Boolean DS2431_Select(Int8U deviceIndex);
 static Boolean DS2431_StartTransmission();
 static Boolean DS2431_WriteScratchpad(Int16U address, const Int8U *buf, Int8U count);
@@ -62,6 +64,17 @@ static Boolean DS2431_IsIdleBusResponse(const Int8U *readBuf, Int16U len);
 static Boolean DS2431_VerifyCopyAccepted();
 
 // Functions
+static void DS2431_SetError(DS2431Error Error)
+{
+	LastError = Error;
+}
+//-------------------
+
+DS2431Error DS2431_GetLastError()
+{
+	return LastError;
+}
+//-------------------
 
 // Сканирование шины и заполнение таблицы ROM
 Boolean DS2431_Init()
@@ -87,6 +100,13 @@ Boolean DS2431_Init()
 		DeviceCount++;
 	}
 
+	if(DeviceCount == 0)
+	{
+		DS2431_SetError(DS2431_ERR_NO_DEVICE);
+		return false;
+	}
+
+	DS2431_SetError(DS2431_OK);
 	return true;
 }
 //-------------------
@@ -100,7 +120,10 @@ Int16U DS2431_GetDeviceCount()
 static Boolean DS2431_Select(Int8U deviceIndex)
 {
 	if(deviceIndex >= DeviceCount)
+	{
+		DS2431_SetError(DS2431_ERR_NO_DEVICE);
 		return false;
+	}
 
 	DS2431_Begin(DeviceRom[deviceIndex]);
 	return true;
@@ -137,6 +160,7 @@ Boolean DS2431_Read(Int16U address, Int8U *buf, Int16U len)
 
 	OneWire_Depower();
 	DELAY_MS(DS2431_BUS_RECOVERY_MS);
+	DS2431_SetError(DS2431_OK);
 	return true;
 }
 //-------------------
@@ -164,6 +188,7 @@ Boolean DS2431_EraseAll(Int8U deviceIndex, Boolean verify)
 			return false;
 	}
 
+	DS2431_SetError(DS2431_OK);
 	return true;
 }
 //-------------------
@@ -175,13 +200,22 @@ Boolean DS2431_ReadArray(Int8U deviceIndex, Int8U *buf, Int16U len)
 		return false;
 
 	if(len > DS2431_EEPROM_SIZE)
+	{
+		DS2431_SetError(DS2431_ERR_PARAM);
 		return false;
+	}
 
 	if(len == 0)
-		return true;
+	{
+		DS2431_SetError(DS2431_ERR_PARAM);
+		return false;
+	}
 
 	if(buf == NULL)
+	{
+		DS2431_SetError(DS2431_ERR_PARAM);
 		return false;
+	}
 
 	return DS2431_Read(0, buf, len);
 }
@@ -196,10 +230,16 @@ Boolean DS2431_WriteArray(Int8U deviceIndex, const Int8U *buf, Int16U len)
 		return false;
 
 	if(len > DS2431_EEPROM_SIZE)
+	{
+		DS2431_SetError(DS2431_ERR_PARAM);
 		return false;	// запрос выходит за область данных 0x00..0x7F
+	}
 
-	if(len > 0 && buf == NULL)
+	if(len == 0 || (buf == NULL))
+	{
+		DS2431_SetError(DS2431_ERR_PARAM);
 		return false;
+	}
 
 	for(Int16U address = 0; address < len; address += DS2431_ROW_SIZE)
 	{
@@ -226,6 +266,7 @@ Boolean DS2431_WriteArray(Int8U deviceIndex, const Int8U *buf, Int16U len)
 			return false;	// copy не записал строку в EEPROM
 	}
 
+	DS2431_SetError(DS2431_OK);
 	return true;
 }
 //-------------------
@@ -247,7 +288,10 @@ static Boolean DS2431_IsIdleBusResponse(const Int8U *readBuf, Int16U len)
 static Boolean DS2431_StartTransmission()
 {
 	if(!OneWire_Reset())
+	{
+		DS2431_SetError(DS2431_ERR_LINE);
 		return false;
+	}
 
 	if(SkipRom)
 		OneWire_Skip();
@@ -310,7 +354,10 @@ static Boolean DS2431_CopyScratchpad(const Int8U copyAuth[3])
 		DELAY_US(1000);
 
 		if(++timeout >= DS2431_COPY_TIMEOUT)
+		{
+			DS2431_SetError(DS2431_ERR_VERIFY);
 			return false;	// чип не завершил t_PROG (шина не отпустилась)
+		}
 	}
 
 	DELAY_MS(DS2431_BUS_RECOVERY_MS);
@@ -328,10 +375,16 @@ static Boolean DS2431_VerifyCopyAccepted()
 		return false;	// нет ответа на шине
 
 	if(readBuf[2] & DS2431_ES_PF_FLAG)
+	{
+		DS2431_SetError(DS2431_ERR_VERIFY);
 		return false;	// PF=1: scratchpad невалиден (сбой питания или неполная запись)
+	}
 
 	if(!(readBuf[2] & DS2431_ES_AA_FLAG))
+	{
+		DS2431_SetError(DS2431_ERR_VERIFY);
 		return false;	// AA=0: copy не начался (неверный auth, защита, PF)
+	}
 
 	return true;
 }
@@ -397,7 +450,10 @@ static Boolean DS2431_VerifyRow(Int16U address, const Int8U *buf, Int8U count)
 	for(Int8U i = 0; i < count; i++)
 	{
 		if(row[i] != buf[i])
+		{
+			DS2431_SetError(DS2431_ERR_VERIFY);
 			return false;
+		}
 	}
 
 	return true;
@@ -409,22 +465,34 @@ static Boolean DS2431_ParseScratchpad(const Int8U *readBuf, Int16U address, cons
 		Boolean verify, Int8U copyAuth[3])
 {
 	if(!DS2431_IsScratchpadStatusValid(readBuf[2], address, count))
+	{
+		DS2431_SetError(DS2431_ERR_VERIFY);
 		return false;	// E/S: PF/AA или смещение конца строки не совпадает с count
+	}
 
 	if(address != ((Int16U)readBuf[1] << 8 | readBuf[0]))
+	{
+		DS2431_SetError(DS2431_ERR_VERIFY);
 		return false;	// TA1/TA2 в scratchpad не совпадают с целевым address
+	}
 
 	if(verify)	// сверить данные scratchpad с буфером перед copy
 	{
 		for(Int16U i = 0; i < DS2431_ROW_SIZE; i++)
 		{
 			if(readBuf[DS2431_CMD_SIZE + i] != buf[i])
+			{
+				DS2431_SetError(DS2431_ERR_VERIFY);
 				return false;	// байт scratchpad не совпал с buf[i]
+			}
 		}
 	}
 
 	if(!DS2431_CheckReadScratchpadCrc(readBuf))
+	{
+		DS2431_SetError(DS2431_ERR_VERIFY);
 		return false;	// CRC-16 ответа Read Scratchpad не сошёлся
+	}
 
 	copyAuth[0] = readBuf[0];
 	copyAuth[1] = readBuf[1];
@@ -442,7 +510,10 @@ static Boolean DS2431_WriteInternal(Int16U address, const Int8U *buf, Int16U cou
 	Int8U copyAuth[3];
 
 	if(address >= DS2431_EEPROM_SIZE || (address % DS2431_ROW_SIZE) != 0 || count != DS2431_ROW_SIZE)
+	{
+		DS2431_SetError(DS2431_ERR_PARAM);
 		return false;	// вне данных EEPROM или не целая строка
+	}
 
 	do
 	{
@@ -454,11 +525,22 @@ static Boolean DS2431_WriteInternal(Int16U address, const Int8U *buf, Int16U cou
 
 		DELAY_MS(DS2431_BUS_RECOVERY_MS);
 
-		if(!DS2431_ReadScratchpadRaw(readBuf, sizeof(readBuf))
-				|| DS2431_IsIdleBusResponse(readBuf, sizeof(readBuf))
-				|| !DS2431_ParseScratchpad(readBuf, address, buf, count, verify, copyAuth))
+		if(!DS2431_ReadScratchpadRaw(readBuf, sizeof(readBuf)))
 		{
-			errorCount++;	// нет ответа, пустая шина или scratchpad/CRC/данные не совпали
+			errorCount++;	// нет presence на Read Scratchpad
+			continue;
+		}
+
+		if(DS2431_IsIdleBusResponse(readBuf, sizeof(readBuf)))
+		{
+			DS2431_SetError(DS2431_ERR_NO_DEVICE);
+			errorCount++;	// нет ответа устройства на Read Scratchpad
+			continue;
+		}
+
+		if(!DS2431_ParseScratchpad(readBuf, address, buf, count, verify, copyAuth))
+		{
+			errorCount++;	// scratchpad / CRC / данные не совпали
 			continue;
 		}
 
@@ -479,10 +561,14 @@ static Boolean DS2431_WriteInternal(Int16U address, const Int8U *buf, Int16U cou
 			}
 		}
 
-		break;
+		DS2431_SetError(DS2431_OK);
+		return true;
 	}
 	while(errorCount < DS2431_READ_RETRY);
 
-	return errorCount < DS2431_READ_RETRY;
+	if(LastError == DS2431_OK)
+		DS2431_SetError(DS2431_ERR_VERIFY);
+
+	return false;
 }
 //-------------------

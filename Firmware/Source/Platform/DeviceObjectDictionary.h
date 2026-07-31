@@ -162,7 +162,11 @@
 // Problem
 #define PROBLEM_NONE						0	// No problem
 #define PROBLEM_MISSING_LABEL				1	// Недостаточно данных в метке
-#define PROBLEM_ONEWIRE						20	// OneWire failed task
+#define PROBLEM_OW_ERROR_LINE				20	// Проблема подключения на линии OW
+#define PROBLEM_OW_NO_DEVICE				21	// Устройство не найдено / неверный индекс
+#define PROBLEM_OW_VERIFY					22	// Ошибка verify / scratchpad / CRC / copy
+#define PROBLEM_OW_PARAM					23	// Неверные параметры запроса
+#define PROBLEM_OW_DS18						24	// Проблема OneWire на DS18
 
 // Disable
 #define DISABLE_NONE						0	// No fault
