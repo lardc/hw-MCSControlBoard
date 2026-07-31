@@ -9,6 +9,15 @@
 #define MEM_LABEL_LABEL_SIZE		3
 #define MEM_LABEL_MAX_LABELS		(DS2431_EEPROM_SIZE / MEM_LABEL_LABEL_SIZE)
 // Types
+typedef enum __MemLabelType
+{
+	AdapterCode =		0,
+	ClampHeight =		1,
+	MaxCurrent =		2,
+	MaxVoltage =		3,
+	Serial =			4
+} MemLabelType;
+
 typedef struct __MemLabelEntry
 {
 	Int8U Type;

@@ -104,7 +104,7 @@
 //
 #define REG_DBG								92	// Отладочный регистр
 #define REG_DBG2							93	// Отладочный регистр
-// 93-95
+// 94-95
 
 // Регистры только чтение
 #define REG_DEV_STATE						96	// Device state
@@ -161,7 +161,8 @@
 
 // Problem
 #define PROBLEM_NONE						0	// No problem
-#define PROBLEM_ONEWIRE						1	// OneWire failed task
+#define PROBLEM_MISSING_LABEL				1	// Недостаточно данных в метке
+#define PROBLEM_ONEWIRE						20	// OneWire failed task
 
 // Disable
 #define DISABLE_NONE						0	// No fault

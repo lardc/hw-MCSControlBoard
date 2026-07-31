@@ -10,6 +10,7 @@
 #include "SelfTest.h"
 #include "StepperMotor.h"
 #include "TRM101.h"
+#include "MemLabel.h"
 
 static void LOGIC_AdapterIdPublish(pAdapterIdentifier Id);
 static Int16U LOGIC_ClampHeightMm = 0;
@@ -109,7 +110,7 @@ static Boolean LOGIC_ReadAdapterId()
 
 void LOGIC_AdapterIdInit()
 {
-	// TODO: инициализация шины / пинов микросхемы идентификатора
+	DS2431_Init();
 }
 // ----------------------------------------
 
@@ -125,12 +126,42 @@ static void LOGIC_AdapterIdPublish(pAdapterIdentifier Id)
 
 Boolean LOGIC_AdapterIdRead(pAdapterIdentifier Id)
 {
-	// TODO: чтение идентификатора из отдельной микросхемы
-	Id->Code = DataTable[REG_ADAPTER_ID];
-	Id->ClampHeightMm = DataTable[REG_ADAPTER_CLAMP_HEIGHT];
-	Id->MaxCurrent = DataTable[REG_ADAPTER_MAX_CURRENT];
-	Id->MaxVoltage = DataTable[REG_ADAPTER_MAX_VOLTAGE];
-	Id->Serial = DataTable[REG_ADAPTER_SERIAL];
+	MemLabelEntry Labels[MEM_LABEL_MAX_LABELS];
+	Int8U LabelCount;
+	Int8U FilledCount = 0;
+
+	LabelCount = MemLabel_Read(0, Labels, MEM_LABEL_MAX_LABELS);
+	for(Int8U i = 0; i < LabelCount; i++)
+	{
+		switch(Labels[i].Type)
+		{
+			case AdapterCode:
+				Id->Code = Labels[i].Value;
+				FilledCount++;
+				break;
+			case ClampHeight:
+				Id->ClampHeightMm = Labels[i].Value;
+				FilledCount++;
+				break;
+			case MaxCurrent:
+				Id->MaxCurrent = Labels[i].Value;
+				FilledCount++;
+				break;
+			case MaxVoltage:
+				Id->MaxVoltage = Labels[i].Value;
+				FilledCount++;
+				break;
+			case Serial:
+				Id->Serial = Labels[i].Value;
+				FilledCount++;
+				break;
+			default:
+				break;
+		}
+	}
+
+	if(FilledCount < 5)
+		return FALSE;
 
 	LOGIC_AdapterIdPublish(Id);
 	return TRUE;
