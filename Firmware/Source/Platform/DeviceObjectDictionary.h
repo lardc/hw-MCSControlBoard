@@ -21,7 +21,8 @@
 // 103
 #define ACT_RELEASE_CLAMPING				104 // Perform unclamp
 #define ACT_HALT							105 // Abort operation
-// 106-107
+#define ACT_UPDATE_ADAPTER_MATCH			106 // Обновить регистр сооствествия адаптера
+// 107
 #define ACT_SET_TEMPERATURE					108	// Set temperature
 #define ACT_RELEASE_ADAPTER					109	// Release adapter for changing
 #define ACT_HOLD_ADAPTER					110	// Hold adapter
@@ -83,17 +84,16 @@
 // 33-63
 
 // Несохраняемые регистры чтения-записи
-//
 //64-70
 #define REG_DEV_CASE						71	// Код корпуса прибора (задание Master для сверки)
 #define REG_TEMP_SETPOINT					72	// Уставка температуры (С х10)
+//
 #define REG_ADAPTER_ID						73	// Код адаптера в идентификаторе 1-Wire
-#define REG_ADAPTER_MATCH					74	// Результат сверки идентификатора
-#define REG_ADAPTER_MISMATCH				75	// Код несовпадения
-#define REG_ADAPTER_SERIAL					76	// Серийный номер адаптера
-#define REG_ADAPTER_CLAMP_HEIGHT			77	// Высота зажатия из идентификатора (мм)
-#define REG_ADAPTER_MAX_CURRENT				78	// Макс. ток из идентификатора
-#define REG_ADAPTER_MAX_VOLTAGE				79	// Макс. напряжение из идентификатора
+#define REG_ADAPTER_SERIAL					74	// Серийный номер адаптера
+#define REG_ADAPTER_CLAMP_HEIGHT			75	// Высота зажатия из идентификатора (мм)
+#define REG_ADAPTER_MAX_CURRENT				76	// Макс. ток из идентификатора
+#define REG_ADAPTER_MAX_VOLTAGE				77	// Макс. напряжение из идентификатора
+// 78-79
 #define REG_TEST_CURRENT					80	// Заданный Master предел тока для сверки
 #define REG_TEST_VOLTAGE					81	// Заданный Master предел напряжения для сверки
 // 82-83
@@ -123,7 +123,9 @@
 #define REG_ADAPTER_TOOLING_SENSOR			109	// SPI: датчик подключения адаптера
 #define REG_DEV_SUBSTATE					110	// Device substate
 #define REG_SELFTEST_RESULT					111	// Маска ошибок самодиагностики ОШ (бит0=ОШ1, бит1=ОШ2)
-// 112-113
+#define REG_ADAPTER_MATCH					112	// Результат сверки идентификатора
+#define REG_ADAPTER_MISMATCH				113 // Показатель того, что разошлось при сверке (
+// 113
 #define REG_SPI_IN_STATE					114	// Сырой байт регистра входа 2SPI
 #define REG_SENSOR_S3						115	// Датчик безопасности S3 (PA9)
 #define REG_SENSOR_S5						116	// Датчик безопасности S5 (PA12)
@@ -151,17 +153,17 @@
 
 //  Fault codes
 #define DF_NONE								0	// No fault
-//
+// 1-3
 #define DF_TRM								4	// TRM communication fault
 #define DF_PRESSURE							5	// Давление ниже нормы
-// 6-8
-#define DF_ADAPTER_MISMATCH					9	// Несовпадение идентификатора адаптера
+// 6-9
 #define DF_SELFTEST							10	// Ошибка самодиагностики оптронов
 #define DF_SPI_TIMEOUT						11	// Таймаут ожидания SPI-входа
 
 // Problem
 #define PROBLEM_NONE						0	// No problem
 #define PROBLEM_MISSING_LABEL				1	// Недостаточно данных в метке
+#define PROBLEM_ADAPTER_MISMATCH			2	// Несовпадение идентификатора адаптера
 #define PROBLEM_OW_ERROR_LINE				20	// Проблема подключения на линии OW
 #define PROBLEM_OW_NO_DEVICE				21	// Устройство не найдено / неверный индекс
 #define PROBLEM_OW_VERIFY					22	// Ошибка verify / scratchpad / CRC / copy

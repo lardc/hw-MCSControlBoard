@@ -112,7 +112,7 @@ static void CONTROL_FillWPPartDefault()
 	DataTable[REG_DISABLE_REASON] = DISABLE_NONE;
 	DataTable[REG_WARNING] = WARNING_NONE;
 	DataTable[REG_PROBLEM] = PROBLEM_NONE;
-	DataTable[REG_ADAPTER_MATCH] = ADAPTER_MATCH_NONE;
+	DataTable[REG_ADAPTER_MATCH] = false;
 	DataTable[REG_ADAPTER_MISMATCH] = ADAPTER_MISMATCH_NONE;
 }
 // ----------------------------------------
@@ -225,12 +225,17 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 		case ACT_HOLD_ADAPTER:
 			if(CONTROL_State == DS_None || CONTROL_State == DS_Ready)
 			{
-				DataTable[REG_ADAPTER_MATCH] = ADAPTER_MATCH_NONE;
+				DataTable[REG_ADAPTER_MATCH] = false;
 				CONTROL_ResetOutputRegisters();
 				CONTROL_SetDeviceState(DS_AdapterHold, DSS_AdapterHold_CheckPressure);
 			}
 			else
 				*UserError = ERR_OPERATION_BLOCKED;
+			break;
+
+		case ACT_UPDATE_ADAPTER_MATCH:
+			if(!LOGIC_ValidateAdapter())
+				CONTROL_FinishedWithProblem(PROBLEM_ADAPTER_MISMATCH);
 			break;
 
 		case ACT_SET_TEMPERATURE:

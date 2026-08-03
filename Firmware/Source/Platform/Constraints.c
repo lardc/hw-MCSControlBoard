@@ -83,12 +83,12 @@ const TableItemConstraint Constraint[DATA_TABLE_WP_START] = {
 	{0, INT16U_MAX, 0},																// 71
 	{TRM_TEMP_MIN, TRM_TEMP_MAX, TRM_TEMP_DEF},										// 72
 	{0, INT16U_MAX, 0},																// 73
-	{ADAPTER_MATCH_NONE, ADAPTER_MATCH_FAIL, ADAPTER_MATCH_NONE},					// 74
-	{ADAPTER_MISMATCH_NONE, ADAPTER_MISMATCH_HEIGHT, ADAPTER_MISMATCH_NONE},		// 75
+	{0, INT16U_MAX, 0},																// 74
+	{ADAPTER_CLAMP_HEIGHT_MIN, ADAPTER_CLAMP_HEIGHT_MAX, ADAPTER_CLAMP_HEIGHT_DEF},	// 75
 	{0, INT16U_MAX, 0},																// 76
-	{ADAPTER_CLAMP_HEIGHT_MIN, ADAPTER_CLAMP_HEIGHT_MAX, ADAPTER_CLAMP_HEIGHT_DEF},	// 77
-	{0, INT16U_MAX, 0},																// 78
-	{0, INT16U_MAX, 0},																// 79
+	{0, INT16U_MAX, 0},																// 77
+	{0, 0, 0},																		// 78
+	{0, 0, 0},																		// 79
 	{0, INT16U_MAX, 0},																// 80
 	{0, INT16U_MAX, 0},																// 81
 	{0, 0, 0},																		// 82

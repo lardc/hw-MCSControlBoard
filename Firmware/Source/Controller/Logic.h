@@ -1,7 +1,3 @@
-// ----------------------------------------
-// MCS operational logic (FSM)
-// ----------------------------------------
-
 #ifndef __LOGIC_H
 #define __LOGIC_H
 
@@ -22,5 +18,6 @@ Boolean LOGIC_IsCycleActive();
 void LOGIC_AdapterIdInit();
 Boolean LOGIC_AdapterIdRead(pAdapterIdentifier Id);
 Boolean LOGIC_AdapterIdWrite(pAdapterIdentifier Id);
+Boolean LOGIC_ValidateAdapter();
 
 #endif // __LOGIC_H

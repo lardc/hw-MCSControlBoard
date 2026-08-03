@@ -24,7 +24,6 @@ static void LOGIC_StartSpiWait();
 static Boolean LOGIC_WaitSpiInBit(Int8U Bit);
 static Boolean LOGIC_OnSubStateEntry(DeviceState State, DeviceSubState SubState);
 static Boolean LOGIC_ReadAdapterId();
-static Boolean LOGIC_ValidateAdapter();
 static void LOGIC_ProcessSelfTest();
 static void LOGIC_MonitorCycleFaults();
 static void LOGIC_PrepareClamping(Boolean Clamp);
@@ -191,39 +190,35 @@ Boolean LOGIC_AdapterIdWrite(pAdapterIdentifier Id)
 }
 // ----------------------------------------
 
-static Boolean LOGIC_ValidateAdapter()
+Boolean LOGIC_ValidateAdapter()
 {
 	DataTable[REG_ADAPTER_MISMATCH] = ADAPTER_MISMATCH_NONE;
 
 	if(DataTable[REG_ADAPTER_ID] != DataTable[REG_DEV_CASE])
 	{
 		DataTable[REG_ADAPTER_MISMATCH] = ADAPTER_MISMATCH_CODE;
-		DataTable[REG_ADAPTER_MATCH] = ADAPTER_MATCH_FAIL;
 		return FALSE;
 	}
 
 	if(DataTable[REG_ADAPTER_MAX_CURRENT] < DataTable[REG_TEST_CURRENT])
 	{
 		DataTable[REG_ADAPTER_MISMATCH] = ADAPTER_MISMATCH_CURRENT;
-		DataTable[REG_ADAPTER_MATCH] = ADAPTER_MATCH_FAIL;
 		return FALSE;
 	}
 
 	if(DataTable[REG_ADAPTER_MAX_VOLTAGE] < DataTable[REG_TEST_VOLTAGE])
 	{
 		DataTable[REG_ADAPTER_MISMATCH] = ADAPTER_MISMATCH_VOLTAGE;
-		DataTable[REG_ADAPTER_MATCH] = ADAPTER_MATCH_FAIL;
 		return FALSE;
 	}
 
 	if(DataTable[REG_ADAPTER_CLAMP_HEIGHT] < ADAPTER_CLAMP_HEIGHT_MIN || DataTable[REG_ADAPTER_CLAMP_HEIGHT] > ADAPTER_CLAMP_HEIGHT_MAX)
-		{
-			DataTable[REG_ADAPTER_MISMATCH] = ADAPTER_MISMATCH_HEIGHT;
-			DataTable[REG_ADAPTER_MATCH] = ADAPTER_MATCH_FAIL;
-			return FALSE;
-		}
+	{
+		DataTable[REG_ADAPTER_MISMATCH] = ADAPTER_MISMATCH_HEIGHT;
+		return FALSE;
+	}
 
-	DataTable[REG_ADAPTER_MATCH] = ADAPTER_MATCH_OK;
+	DataTable[REG_ADAPTER_MATCH] = true;
 	return TRUE;
 }
 // ----------------------------------------
@@ -258,10 +253,6 @@ static void LOGIC_MonitorCycleFaults()
 
 	if(!LL_SPI_IsCoil24VOk())
 		CONTROL_Halt();
-
-	if(DataTable[REG_ADAPTER_MATCH] == ADAPTER_MATCH_FAIL
-			&& (CONTROL_State == DS_Clamping || CONTROL_State == DS_ClampingDone))
-		CONTROL_SwitchToFault(DF_ADAPTER_MISMATCH);
 }
 // ----------------------------------------
 
@@ -377,7 +368,7 @@ void LOGIC_Process()
 							if(LOGIC_ValidateAdapter())
 								CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterHold_Done);
 							else
-								CONTROL_SwitchToFault(DF_ADAPTER_MISMATCH);
+								CONTROL_FinishedWithProblem(PROBLEM_ADAPTER_MISMATCH);
 						}
 						else
 							CONTROL_SetDeviceState(DS_Ready, DSS_None);
@@ -486,7 +477,7 @@ void LOGIC_Process()
 						HeatingActive = FALSE;
 
 						LOGIC_ClampHeightMm = 0;
-						DataTable[REG_ADAPTER_MATCH] = ADAPTER_MATCH_NONE;
+						DataTable[REG_ADAPTER_MATCH] = false;
 						CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterRelease_Done);
 					}
 					break;
