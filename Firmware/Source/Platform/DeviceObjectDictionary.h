@@ -113,6 +113,7 @@
 #define REG_WARNING							99	// Warning if present
 #define REG_PROBLEM							100	// Problem if present
 #define REG_OP_RESULT						101	// Регистр результата операции
+//
 #define REG_TEMP_CH1						102	// Sampled temperature on channel 1
 #define REG_TRM_DATA						103	// Data read from TRM
 #define REG_TRM_ERROR						104	// TRM error value
@@ -121,11 +122,13 @@
 #define REG_HOMING_SENSOR					107	// Состояние датчика хоуминга
 #define REG_BUS_TOOLING_SENSOR				108	// SPI: датчик подключения силовых шин
 #define REG_ADAPTER_TOOLING_SENSOR			109	// SPI: датчик подключения адаптера
+//
 #define REG_DEV_SUBSTATE					110	// Device substate
 #define REG_SELFTEST_RESULT					111	// Маска ошибок самодиагностики ОШ (бит0=ОШ1, бит1=ОШ2)
+//
 #define REG_ADAPTER_MATCH					112	// Результат сверки идентификатора
 #define REG_ADAPTER_MISMATCH				113 // Показатель того, что разошлось при сверке (
-// 113
+//
 #define REG_SPI_IN_STATE					114	// Сырой байт регистра входа 2SPI
 #define REG_SENSOR_S3						115	// Датчик безопасности S3 (PA9)
 #define REG_SENSOR_S5						116	// Датчик безопасности S5 (PA12)
@@ -164,6 +167,7 @@
 #define PROBLEM_NONE						0	// No problem
 #define PROBLEM_MISSING_LABEL				1	// Недостаточно данных в метке
 #define PROBLEM_ADAPTER_MISMATCH			2	// Несовпадение идентификатора адаптера
+#define PROBLEM_NO_HOLD_OR_MISMATCH			3	// Не выполнено зажатие или было несовпадение адаптера
 #define PROBLEM_OW_ERROR_LINE				20	// Проблема подключения на линии OW
 #define PROBLEM_OW_NO_DEVICE				21	// Устройство не найдено / неверный индекс
 #define PROBLEM_OW_VERIFY					22	// Ошибка verify / scratchpad / CRC / copy

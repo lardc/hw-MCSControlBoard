@@ -18,12 +18,14 @@ static Int64U LOGIC_WaitDeadline = 0;
 static Int64U LOGIC_StateTimeout = 0;
 static DeviceState LOGIC_LatchState = DS_None;
 static DeviceSubState LOGIC_LatchSubState = DSS_None;
+static Boolean IsHolding = false;
+static Boolean LOGIC_FaultSpiAfterRelease = FALSE;
 
 static void LOGIC_PrepareHoming();
-static void LOGIC_StartSpiWait();
 static Boolean LOGIC_WaitSpiInBit(Int8U Bit);
 static Boolean LOGIC_OnSubStateEntry(DeviceState State, DeviceSubState SubState);
 static Boolean LOGIC_ReadAdapterId();
+static void LOGIC_AbortHoldToRelease();
 static void LOGIC_ProcessSelfTest();
 static void LOGIC_MonitorCycleFaults();
 static void LOGIC_PrepareClamping(Boolean Clamp);
@@ -76,21 +78,30 @@ static Boolean LOGIC_OnSubStateEntry(DeviceState State, DeviceSubState SubState)
 }
 // ----------------------------------------
 
-static void LOGIC_StartSpiWait()
-{
-	LOGIC_WaitDeadline = CONTROL_TimeCounter + SPI_WAIT_TIMEOUT;
-}
-// ----------------------------------------
-
 static Boolean LOGIC_WaitSpiInBit(Int8U Bit)
 {
 	if(LL_SPI_GetInBit(Bit))
 		return TRUE;
 
 	if(CONTROL_TimeCounter > LOGIC_WaitDeadline)
-		CONTROL_SwitchToFault(DF_SPI_TIMEOUT);
+	{
+		if(CONTROL_State == DS_AdapterHold)
+		{
+			LOGIC_FaultSpiAfterRelease = TRUE;
+			LOGIC_AbortHoldToRelease();
+		}
+		else
+			CONTROL_SwitchToFault(DF_SPI_TIMEOUT);
+	}
 
 	return FALSE;
+}
+// ----------------------------------------
+
+static void LOGIC_AbortHoldToRelease()
+{
+	IsHolding = false;
+	CONTROL_SetDeviceState(DS_AdapterRelease, DSS_AdapterRelease_Bus);
 }
 // ----------------------------------------
 
@@ -193,6 +204,7 @@ Boolean LOGIC_AdapterIdWrite(pAdapterIdentifier Id)
 Boolean LOGIC_ValidateAdapter()
 {
 	DataTable[REG_ADAPTER_MISMATCH] = ADAPTER_MISMATCH_NONE;
+	DataTable[REG_ADAPTER_MATCH] = false;
 
 	if(DataTable[REG_ADAPTER_ID] != DataTable[REG_DEV_CASE])
 	{
@@ -330,7 +342,12 @@ void LOGIC_Process()
 			{
 				case DSS_AdapterHold_CheckPressure:
 					if(LOGIC_OnSubStateEntry(CONTROL_State, CONTROL_SubState))
+					{
+						IsHolding = false;
+						DataTable[REG_ADAPTER_MATCH] = false;
+						LOGIC_FaultSpiAfterRelease = FALSE;
 						LOGIC_StateTimeout = CONTROL_TimeCounter + ADAPTER_HOLD_PRESSURE_TIMEOUT;
+					}
 
 					if(MEAS_IsPressureOk())
 						CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterHold_ConnectAdapter);
@@ -343,7 +360,7 @@ void LOGIC_Process()
 					{
 						LL_SPI_SetOutBit(SPI_OUT_ADAPTER, true);
 						LL_SPI_FlushOut();
-						LOGIC_StartSpiWait();
+						LOGIC_WaitDeadline = CONTROL_TimeCounter + SPI_WAIT_TIMEOUT;
 					}
 					else if(LOGIC_WaitSpiInBit(SPI_IN_ADAPTER_HELD))
 						CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterHold_ConnectBus);
@@ -354,7 +371,7 @@ void LOGIC_Process()
 					{
 						LL_SPI_SetOutBit(SPI_OUT_BUS, true);
 						LL_SPI_FlushOut();
-						LOGIC_StartSpiWait();
+						LOGIC_WaitDeadline = CONTROL_TimeCounter + SPI_WAIT_TIMEOUT;
 					}
 					else if(LOGIC_WaitSpiInBit(SPI_IN_BUS_HELD))
 						CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterHold_ReadId);
@@ -364,19 +381,15 @@ void LOGIC_Process()
 					if(LOGIC_OnSubStateEntry(CONTROL_State, CONTROL_SubState))
 					{
 						if(LOGIC_ReadAdapterId())
-						{
-							if(LOGIC_ValidateAdapter())
-								CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterHold_Done);
-							else
-								CONTROL_FinishedWithProblem(PROBLEM_ADAPTER_MISMATCH);
-						}
+							CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterHold_Done);
 						else
-							CONTROL_SetDeviceState(DS_Ready, DSS_None);
+							LOGIC_AbortHoldToRelease();
 					}
 					break;
 
 				case DSS_AdapterHold_Done:
 					CONTROL_SetDeviceState(DS_Ready, DSS_None);
+					IsHolding = true;
 					DataTable[REG_OP_RESULT] = OPRESULT_OK;
 					break;
 
@@ -389,8 +402,16 @@ void LOGIC_Process()
 			switch(CONTROL_SubState)
 			{
 				case DSS_None:
-					LOGIC_PrepareClamping(TRUE);
-					CONTROL_SetDeviceState(CONTROL_State, DSS_ClampingOperating);
+					if(DataTable[REG_ADAPTER_MATCH] && IsHolding )
+					{
+						LOGIC_PrepareClamping(TRUE);
+						CONTROL_SetDeviceState(CONTROL_State, DSS_ClampingOperating);
+					}
+					else
+					{
+						CONTROL_FinishedWithProblem(PROBLEM_NO_HOLD_OR_MISMATCH);
+						CONTROL_SetDeviceState(DS_Ready, DSS_None);
+					}
 					break;
 
 				case DSS_ClampingOperating:
@@ -399,6 +420,7 @@ void LOGIC_Process()
 						ClampingDuration = CONTROL_TimeCounter - ClampingDuration;
 						HomingDuration = ReleaseDuration = 0;
 						RequestSaveToFlash = TRUE;
+						DataTable[REG_OP_RESULT] = OPRESULT_OK;
 						CONTROL_SetDeviceState(DS_ClampingDone, DSS_None);
 					}
 					break;
@@ -439,7 +461,7 @@ void LOGIC_Process()
 					{
 						LL_SPI_SetOutBit(SPI_OUT_BUS, false);
 						LL_SPI_FlushOut();
-						LOGIC_StartSpiWait();
+						LOGIC_WaitDeadline = CONTROL_TimeCounter + SPI_WAIT_TIMEOUT;
 					}
 					else if(LOGIC_WaitSpiInBit(SPI_IN_BUS_RELEASED))
 						CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterRelease_Adapter);
@@ -450,7 +472,7 @@ void LOGIC_Process()
 					{
 						LL_SPI_SetOutBit(SPI_OUT_ADAPTER, false);
 						LL_SPI_FlushOut();
-						LOGIC_StartSpiWait();
+						LOGIC_WaitDeadline = CONTROL_TimeCounter + SPI_WAIT_TIMEOUT;
 					}
 					else if(LOGIC_WaitSpiInBit(SPI_IN_ADAPTER_RELEASED))
 						CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterRelease_HeatingOff);
@@ -483,8 +505,18 @@ void LOGIC_Process()
 					break;
 
 				case DSS_AdapterRelease_Done:
-					CONTROL_SetDeviceState(DS_Ready, DSS_None);
-					DataTable[REG_OP_RESULT] = OPRESULT_OK;
+					IsHolding = false;
+					if(LOGIC_FaultSpiAfterRelease)
+					{
+						LOGIC_FaultSpiAfterRelease = FALSE;
+						CONTROL_SwitchToFault(DF_SPI_TIMEOUT);
+					}
+					else
+					{
+						if(DataTable[REG_PROBLEM] == PROBLEM_NONE)
+							DataTable[REG_OP_RESULT] = OPRESULT_OK;
+						CONTROL_SetDeviceState(DS_Ready, DSS_None);
+					}
 					break;
 
 				default:

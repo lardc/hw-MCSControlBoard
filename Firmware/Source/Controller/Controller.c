@@ -225,7 +225,6 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 		case ACT_HOLD_ADAPTER:
 			if(CONTROL_State == DS_None || CONTROL_State == DS_Ready)
 			{
-				DataTable[REG_ADAPTER_MATCH] = false;
 				CONTROL_ResetOutputRegisters();
 				CONTROL_SetDeviceState(DS_AdapterHold, DSS_AdapterHold_CheckPressure);
 			}
@@ -234,7 +233,10 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 			break;
 
 		case ACT_UPDATE_ADAPTER_MATCH:
-			if(!LOGIC_ValidateAdapter())
+			CONTROL_ResetOutputRegisters();
+			if(LOGIC_ValidateAdapter())
+				DataTable[REG_OP_RESULT] = OPRESULT_OK;
+			else
 				CONTROL_FinishedWithProblem(PROBLEM_ADAPTER_MISMATCH);
 			break;
 
