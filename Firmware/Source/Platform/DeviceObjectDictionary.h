@@ -127,7 +127,7 @@
 #define REG_SELFTEST_RESULT					111	// Маска ошибок самодиагностики ОШ (бит0=ОШ1, бит1=ОШ2)
 //
 #define REG_ADAPTER_MATCH					112	// Результат сверки идентификатора
-#define REG_ADAPTER_MISMATCH				113 // Показатель того, что разошлось при сверке (
+#define REG_ADAPTER_MISMATCH				113 // Показатель того, что разошлось при сверке (1 - код, 2 - ток, 3 - напряжение, 4 -высота)
 //
 #define REG_SPI_IN_STATE					114	// Сырой байт регистра входа 2SPI
 #define REG_SENSOR_S3						115	// Датчик безопасности S3 (PA9)
