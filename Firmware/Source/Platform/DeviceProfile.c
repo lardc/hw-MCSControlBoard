@@ -73,11 +73,10 @@ void DEVPROFILE_Init(xCCI_FUNC_CallbackAction SpecializedDispatch, Boolean* Mask
 	MaskChangesFlag = MaskChanges;
 	
 	// Init interface
-	// Сделана замена USART3 на USART1 на время тестов
-	RS232_IOConfig.IO_SendArray16 = (SCCI_FUNC_SendArray16)&USART1_SendArray16;
-	RS232_IOConfig.IO_ReceiveArray16 = (SCCI_FUNC_ReceiveArray16)&USART1_ReceiveArray16;
-	RS232_IOConfig.IO_GetBytesToReceive = (SCCI_FUNC_GetBytesToReceive)&USART1_GetBytesToReceive;
-	RS232_IOConfig.IO_ReceiveByte = (SCCI_FUNC_ReceiveByte)&USART1_ReceiveChar;
+	RS232_IOConfig.IO_SendArray16 = (SCCI_FUNC_SendArray16)&USART3_SendArray16;
+	RS232_IOConfig.IO_ReceiveArray16 = (SCCI_FUNC_ReceiveArray16)&USART3_ReceiveArray16;
+	RS232_IOConfig.IO_GetBytesToReceive = (SCCI_FUNC_GetBytesToReceive)&USART3_GetBytesToReceive;
+	RS232_IOConfig.IO_ReceiveByte = (SCCI_FUNC_ReceiveByte)&USART3_ReceiveChar;
 	CAN_IOConfig.IO_SendMessage = &NCAN_SendMessage;
 	CAN_IOConfig.IO_SendMessageEx = &NCAN_SendMessageEx;
 	CAN_IOConfig.IO_GetMessage = &NCAN_GetMessage;

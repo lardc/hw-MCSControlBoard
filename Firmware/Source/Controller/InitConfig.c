@@ -74,10 +74,14 @@ void INITCFG_ConfigGPIO()
 
 void INITCFG_ConfigOneWire()
 {
-	// Общая инициализация шины
 	OneWireBus Config;
-	Config.useSinglePin =	true;
-	Config.readPin =		GPIO_DQ;
+	Config.writePin =		GPIO_DQ_CTRL;
+	Config.readPin =		GPIO_DQ_IN;
+	Config.powerPin =		GPIO_DQ_PWR;
+	Config.useSinglePin =	false;
+	Config.hasPowerPin =	true;
+	Config.invertWrite =	true;
+	Config.invertPower =	true;
 	OneWire_Init(Config);
 
 	// Инициализация устройств
@@ -98,9 +102,8 @@ void INITCFG_ConfigModbus()
 
 void INITCFG_ConfigUART()
 {
-	// Заменено на время тестов на SVTU
-	USARTx_Init(USART1, SYSCLK, USART_BAUDRATE);
-	USARTx_RecieveInterrupt(USART1, true);
+	USARTx_Init(USART3, SYSCLK, USART_BAUDRATE);
+	USARTx_RecieveInterrupt(USART3, true);
 }
 //------------------------------------------------
 
