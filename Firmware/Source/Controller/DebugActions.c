@@ -20,6 +20,31 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 {
 	switch(ActionID)
 	{
+		case ACT_DBG_MEAS_PRESSURE:
+			break;
+		case ACT_DBG_SET_OUTPUT:
+			break;
+		case ACT_DBG_MEAS_INPUT:
+			break;
+		case ACT_DBG_STPM:
+			break;
+		case ACT_DBG_DQ_PWR:
+			break;
+		case ACT_DBG_DQ_CTRL:
+			break;
+		case ACT_DBG_DQ_IN:
+			break;
+		case ACT_DBG_HOMING:
+			break;
+		case ACT_DBG_SFT:
+			break;
+		case ACT_DBG_OPTICAL:
+			break;
+		case ACT_DBG_TRM_READ:
+			break;
+		case ACT_DBG_TRM_WRITE:
+			break;
+
 		case ACT_DBG_READ_EXT_TEMP:
 		case ACT_DBG_READ_TRM_TEMP:
 			{

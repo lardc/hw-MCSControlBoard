@@ -15,6 +15,19 @@
 #define ACT_ADAPTER_WRITE_ID				10	//	Запись в индификатор
 #define ACT_ADAPTER_READ_ID					11	//	Чтение с индификатора
 
+#define ACT_DBG_MEAS_PRESSURE				20	// Измерение и запись в REG_DBG значения напряжения на входе АЦП датчика давления
+#define ACT_DBG_SET_OUTPUT					21	// Установить напряжение 24 В на универсальном выходе (разъемы P2-P9) равным в регистре REG_DBG (1-8)
+#define ACT_DBG_MEAS_INPUT					22	// Считывание состояния входов (разъемы P2-P9) и запись состояния в регистр REG_DBG (0-255)
+#define ACT_DBG_STPM						23	// На пинах STPM_DIR, STPM_STEP и STPM_EN выставить высокий уровень на 100 мс
+#define ACT_DBG_DQ_PWR						24	// На пине DQ_PWR отключить подтяжку на 100 мс
+#define ACT_DBG_DQ_CTRL						25	// На пине DQ_CTRL выставить высокий уро-вень на 100 мс
+#define ACT_DBG_DQ_IN						26	// Считывание состояния пина DQ_IN и запись состояния в регистр REG_DBG
+#define ACT_DBG_HOMING 						27	// Считывание состояния пина HOMING и за-пись в регистр REG_DBG (0 – нет напряжения, 1 – 3,3 В на пине)
+#define ACT_DBG_SFT							28	// Считывание состояния пина S3 и запись в регистр REG_DBG (0 – нет напря-жения, 1 – 4,3 В на пине)
+#define ACT_DBG_OPTICAL						29	// Считывание состояния пина S5 и запись в регистр REG_DBG (0 – нет напря-жения, 1 – 4,3 В на пине)
+#define ACT_DBG_TRM_READ					30	// Чтение из регистра ТРМ
+#define ACT_DBG_TRM_WRITE					31	// Запись в регистр ТРМ
+
 #define ACT_HOMING							100	// Start homing
 // 101
 #define ACT_START_CLAMPING					102 // Star clamping
