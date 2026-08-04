@@ -157,23 +157,23 @@ Boolean LOGIC_AdapterIdRead(pAdapterIdentifier Id)
 	{
 		switch(Labels[i].Type)
 		{
-			case AdapterCode:
+			case ML_AdapterCode:
 				Id->Code = Labels[i].Value;
 				FilledCount++;
 				break;
-			case ClampHeight:
+			case ML_ClampHeight:
 				Id->ClampHeightMm = Labels[i].Value;
 				FilledCount++;
 				break;
-			case MaxCurrent:
+			case ML_MaxCurrent:
 				Id->MaxCurrent = Labels[i].Value;
 				FilledCount++;
 				break;
-			case MaxVoltage:
+			case ML_MaxVoltage:
 				Id->MaxVoltage = Labels[i].Value;
 				FilledCount++;
 				break;
-			case Serial:
+			case ML_Serial:
 				Id->Serial = Labels[i].Value;
 				FilledCount++;
 				break;

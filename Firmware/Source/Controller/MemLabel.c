@@ -38,9 +38,6 @@ Int8U MemLabel_Read(Int8U deviceIndex, MemLabelEntry *Labels, Int8U MaxLabels)
 		if(Buffer[Offset] == MEM_LABEL_EMPTY_TYPE)
 			break;
 
-		if(Buffer[Offset + 1] == MEM_LABEL_EMPTY_TYPE && Buffer[Offset + 2] == MEM_LABEL_EMPTY_TYPE)
-			break;
-
 		if(Filled >= MaxLabels)
 			break;
 
@@ -87,9 +84,6 @@ Boolean MemLabel_AddArray(Int8U deviceIndex, const MemLabelEntry *Labels, Int8U 
 		if(Labels[Index].Type == MEM_LABEL_EMPTY_TYPE)
 			return false;
 
-		if(Labels[Index].Value == 0xFFFF)
-			return false;
-
 		if(MemLabel_FindLabelOffset(Buffer, Labels[Index].Type, &Offset))
 			return false;
 
@@ -109,9 +103,6 @@ Boolean MemLabel_Update(Int8U deviceIndex, MemLabelEntry Label)
 	Int8U Offset;
 
 	if(Label.Type == MEM_LABEL_EMPTY_TYPE)
-		return false;
-
-	if(Label.Value == 0xFFFF)
 		return false;
 
 	if(!MemLabel_ReadRaw(deviceIndex, Buffer))
@@ -153,9 +144,6 @@ static Int8U MemLabel_GetLabelCount(const Int8U *Buffer)
 		if(Buffer[Offset] == MEM_LABEL_EMPTY_TYPE)
 			break;
 
-		if(Buffer[Offset + 1] == MEM_LABEL_EMPTY_TYPE && Buffer[Offset + 2] == MEM_LABEL_EMPTY_TYPE)
-			break;
-
 		LabelCount++;
 	}
 
@@ -169,9 +157,6 @@ static Boolean MemLabel_FindLabelOffset(const Int8U *Buffer, Int8U Type, Int8U *
 	for(Int8U LabelOffset = 0; LabelOffset <= (DS2431_EEPROM_SIZE - MEM_LABEL_LABEL_SIZE); LabelOffset += MEM_LABEL_LABEL_SIZE)
 	{
 		if(Buffer[LabelOffset] == MEM_LABEL_EMPTY_TYPE)
-			return false;
-
-		if(Buffer[LabelOffset + 1] == MEM_LABEL_EMPTY_TYPE && Buffer[LabelOffset + 2] == MEM_LABEL_EMPTY_TYPE)
 			return false;
 
 		if(Buffer[LabelOffset] == Type)

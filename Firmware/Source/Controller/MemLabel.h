@@ -11,11 +11,11 @@
 // Types
 typedef enum __MemLabelType
 {
-	AdapterCode =		0,
-	ClampHeight =		1,
-	MaxCurrent =		2,
-	MaxVoltage =		3,
-	Serial =			4
+	ML_AdapterCode =		0,
+	ML_ClampHeight =		1,
+	ML_MaxCurrent =		2,
+	ML_MaxVoltage =		3,
+	ML_Serial =			4
 } MemLabelType;
 
 typedef struct __MemLabelEntry
