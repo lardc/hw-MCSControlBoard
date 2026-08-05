@@ -55,46 +55,44 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 			GPIO_InitAltFunction(GPIO_STPM_STEP, AltFn_2);
 			break;
 		case ACT_DBG_DQ_PWR:
-			GPIO_SetState(GPIO_DQ_PWR, true);
-			DELAY_MS(100);
-			GPIO_SetState(GPIO_DQ_PWR, false);
+			{
+				Boolean prev = GPIO_GetState(GPIO_DQ_PWR);
+				GPIO_SetState(GPIO_DQ_PWR, true);
+				DELAY_MS(100);
+				GPIO_SetState(GPIO_DQ_PWR, prev);
+			}
 			break;
 		case ACT_DBG_DQ_CTRL:
-			GPIO_SetState(GPIO_DQ_CTRL, true);
-			DELAY_MS(100);
-			GPIO_SetState(GPIO_DQ_CTRL, false);
+			{
+				Boolean prev = GPIO_GetState(GPIO_DQ_CTRL);
+				GPIO_SetState(GPIO_DQ_CTRL, true);
+				DELAY_MS(100);
+				GPIO_SetState(GPIO_DQ_CTRL, prev);
+			}
 			break;
 		case ACT_DBG_DQ_IN:
-			GPIO_SetState(GPIO_DQ_IN, true);
-			DELAY_MS(100);
-			GPIO_SetState(GPIO_DQ_IN, false);
+			DataTable[REG_DBG] = GPIO_GetState(GPIO_DQ_IN);
 			break;
 		case ACT_DBG_HOMING:
+			DataTable[REG_DBG] = LL_HomeSensorActuate();
 			break;
 		case ACT_DBG_SFT:
+			DataTable[REG_DBG] = LL_IsSafetyS3Ok();
 			break;
 		case ACT_DBG_OPTICAL:
+			DataTable[REG_DBG] = LL_IsSafetyS5Ok();
 			break;
 		case ACT_DBG_TRM_READ:
 			{
 				TRMError error;
-
-				DataTable[REG_TRM_DATA] = TRM10_ReadReg(
-						(Int8U)DataTable[REG_DBG_TRM_ADDRESS],
-						(Int16U)DataTable[REG_DBG],
-						&error);
+				DataTable[REG_TRM_DATA] = TRM10_ReadReg((Int8U)DataTable[REG_DBG_TRM_ADDRESS], (Int16U)DataTable[REG_DBG], &error);
 				DataTable[REG_TRM_ERROR] = error;
 			}
 			break;
 		case ACT_DBG_TRM_WRITE:
 			{
 				TRMError error;
-
-				TRM10_WriteReg(
-						(Int8U)DataTable[REG_DBG_TRM_ADDRESS],
-						(Int16U)DataTable[REG_DBG],
-						(float)DataTable[REG_DBG2],
-						&error);
+				TRM10_WriteReg((Int8U)DataTable[REG_DBG_TRM_ADDRESS], (Int16U)DataTable[REG_DBG], (float)DataTable[REG_DBG2], &error);
 				DataTable[REG_TRM_ERROR] = error;
 			}
 			break;
