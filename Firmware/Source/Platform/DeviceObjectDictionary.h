@@ -25,8 +25,8 @@
 #define ACT_DBG_HOMING 						27	// Считывание состояния пина HOMING и за-пись в регистр REG_DBG (0 – нет напряжения, 1 – 3,3 В на пине)
 #define ACT_DBG_SFT							28	// Считывание состояния пина S3 и запись в регистр REG_DBG (0 – нет напря-жения, 1 – 4,3 В на пине)
 #define ACT_DBG_OPTICAL						29	// Считывание состояния пина S5 и запись в регистр REG_DBG (0 – нет напря-жения, 1 – 4,3 В на пине)
-#define ACT_DBG_TRM_READ					30	// Чтение из регистра ТРМ
-#define ACT_DBG_TRM_WRITE					31	// Запись в регистр ТРМ
+#define ACT_DBG_TRM_READ					30	// Чтение FLOAT32 из holding-регистра TRM10; REG_DBG_TRM_ADDRESS — slave, REG_DBG — адрес регистра
+#define ACT_DBG_TRM_WRITE					31	// Запись FLOAT32 в holding-регистр TRM10; REG_DBG_TRM_ADDRESS — slave, REG_DBG — адрес, REG_DBG2 — значение
 
 #define ACT_HOMING							100	// Start homing
 // 101

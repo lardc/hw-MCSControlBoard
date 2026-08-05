@@ -24,8 +24,6 @@
 static TRMError TRM10_MapModbusError(ModbusError error);
 static float TRM10_UnpackFloat32(pInt8U Buffer);
 static void TRM10_PackFloat32(float Value, pInt16U Registers);
-static float TRM10_ReadFloatReg(Int8U Slave, Int16U RegAddress, pTRMError error);
-static Boolean TRM10_WriteFloatReg(Int8U Slave, Int16U RegAddress, float Value, pTRMError error);
 static Boolean TRM10_WriteUint16Reg(Int8U Slave, Int16U RegAddress, Int16U Value, pTRMError error);
 
 // Functions
@@ -85,7 +83,7 @@ static void TRM10_PackFloat32(float Value, pInt16U Registers)
 // ----------------------------------------
 
 // Чтение FLOAT32 из holding-регистра по FC03
-static float TRM10_ReadFloatReg(Int8U Slave, Int16U RegAddress, pTRMError error)
+float TRM10_ReadReg(Int8U Slave, Int16U RegAddress, pTRMError error)
 {
 	Int8U TransmitBuffer[TRM10_FRAME_BUFFER_SIZE];
 	Int8U ReceiveBuffer[TRM10_FRAME_BUFFER_SIZE];
@@ -115,7 +113,7 @@ static float TRM10_ReadFloatReg(Int8U Slave, Int16U RegAddress, pTRMError error)
 // ----------------------------------------
 
 // Запись FLOAT32 в holding-регистр по FC16
-static Boolean TRM10_WriteFloatReg(Int8U Slave, Int16U RegAddress, float Value, pTRMError error)
+Boolean TRM10_WriteReg(Int8U Slave, Int16U RegAddress, float Value, pTRMError error)
 {
 	Int16U Registers[TRM10_FLOAT_REG_COUNT];
 	Int8U TransmitBuffer[TRM10_FRAME_BUFFER_SIZE];
@@ -180,21 +178,21 @@ static Boolean TRM10_WriteUint16Reg(Int8U Slave, Int16U RegAddress, Int16U Value
 // Чтение измеренной температуры (Fun1)
 float TRM10_ReadTemp(Int8U Address, pTRMError error)
 {
-	return TRM10_ReadFloatReg(Address, TRM10_REG_FUN1, error);
+	return TRM10_ReadReg(Address, TRM10_REG_FUN1, error);
 }
 // ----------------------------------------
 
 // Чтение выходной мощности (out.P)
 float TRM10_ReadPower(Int8U Address, pTRMError error)
 {
-	return TRM10_ReadFloatReg(Address, TRM10_REG_OUT_P, error);
+	return TRM10_ReadReg(Address, TRM10_REG_OUT_P, error);
 }
 // ----------------------------------------
 
 // Установка уставки регулятора (SP1)
 void TRM10_SetTemp(Int8U Address, float Temperature, pTRMError error)
 {
-	TRM10_WriteFloatReg(Address, TRM10_REG_SP1, Temperature, error);
+	TRM10_WriteReg(Address, TRM10_REG_SP1, Temperature, error);
 }
 // ----------------------------------------
 

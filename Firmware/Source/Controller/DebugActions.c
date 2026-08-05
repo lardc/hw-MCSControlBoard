@@ -3,13 +3,17 @@
 
 // Includes
 #include "DataTable.h"
-#include "TRM101.h"
+#include "TRM10.h"
 #include "StepperMotorDiag.h"
 #include "DS18B20.h"
 #include "DS2431.h"
 #include "OneWire.h"
 #include "Controller.h"
 #include "MemLabel.h"
+#include "Measurement.h"
+#include "LowLevel.h"
+#include "Delay.h"
+#include "Timer3_Ch4PWM.h"
 
 // Variables
 static Int8U DS2431DeviceIndex = 0;
@@ -21,18 +25,49 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 	switch(ActionID)
 	{
 		case ACT_DBG_MEAS_PRESSURE:
+			DataTable[REG_DBG] = MEAS_GetRawVoltage();
 			break;
 		case ACT_DBG_SET_OUTPUT:
+			{
+				Int16U Exit = DataTable[REG_DBG];
+				if(DataTable[REG_DBG] > 7)
+					break;
+				LL_SPI_SetOutBit(Exit, true);
+				DELAY_MS(100);
+				LL_SPI_SetOutBit(Exit, false);
+			}
 			break;
 		case ACT_DBG_MEAS_INPUT:
+			DataTable[REG_DBG] = LL_SPI_ReadInRaw();
 			break;
 		case ACT_DBG_STPM:
+			T3Ch4PWM_Stop();
+			GPIO_InitPushPullOutput(GPIO_STPM_STEP);
+
+			GPIO_SetState(GPIO_STPM_DIR, true);
+			GPIO_SetState(GPIO_STPM_EN, true);
+			GPIO_SetState(GPIO_STPM_STEP, true);
+			DELAY_MS(100);
+			GPIO_SetState(GPIO_STPM_DIR, false);
+			GPIO_SetState(GPIO_STPM_EN, false);
+			GPIO_SetState(GPIO_STPM_STEP, false);
+
+			GPIO_InitAltFunction(GPIO_STPM_STEP, AltFn_2);
 			break;
 		case ACT_DBG_DQ_PWR:
+			GPIO_SetState(GPIO_DQ_PWR, true);
+			DELAY_MS(100);
+			GPIO_SetState(GPIO_DQ_PWR, false);
 			break;
 		case ACT_DBG_DQ_CTRL:
+			GPIO_SetState(GPIO_DQ_CTRL, true);
+			DELAY_MS(100);
+			GPIO_SetState(GPIO_DQ_CTRL, false);
 			break;
 		case ACT_DBG_DQ_IN:
+			GPIO_SetState(GPIO_DQ_IN, true);
+			DELAY_MS(100);
+			GPIO_SetState(GPIO_DQ_IN, false);
 			break;
 		case ACT_DBG_HOMING:
 			break;
@@ -41,8 +76,27 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 		case ACT_DBG_OPTICAL:
 			break;
 		case ACT_DBG_TRM_READ:
+			{
+				TRMError error;
+
+				DataTable[REG_TRM_DATA] = TRM10_ReadReg(
+						(Int8U)DataTable[REG_DBG_TRM_ADDRESS],
+						(Int16U)DataTable[REG_DBG],
+						&error);
+				DataTable[REG_TRM_ERROR] = error;
+			}
 			break;
 		case ACT_DBG_TRM_WRITE:
+			{
+				TRMError error;
+
+				TRM10_WriteReg(
+						(Int8U)DataTable[REG_DBG_TRM_ADDRESS],
+						(Int16U)DataTable[REG_DBG],
+						(float)DataTable[REG_DBG2],
+						&error);
+				DataTable[REG_TRM_ERROR] = error;
+			}
 			break;
 
 		case ACT_DBG_READ_EXT_TEMP:
@@ -51,11 +105,10 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 				if(DataTable[REG_USE_HEATING])
 				{
 					TRMError error;
-					DataTable[REG_TRM_DATA] = TRM_ReadTemp(DataTable[REG_DBG_TRM_ADDRESS], &error);
-					DataTable[REG_TRM_ERROR] = error;
 
-					if(error != TRME_None)
-						*UserError = ERR_TRM_COMM_ERR;
+					DataTable[REG_TRM_DATA] = TRM10_ReadTemp(
+							(Int8U)DataTable[REG_DBG_TRM_ADDRESS], &error);
+					DataTable[REG_TRM_ERROR] = error;
 				}
 				else
 					*UserError = ERR_OPERATION_BLOCKED;
@@ -67,11 +120,10 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 				if(DataTable[REG_USE_HEATING])
 				{
 					TRMError error;
-					DataTable[REG_TRM_DATA] = TRM_ReadPower(DataTable[REG_DBG_TRM_ADDRESS], &error);
-					DataTable[REG_TRM_ERROR] = error;
 
-					if(error != TRME_None)
-						*UserError = ERR_TRM_COMM_ERR;
+					DataTable[REG_TRM_DATA] = TRM10_ReadPower(
+							(Int8U)DataTable[REG_DBG_TRM_ADDRESS], &error);
+					DataTable[REG_TRM_ERROR] = error;
 				}
 				else
 					*UserError = ERR_OPERATION_BLOCKED;
@@ -83,11 +135,9 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 				if(DataTable[REG_USE_HEATING])
 				{
 					TRMError error;
-					TRM_Start(DataTable[REG_DBG_TRM_ADDRESS], &error);
-					DataTable[REG_TRM_ERROR] = error;
 
-					if(error != TRME_None)
-						*UserError = ERR_TRM_COMM_ERR;
+					TRM10_Start((Int8U)DataTable[REG_DBG_TRM_ADDRESS], &error);
+					DataTable[REG_TRM_ERROR] = error;
 				}
 				else
 					*UserError = ERR_OPERATION_BLOCKED;
@@ -99,11 +149,9 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 				if(DataTable[REG_USE_HEATING])
 				{
 					TRMError error;
-					TRM_Stop(DataTable[REG_DBG_TRM_ADDRESS], &error);
-					DataTable[REG_TRM_ERROR] = error;
 
-					if(error != TRME_None)
-						*UserError = ERR_TRM_COMM_ERR;
+					TRM10_Stop((Int8U)DataTable[REG_DBG_TRM_ADDRESS], &error);
+					DataTable[REG_TRM_ERROR] = error;
 				}
 				else
 					*UserError = ERR_OPERATION_BLOCKED;
