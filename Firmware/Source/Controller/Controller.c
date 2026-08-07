@@ -98,7 +98,9 @@ void CONTROL_Idle()
 	CONTROL_UpdatePressureOK();
 	LOGIC_Process();
 
-	if(RequestSaveToFlash && (CONTROL_State == DS_None || CONTROL_State == DS_Fault ||  CONTROL_State == DS_Ready || CONTROL_State == DS_Halt))
+	if(RequestSaveToFlash && (CONTROL_State == DS_None || CONTROL_State == DS_Fault ||  CONTROL_State == DS_Ready || CONTROL_State == DS_Halt
+							|| CONTROL_State == DS_ClampingDone))
+
 	{
 		RequestSaveToFlash = FALSE;
 		STF_SaveDiagData();
