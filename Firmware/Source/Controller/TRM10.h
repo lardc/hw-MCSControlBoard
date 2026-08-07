@@ -16,6 +16,8 @@ typedef enum __TRMError
 
 // Functions
 // Address = 0 в Modbus является broadcast-адресом на линии
+float TRM10_ReadReg(Int8U Address, Int16U RegAddress, pTRMError error);
+Boolean TRM10_WriteReg(Int8U Address, Int16U RegAddress, float Value, pTRMError error);
 float TRM10_ReadTemp(Int8U Address, pTRMError error);
 float TRM10_ReadPower(Int8U Address, pTRMError error);
 void TRM10_SetTemp(Int8U Address, float Temperature, pTRMError error);

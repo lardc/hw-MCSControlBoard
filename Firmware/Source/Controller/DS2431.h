@@ -8,10 +8,21 @@
 #define DS2431_EEPROM_SIZE		128
 #define DS2431_MAX_DEVICES		8
 
+typedef enum __DS2431Error
+{
+	DS2431_OK = 0,
+	DS2431_ERR_LINE,
+	DS2431_ERR_NO_DEVICE,
+	DS2431_ERR_VERIFY,
+	DS2431_ERR_PARAM
+} DS2431Error;
+
 // Сканирование шины и сохранение ROM всех найденных DS2431 (шина 1-Wire уже инициализирована).
+// false — устройств семейства не найдено (LastError = NO_DEVICE).
 Boolean DS2431_Init();
 
 Int16U DS2431_GetDeviceCount();
+DS2431Error DS2431_GetLastError();
 
 // Установить ROM-адрес устройства
 // После вызова адресация идёт через MATCH ROM вместо SKIP ROM.

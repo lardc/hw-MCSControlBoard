@@ -2,9 +2,31 @@
 
 RecordDescription StorageDescription[] =
 {
-	{"Homing duration",		DT_Int32U, 1},
-	{"Clamping duration",	DT_Int32U, 1},
-	{"Release duration",	DT_Int32U, 1},
+	{"REG_DEV_STATE",				DT_Float, 1},
+	{"REG_FAULT_REASON",			DT_Float, 1},
+	{"REG_DISABLE_REASON",			DT_Float, 1},
+	{"REG_WARNING",					DT_Float, 1},
+	{"REG_PROBLEM",					DT_Float, 1},
+	{"REG_OP_RESULT",				DT_Float, 1},
+
+	{"REG_TEMP_CH1",				DT_Float, 1},
+	{"REG_TRM_DATA",				DT_Float, 1},
+	{"REG_TRM_ERROR",				DT_Float, 1},
+	{"REG_PRESSURE",				DT_Float, 1},
+	{"REG_SENSOR_S2",				DT_Float, 1},
+	{"REG_HOMING_SENSOR",			DT_Float, 1},
+	{"REG_BUS_TOOLING_SENSOR",		DT_Float, 1},
+	{"REG_ADAPTER_TOOLING_SENSOR",	DT_Float, 1},
+
+	{"REG_DEV_SUBSTATE",			DT_Float, 1},
+	{"REG_SELFTEST_RESULT",			DT_Float, 1},
+
+	{"REG_ADAPTER_MATCH",			DT_Float, 1},
+	{"REG_ADAPTER_MISMATCH",		DT_Float, 1},
+
+	{"REG_SPI_IN_STATE",			DT_Float, 1},
+	{"REG_SENSOR_S3",				DT_Float, 1},
+	{"REG_SENSOR_S5",				DT_Float, 1},
 };
 
 Int32U TablePointers[sizeof(StorageDescription) / sizeof(StorageDescription[0])] = {0};

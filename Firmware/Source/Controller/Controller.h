@@ -13,11 +13,11 @@ typedef enum __DeviceState
 {
 	DS_None	= 0,
 	DS_Fault = 1,
-	DS_Disabled = 2,
+
 	DS_Ready = 3,
 	DS_Halt = 4,
 	DS_Homing = 5,
-	// 6 — reserved (legacy DS_Position)
+
 	DS_Clamping = 7,
 	DS_ClampingDone = 8,
 	DS_SelfTest = 9,
@@ -57,7 +57,10 @@ extern volatile Int32U HomingDuration;
 extern volatile Int32U ClampingDuration;
 extern volatile Int32U ReleaseDuration;
 extern volatile Boolean RequestSaveToFlash;
+extern volatile Int16U CONTROL_ExtInfoCounter;
 extern Boolean HeatingActive;
+
+extern volatile float CONTROL_ExtInfoData[VALUES_EXT_INFO_SIZE];
 
 // Functions
 void CONTROL_Init();
@@ -66,6 +69,7 @@ void CONTROL_UpdatePressureOK();
 void CONTROL_SetDeviceState(DeviceState NewState, DeviceSubState NewSubState);
 void CONTROL_SwitchToFault(Int16U Reason);
 void CONTROL_FinishedWithProblem(Int16U Problem);
+Int16U CONTROL_ProblemFromDs2431();
 void CONTROL_Halt();
 
 #endif // __CONTROLLER_H

@@ -132,7 +132,7 @@ void OWENProtocol_FrameUnPack(pInt16U Buffer, Int16U BufferSize, pOWENProtocol_F
 
 void OWENProtocol_NameToID(char *Name, Int16U NameLength, Int16U Id[4])
 {
-	Int16U i, j, b, symbol;
+	Int16U i, j, b = 0, symbol;
 
 	for (i = 0, j = 0; i < NameLength && j <= 4; ++i)
 	{

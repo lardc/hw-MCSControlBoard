@@ -74,35 +74,35 @@ const TableItemConstraint Constraint[DATA_TABLE_WP_START] = {
 	{0, 0, 0},																		// 62
 	{0, 0, 0},																		// 63
 	{0, 0, 0},																		// 64
-	{0, 0, 0},																		// 65
-	{0, 0, 0},																		// 66
+	{0, INT16U_MAX, 0},																// 65
+	{0, INT16U_MAX, 0},																// 66
 	{0, 0, 0},																		// 67
 	{0, 0, 0},																		// 68
 	{0, 0, 0},																		// 69
 	{0, INT16U_MAX, 0},																// 70
 	{0, INT16U_MAX, 0},																// 71
 	{TRM_TEMP_MIN, TRM_TEMP_MAX, TRM_TEMP_DEF},										// 72
-	{0, INT16U_MAX, 0},																// 73
-	{ADAPTER_MATCH_NONE, ADAPTER_MATCH_FAIL, ADAPTER_MATCH_NONE},					// 74
-	{ADAPTER_MISMATCH_NONE, ADAPTER_MISMATCH_HEIGHT, ADAPTER_MISMATCH_NONE},		// 75
-	{0, INT16U_MAX, 0},																// 76
-	{ADAPTER_CLAMP_HEIGHT_MIN, ADAPTER_CLAMP_HEIGHT_MAX, ADAPTER_CLAMP_HEIGHT_DEF},	// 77
-	{0, INT16U_MAX, 0},																// 78
-	{0, INT16U_MAX, 0},																// 79
-	{0, INT16U_MAX, 0},																// 80
-	{0, INT16U_MAX, 0},																// 81
+	{0, 0, 0},																		// 73
+	{0, 0, 0},																		// 74
+	{0, 0, 0},																		// 75
+	{0, 0, 0},																		// 76
+	{0, 0, 0},																		// 77
+	{0, 0, 0},																		// 78
+	{0, 0, 0},																		// 79
+	{0, 0, 0},																		// 80
+	{0, 0, 0},																		// 81
 	{0, 0, 0},																		// 82
 	{0, 0, 0},																		// 83
 	{0, 255, 0},																	// 84
-	{0, 0, 0},																		// 85
-	{0, 0, 0},																		// 86
+	{0, INT16U_MAX, 0},																// 85
+	{ADAPTER_CLAMP_HEIGHT_MIN, ADAPTER_CLAMP_HEIGHT_MAX, ADAPTER_CLAMP_HEIGHT_DEF},	// 86
 	{0, 0, 0},																		// 87
 	{0, 0, 0},																		// 88
 	{0, 0, 0},																		// 89
 	{0, INT16U_MAX, 0},																// 90
 	{0, INT16U_MAX, 0},																// 91
 	{0, INT16U_MAX, 0},																// 92
-	{0, 0, 0},																		// 93
+	{0, INT16U_MAX, 0},																// 93
 	{0, 0, 0},																		// 94
 	{0, 0, 0}																		// 95
 };

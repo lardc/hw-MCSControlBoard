@@ -6,7 +6,7 @@
 #include "InitConfig.h"
 #include "SysConfig.h"
 
-static float MEAS_GetRawVoltage()
+float MEAS_GetRawVoltage()
 {
 	Int32U Sum = 0;
 	Int16U i;

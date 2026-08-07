@@ -13,6 +13,9 @@
 #include "Constraints.h"
 #include "ZwNCAN.h"
 #include "ZwUSART.h"
+#include "SaveToFlash.h"
+#include "ZwNFLASH.h"
+#include "ZwIWDG.h"
 
 // Types
 //
@@ -73,11 +76,10 @@ void DEVPROFILE_Init(xCCI_FUNC_CallbackAction SpecializedDispatch, Boolean* Mask
 	MaskChangesFlag = MaskChanges;
 	
 	// Init interface
-	// Сделана замена USART3 на USART1 на время тестов
-	RS232_IOConfig.IO_SendArray16 = (SCCI_FUNC_SendArray16)&USART1_SendArray16;
-	RS232_IOConfig.IO_ReceiveArray16 = (SCCI_FUNC_ReceiveArray16)&USART1_ReceiveArray16;
-	RS232_IOConfig.IO_GetBytesToReceive = (SCCI_FUNC_GetBytesToReceive)&USART1_GetBytesToReceive;
-	RS232_IOConfig.IO_ReceiveByte = (SCCI_FUNC_ReceiveByte)&USART1_ReceiveChar;
+	RS232_IOConfig.IO_SendArray16 = (SCCI_FUNC_SendArray16)&USART3_SendArray16;
+	RS232_IOConfig.IO_ReceiveArray16 = (SCCI_FUNC_ReceiveArray16)&USART3_ReceiveArray16;
+	RS232_IOConfig.IO_GetBytesToReceive = (SCCI_FUNC_GetBytesToReceive)&USART3_GetBytesToReceive;
+	RS232_IOConfig.IO_ReceiveByte = (SCCI_FUNC_ReceiveByte)&USART3_ReceiveChar;
 	CAN_IOConfig.IO_SendMessage = &NCAN_SendMessage;
 	CAN_IOConfig.IO_SendMessageEx = &NCAN_SendMessageEx;
 	CAN_IOConfig.IO_GetMessage = &NCAN_GetMessage;
@@ -156,6 +158,9 @@ static Boolean DEVPROFILE_ValidateFloat(Int16U Address, float Data, float* LowLi
 
 static Boolean DEVPROFILE_DispatchAction(Int16U ActionID, pInt16U UserError)
 {
+	static Int32U MemoryPointer = FLASH_DIAG_START_ADDR;
+	static Int32U MemoryEndPointer = FLASH_DIAG_END_ADDR;
+
 	switch (ActionID)
 	{
 		case ACT_SAVE_TO_ROM:
@@ -172,6 +177,34 @@ static Boolean DEVPROFILE_DispatchAction(Int16U ActionID, pInt16U UserError)
 
 		case ACT_BOOT_LOADER_REQUEST:
 			BOOT_LOADER_VARIABLE = BOOT_LOADER_REQUEST;
+			break;
+
+		case ACT_FLASH_DIAG_INIT_READ:
+			MemoryPointer = FLASH_DIAG_START_ADDR;
+			MemoryEndPointer = FLASH_DIAG_END_ADDR;
+			break;
+
+		case ACT_FLASH_DIAG_SAVE:
+			STF_SaveDiagData();
+			break;
+
+		case ACT_FLASH_DIAG_ERASE:
+			IWDG_ConfigureSlowUpdate();
+			STF_EraseDataSector();
+			IWDG_ConfigureFastUpdate();
+			break;
+
+		case ACT_FLASH_DIAG_TO_EP:
+			{
+				DEVPROFILE_ResetEPReadState();
+				DEVPROFILE_ResetScopes(0);
+
+				for(CONTROL_ExtInfoCounter = 0; CONTROL_ExtInfoCounter < VALUES_EXT_INFO_SIZE && MemoryPointer <= MemoryEndPointer;)
+				{
+					CONTROL_ExtInfoData[CONTROL_ExtInfoCounter++] = NFLASH_ReadWord16(MemoryPointer);
+					MemoryPointer += 2;
+				}
+			}
 			break;
 
 		default:

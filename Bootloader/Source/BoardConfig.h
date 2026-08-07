@@ -20,6 +20,6 @@
 
 // Blinking LED settings 
 #define LED_BLINK_PORT		GPIOA
-#define LED_BLINK_PIN		Pin_8
+#define LED_BLINK_PIN		Pin_4
 
 #endif // __BOARD_CONFIG_H
