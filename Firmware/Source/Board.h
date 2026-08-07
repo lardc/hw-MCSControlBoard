@@ -25,7 +25,7 @@ GPIO_PortPinSettingMacro GPIO_ALT_SPI3_MISO		= {GPIOB, Pin_4};
 GPIO_PortPinSettingMacro GPIO_ALT_SPI3_MOSI		= {GPIOB, Pin_5};
 
 // Application GPIO
-GPIO_PortPinSettingMacro GPIO_LED				= {GPIOA, Pin_0};
+GPIO_PortPinSettingMacro GPIO_LED				= {GPIOA, Pin_4};
 GPIO_PortPinSettingMacro GPIO_RS485_CTRL		= {GPIOA, Pin_1};
 GPIO_PortPinSettingMacro GPIO_DQ_PWR			= {GPIOA, Pin_5};
 GPIO_PortPinSettingMacro GPIO_DQ_IN				= {GPIOA, Pin_6};
@@ -43,6 +43,6 @@ GPIO_PortPinSettingMacro GPIO_SPI_OE			= {GPIOB, Pin_6};
 GPIO_PortPinSettingMacro GPIO_SPI_SS			= {GPIOB, Pin_7};
 GPIO_PortPinSettingMacro GPIO_HOMING			= {GPIOB, Pin_12};
 GPIO_PortPinSettingMacro GPIO_TEST				= {GPIOB, Pin_13};
-GPIO_PortPinSettingMacro GPIO_MEASURE_PRESS		= {GPIOA, Pin_4};
+GPIO_PortPinSettingMacro GPIO_MEASURE_PRESS		= {GPIOA, Pin_0};
 
 #endif // __BOARD_H
