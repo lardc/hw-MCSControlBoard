@@ -158,8 +158,8 @@ static Boolean DEVPROFILE_ValidateFloat(Int16U Address, float Data, float* LowLi
 
 static Boolean DEVPROFILE_DispatchAction(Int16U ActionID, pInt16U UserError)
 {
-	static Int32U MemoryPointer = 0;
-	static Int32U MemoryEndPointer = 0;
+	static Int32U MemoryPointer = FLASH_DIAG_START_ADDR;
+	static Int32U MemoryEndPointer = FLASH_DIAG_END_ADDR;
 
 	switch (ActionID)
 	{

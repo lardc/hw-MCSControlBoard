@@ -98,7 +98,9 @@ void CONTROL_Idle()
 	CONTROL_UpdatePressureOK();
 	LOGIC_Process();
 
-	if(RequestSaveToFlash && (CONTROL_State == DS_None || CONTROL_State == DS_Fault ||  CONTROL_State == DS_Ready || CONTROL_State == DS_Halt))
+	if(RequestSaveToFlash && (CONTROL_State == DS_None || CONTROL_State == DS_Fault ||  CONTROL_State == DS_Ready || CONTROL_State == DS_Halt
+							|| CONTROL_State == DS_ClampingDone))
+
 	{
 		RequestSaveToFlash = FALSE;
 		STF_SaveDiagData();
@@ -154,17 +156,17 @@ static void CONTROL_SetFans(Boolean State)
 
 static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 {
+	AdapterIdentifier Id;
 	switch(ActionID)
 	{
 		case ACT_ADAPTER_WRITE_ID:
 			LOGIC_AdapterIdInit();
 			{
-				AdapterIdentifier Id;
-				Id.Code = DataTable[REG_ADAPTER_ID];
-				Id.ClampHeightMm = DataTable[REG_ADAPTER_CLAMP_HEIGHT];
-				Id.MaxCurrent = DataTable[REG_ADAPTER_MAX_CURRENT];
-				Id.MaxVoltage = DataTable[REG_ADAPTER_MAX_VOLTAGE];
-				Id.Serial = DataTable[REG_ADAPTER_SERIAL];
+				Id.Code = DataTable[REG_DEV_CASE];
+				Id.ClampHeightMm = DataTable[REG_DBG_ADAPTER_CLAMP_HEIGHT];
+				Id.MaxCurrent = DataTable[REG_TEST_CURRENT];
+				Id.MaxVoltage = DataTable[REG_TEST_VOLTAGE];
+				Id.Serial = DataTable[REG_DBG_ADAPTER_SERIAL];
 				if(!LOGIC_AdapterIdWrite(&Id))
 					*UserError = ERR_DEVICE_NOT_READY;
 			}
@@ -173,7 +175,6 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 		case ACT_ADAPTER_READ_ID:
 			LOGIC_AdapterIdInit();
 			{
-				AdapterIdentifier Id;
 				if(!LOGIC_AdapterIdRead(&Id))
 					*UserError = ERR_DEVICE_NOT_READY;
 			}
@@ -244,7 +245,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 
 		case ACT_UPDATE_ADAPTER_MATCH:
 			CONTROL_ResetOutputRegisters();
-			if(LOGIC_ValidateAdapter())
+			if(LOGIC_ValidateAdapter(&Id))
 				DataTable[REG_OP_RESULT] = OPRESULT_OK;
 			else
 				CONTROL_FinishedWithProblem(PROBLEM_ADAPTER_MISMATCH);

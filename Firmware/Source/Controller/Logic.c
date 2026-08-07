@@ -126,7 +126,7 @@ void LOGIC_AdapterIdInit()
 
 static void LOGIC_AdapterIdPublish(pAdapterIdentifier Id)
 {
-	DataTable[REG_ADAPTER_ID] = Id->Code;
+	DataTable[REG_ADAPTER_CODE] = Id->Code;
 	DataTable[REG_ADAPTER_CLAMP_HEIGHT] = Id->ClampHeightMm;
 	DataTable[REG_ADAPTER_MAX_CURRENT] = Id->MaxCurrent;
 	DataTable[REG_ADAPTER_MAX_VOLTAGE] = Id->MaxVoltage;
@@ -201,30 +201,30 @@ Boolean LOGIC_AdapterIdWrite(pAdapterIdentifier Id)
 }
 // ----------------------------------------
 
-Boolean LOGIC_ValidateAdapter()
+Boolean LOGIC_ValidateAdapter(pAdapterIdentifier Id)
 {
 	DataTable[REG_ADAPTER_MISMATCH] = ADAPTER_MISMATCH_NONE;
 	DataTable[REG_ADAPTER_MATCH] = false;
 
-	if(DataTable[REG_ADAPTER_ID] != DataTable[REG_DEV_CASE])
+	if(Id->Code != DataTable[REG_DEV_CASE])
 	{
 		DataTable[REG_ADAPTER_MISMATCH] = ADAPTER_MISMATCH_CODE;
 		return FALSE;
 	}
 
-	if(DataTable[REG_ADAPTER_MAX_CURRENT] < DataTable[REG_TEST_CURRENT])
+	if(Id->MaxCurrent < DataTable[REG_TEST_CURRENT])
 	{
 		DataTable[REG_ADAPTER_MISMATCH] = ADAPTER_MISMATCH_CURRENT;
 		return FALSE;
 	}
 
-	if(DataTable[REG_ADAPTER_MAX_VOLTAGE] < DataTable[REG_TEST_VOLTAGE])
+	if(Id->MaxVoltage < DataTable[REG_TEST_VOLTAGE])
 	{
 		DataTable[REG_ADAPTER_MISMATCH] = ADAPTER_MISMATCH_VOLTAGE;
 		return FALSE;
 	}
 
-	if(DataTable[REG_ADAPTER_CLAMP_HEIGHT] < ADAPTER_CLAMP_HEIGHT_MIN || DataTable[REG_ADAPTER_CLAMP_HEIGHT] > ADAPTER_CLAMP_HEIGHT_MAX)
+	if(Id->ClampHeightMm < ADAPTER_CLAMP_HEIGHT_MIN || Id->ClampHeightMm > ADAPTER_CLAMP_HEIGHT_MAX)
 	{
 		DataTable[REG_ADAPTER_MISMATCH] = ADAPTER_MISMATCH_HEIGHT;
 		return FALSE;

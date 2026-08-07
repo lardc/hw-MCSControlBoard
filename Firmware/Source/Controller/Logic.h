@@ -18,6 +18,6 @@ Boolean LOGIC_IsCycleActive();
 void LOGIC_AdapterIdInit();
 Boolean LOGIC_AdapterIdRead(pAdapterIdentifier Id);
 Boolean LOGIC_AdapterIdWrite(pAdapterIdentifier Id);
-Boolean LOGIC_ValidateAdapter();
+Boolean LOGIC_ValidateAdapter(pAdapterIdentifier Id);
 
 #endif // __LOGIC_H
