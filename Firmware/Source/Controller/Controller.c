@@ -55,10 +55,7 @@ void CONTROL_Init()
 	pFloat32 FEPDatas[FEP_COUNT] = {(pFloat32)&CONTROL_ExtInfoData};
 
 	// Data-table EPROM service configuration
-	EPROMServiceConfig EPROMService = {
-		(FUNC_EPROM_WriteValues)&NFLASH_WriteDT,
-		(FUNC_EPROM_ReadValues)&NFLASH_ReadDT
-	};
+	EPROMServiceConfig EPROMService = {	(FUNC_EPROM_WriteValues)&NFLASH_WriteDT, (FUNC_EPROM_ReadValues)&NFLASH_ReadDT};
 
 	DT_Init(EPROMService, FALSE);
 	DT_SaveFirmwareInfo(CAN_NID, 0);
@@ -101,7 +98,7 @@ void CONTROL_Idle()
 	CONTROL_UpdatePressureOK();
 	LOGIC_Process();
 
-	if(RequestSaveToFlash)
+	if(RequestSaveToFlash && (CONTROL_State == DS_None || CONTROL_State == DS_Fault ||  CONTROL_State == DS_Ready || CONTROL_State == DS_Halt))
 	{
 		RequestSaveToFlash = FALSE;
 		STF_SaveDiagData();
@@ -293,8 +290,6 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 			{
 				if(CONTROL_State == DS_Fault)
 					CONTROL_SetDeviceState(DS_None, DSS_None);
-				else if(CONTROL_State == DS_Disabled)
-					*UserError = ERR_OPERATION_BLOCKED;
 
 				DataTable[REG_FAULT_REASON] = DF_NONE;
 				DataTable[REG_PROBLEM] = PROBLEM_NONE;
@@ -408,8 +403,26 @@ void CONTROL_UpdatePressureOK()
 
 void CONTROL_InitStoragePointers()
 {
-	STF_AssignPointer(0, (Int32U)&HomingDuration);
-	STF_AssignPointer(1, (Int32U)&ClampingDuration);
-	STF_AssignPointer(2, (Int32U)&ReleaseDuration);
+	STF_AssignPointer(0, (Int32U)&DataTable[REG_DEV_STATE]);
+	STF_AssignPointer(1, (Int32U)&DataTable[REG_FAULT_REASON]);
+	STF_AssignPointer(2, (Int32U)&DataTable[REG_DISABLE_REASON]);
+	STF_AssignPointer(3, (Int32U)&DataTable[REG_WARNING]);
+	STF_AssignPointer(4, (Int32U)&DataTable[REG_PROBLEM]);
+	STF_AssignPointer(5, (Int32U)&DataTable[REG_OP_RESULT]);
+	STF_AssignPointer(6, (Int32U)&DataTable[REG_TEMP_CH1]);
+	STF_AssignPointer(7, (Int32U)&DataTable[REG_TRM_DATA]);
+	STF_AssignPointer(8, (Int32U)&DataTable[REG_TRM_ERROR]);
+	STF_AssignPointer(9, (Int32U)&DataTable[REG_PRESSURE]);
+	STF_AssignPointer(10, (Int32U)&DataTable[REG_SENSOR_S2]);
+	STF_AssignPointer(11, (Int32U)&DataTable[REG_HOMING_SENSOR]);
+	STF_AssignPointer(12, (Int32U)&DataTable[REG_BUS_TOOLING_SENSOR]);
+	STF_AssignPointer(13, (Int32U)&DataTable[REG_ADAPTER_TOOLING_SENSOR]);
+	STF_AssignPointer(14, (Int32U)&DataTable[REG_DEV_SUBSTATE]);
+	STF_AssignPointer(15, (Int32U)&DataTable[REG_SELFTEST_RESULT]);
+	STF_AssignPointer(16, (Int32U)&DataTable[REG_ADAPTER_MATCH]);
+	STF_AssignPointer(17, (Int32U)&DataTable[REG_ADAPTER_MISMATCH]);
+	STF_AssignPointer(18, (Int32U)&DataTable[REG_SPI_IN_STATE]);
+	STF_AssignPointer(19, (Int32U)&DataTable[REG_SENSOR_S3]);
+	STF_AssignPointer(20, (Int32U)&DataTable[REG_SENSOR_S5]);
 }
 //--------------------

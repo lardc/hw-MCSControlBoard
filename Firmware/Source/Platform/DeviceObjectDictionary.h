@@ -145,13 +145,7 @@
 #define REG_SPI_IN_STATE					114	// Сырой байт регистра входа 2SPI
 #define REG_SENSOR_S3						115	// Датчик безопасности S3 (PA9)
 #define REG_SENSOR_S5						116	// Датчик безопасности S5 (PA12)
-// 117-119
-#define REG_CANA_BUSOFF_COUNTER				120 // Counter of bus-off states
-#define REG_CANA_STATUS_REG					121	// CAN status register (32 bit)
-#define REG_CANA_STATUS_REG_32				122
-#define REG_CANA_DIAG_TEC					123	// CAN TEC
-#define REG_CANA_DIAG_REC					124	// CAN REC
-// 125-158
+// 117-158
 #define REG_SP__3							159
 // 160-255
 //
