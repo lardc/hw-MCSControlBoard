@@ -16,7 +16,7 @@
 #define ACT_ADAPTER_READ_ID					11	//	Чтение с индификатора
 
 #define ACT_DBG_MEAS_PRESSURE				20	// Измерение и запись в REG_DBG значения напряжения на входе АЦП датчика давления
-#define ACT_DBG_SET_OUTPUT					21	// Установить напряжение 24 В на универсальном выходе (разъемы P2-P9) равным в регистре REG_DBG (1-8)
+#define ACT_DBG_SET_OUTPUT					21	// Установить напряжение 24 В на универсальном выходе (разъемы P2-P9) равным в регистре REG_DBG (0-7)
 #define ACT_DBG_MEAS_INPUT					22	// Считывание состояния входов (разъемы P2-P9) и запись состояния в регистр REG_DBG (0-255)
 #define ACT_DBG_STPM						23	// На пинах STPM_DIR, STPM_STEP и STPM_EN выставить высокий уровень на 100 мс
 #define ACT_DBG_DQ_PWR						24	// На пине DQ_PWR отключить подтяжку на 100 мс
@@ -201,7 +201,6 @@
 #define ERR_TRM_COMM_ERR					7	// Communication with TRM failed
 
 // ENDPOINTS
-//
-// TODO
+#define EP_ExtInfoData						20	// Diag data drom flash
 
 #endif // __DEV_OBJ_DIC_H

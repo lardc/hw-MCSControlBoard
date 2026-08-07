@@ -25,9 +25,12 @@ Boolean HeatingActive = FALSE;
 volatile Int64U CONTROL_TimeCounter = 0;
 volatile DeviceState CONTROL_State = DS_None;
 volatile DeviceSubState CONTROL_SubState = DSS_None;
+volatile Int16U CONTROL_ExtInfoCounter = 0;
 
 volatile Int32U HomingDuration = 0, ClampingDuration = 0, ReleaseDuration = 0;
 volatile Boolean RequestSaveToFlash = FALSE;
+
+volatile float CONTROL_ExtInfoData[VALUES_EXT_INFO_SIZE];
 
 // Forward functions
 static void CONTROL_FillWPPartDefault();
@@ -42,6 +45,15 @@ void CONTROL_ResetOutputRegisters();
 // Functions
 void CONTROL_Init()
 {
+	// Переменные для конфигурации EndPoint
+	Int16U FEPIndexes[FEP_COUNT] = {EP_ExtInfoData};
+
+	Int16U FEPSized[FEP_COUNT] = {VALUES_EXT_INFO_SIZE};
+
+	pInt16U FEPCounters[FEP_COUNT] = {(pInt16U)&CONTROL_ExtInfoCounter};
+
+	pFloat32 FEPDatas[FEP_COUNT] = {(pFloat32)&CONTROL_ExtInfoData};
+
 	// Data-table EPROM service configuration
 	EPROMServiceConfig EPROMService = {
 		(FUNC_EPROM_WriteValues)&NFLASH_WriteDT,
@@ -55,6 +67,7 @@ void CONTROL_Init()
 
 	// Device profile initialization
 	DEVPROFILE_Init(&CONTROL_DispatchAction, &CycleActive);
+	DEVPROFILE_InitFEPService(FEPIndexes, FEPSized, FEPCounters, FEPDatas);
 
 	// Reset control values
 	DEVPROFILE_ResetControlSection();

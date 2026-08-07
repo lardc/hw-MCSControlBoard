@@ -57,7 +57,10 @@ extern volatile Int32U HomingDuration;
 extern volatile Int32U ClampingDuration;
 extern volatile Int32U ReleaseDuration;
 extern volatile Boolean RequestSaveToFlash;
+extern volatile Int16U CONTROL_ExtInfoCounter;
 extern Boolean HeatingActive;
+
+extern volatile float CONTROL_ExtInfoData[VALUES_EXT_INFO_SIZE];
 
 // Functions
 void CONTROL_Init();
