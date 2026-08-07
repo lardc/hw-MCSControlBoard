@@ -16,7 +16,7 @@
 #include "ZwNFLASH.h"
 
 // Definitions
-#define CONFIG_USE_USART2
+#define CONFIG_USE_USART3
 
 // Blinking LED settings 
 #define LED_BLINK_PORT		GPIOA
