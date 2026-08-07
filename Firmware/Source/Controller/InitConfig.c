@@ -179,29 +179,29 @@ void INITCFG_ConfigADC()
 {
 	RCC_ADC_Clk_EN(ADC_12_ClkEN);
 
-	ADC_Calibration(ADC2);
-	ADC_Enable(ADC2);
-	ADC_TrigConfig(ADC2, ADC12_TIM15_TRGO, RISE);
+	ADC_Calibration(ADC1);
+	ADC_Enable(ADC1);
+	ADC_TrigConfig(ADC1, ADC12_TIM15_TRGO, RISE);
 
-	ADC_ChannelSeqReset(ADC2);
-	ADC_ChannelSet_Sequence(ADC2, ADC_PRESSURE_CHANNEL, 1);
-	ADC_ChannelSeqLen(ADC2, ADC_PRESSURE_SEQ_LENGTH);
+	ADC_ChannelSeqReset(ADC1);
+	ADC_ChannelSet_Sequence(ADC1, ADC_PRESSURE_CHANNEL, 1);
+	ADC_ChannelSeqLen(ADC1, ADC_PRESSURE_SEQ_LENGTH);
 
-	ADC_ChannelSet_SampleTime(ADC2, ADC_PRESSURE_CHANNEL, ADC_SMPL_TIME_4_5);
-	ADC_DMAConfigWithAutDLY(ADC2);
-	ADC_SamplingStart(ADC2);
+	ADC_ChannelSet_SampleTime(ADC1, ADC_PRESSURE_CHANNEL, ADC_SMPL_TIME_4_5);
+	ADC_DMAConfigWithAutDLY(ADC1);
+	ADC_SamplingStart(ADC1);
 }
 //------------------------------------------------
 
 void INITCFG_ConfigDMA()
 {
-	DMA_Clk_Enable(DMA2_ClkEN);
+	DMA_Clk_Enable(DMA1_ClkEN);
 
-	DMA_Reset(DMA2_Channel1);
-	DMAChannelX_DataConfig(DMA2_Channel1, (uint32_t)INITCFG_PressureAdcBuffer, (uint32_t)(&ADC2->DR),
+	DMA_Reset(DMA1_Channel1);
+	DMAChannelX_DataConfig(DMA1_Channel1, (uint32_t)INITCFG_PressureAdcBuffer, (uint32_t)(&ADC1->DR),
 			ADC_PRESSURE_BUF_SIZE);
-	DMAChannelX_Config(DMA2_Channel1, DMA_MEM2MEM_DIS, DMA_LvlPriority_LOW, DMA_MSIZE_16BIT, DMA_PSIZE_16BIT,
+	DMAChannelX_Config(DMA1_Channel1, DMA_MEM2MEM_DIS, DMA_LvlPriority_LOW, DMA_MSIZE_16BIT, DMA_PSIZE_16BIT,
 			DMA_MINC_EN, DMA_PINC_DIS, DMA_CIRCMODE_EN, DMA_READ_FROM_PERIPH);
-	DMA_ChannelEnable(DMA2_Channel1, true);
+	DMA_ChannelEnable(DMA1_Channel1, true);
 }
 //------------------------------------------------
