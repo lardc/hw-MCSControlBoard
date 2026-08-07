@@ -273,7 +273,7 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 			{
 				MemLabelEntry DataEntry;
 
-				if(DataTable[REG_DBG] > 256)
+				if(DataTable[REG_DBG] >= 0xFF)
 					break;
 
 				DataEntry.Type = (Int8U)DataTable[REG_DBG];
@@ -291,7 +291,7 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 		case ACT_DBG_LABEL_READ_DATA:
 			{
 				Int8U Index = DataTable[REG_DBG];
-				if(Index > MEM_LABEL_MAX_LABELS)
+				if(Index >= MEM_LABEL_MAX_LABELS)
 					break;
 				MemLabel_Read(0, Labels, MEM_LABEL_MAX_LABELS);
 				DataTable[REG_DBG] = Labels[Index].Type;
