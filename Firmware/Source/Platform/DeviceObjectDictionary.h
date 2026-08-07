@@ -97,21 +97,18 @@
 // 33-63
 
 // Несохраняемые регистры чтения-записи
-//64-70
+// 64
+#define REG_TEST_CURRENT					65	// Заданный Master предел тока для сверки
+#define REG_TEST_VOLTAGE					66	// Заданный Master предел напряжения для сверки
+// 67-70
 #define REG_DEV_CASE						71	// Код корпуса прибора (задание Master для сверки)
 #define REG_TEMP_SETPOINT					72	// Уставка температуры (С х10)
-//
-#define REG_ADAPTER_ID						73	// Код адаптера в идентификаторе 1-Wire
-#define REG_ADAPTER_SERIAL					74	// Серийный номер адаптера
-#define REG_ADAPTER_CLAMP_HEIGHT			75	// Высота зажатия из идентификатора (мм)
-#define REG_ADAPTER_MAX_CURRENT				76	// Макс. ток из идентификатора
-#define REG_ADAPTER_MAX_VOLTAGE				77	// Макс. напряжение из идентификатора
-// 78-79
-#define REG_TEST_CURRENT					80	// Заданный Master предел тока для сверки
-#define REG_TEST_VOLTAGE					81	// Заданный Master предел напряжения для сверки
-// 82-83
+// 78-83
 #define REG_DBG_TRM_ADDRESS					84	// Адрес ТРМ по RS485 для отладки
-// 85-89
+//
+#define REG_DBG_ADAPTER_SERIAL				85	// Серийный номер адаптера
+#define REG_DBG_ADAPTER_CLAMP_HEIGHT		86	// Высота зажатия из идентификатора (мм)
+// 87-89
 #define REG_DBG_STEP_DIV					90	// Коэффициент деления шагов в отладочном режиме
 #define REG_DBG_STEPS_MAX					91	// Количество шагов для поворота в отладочном режиме
 //
@@ -145,7 +142,13 @@
 #define REG_SPI_IN_STATE					114	// Сырой байт регистра входа 2SPI
 #define REG_SENSOR_S3						115	// Датчик безопасности S3 (PA9)
 #define REG_SENSOR_S5						116	// Датчик безопасности S5 (PA12)
-// 117-158
+//
+#define REG_ADAPTER_CODE					117	// Код адаптера в идентификаторе 1-Wire
+#define REG_ADAPTER_SERIAL					118	// Серийный номер адаптера
+#define REG_ADAPTER_CLAMP_HEIGHT			119	// Высота зажатия из идентификатора (мм)
+#define REG_ADAPTER_MAX_CURRENT				120	// Макс. ток из идентификатора
+#define REG_ADAPTER_MAX_VOLTAGE				121	// Макс. напряжение из идентификатора
+// 121-158
 #define REG_SP__3							159
 // 160-255
 //
