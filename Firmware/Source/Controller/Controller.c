@@ -159,19 +159,6 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 	AdapterIdentifier Id;
 	switch(ActionID)
 	{
-		case ACT_ADAPTER_WRITE_ID:
-			LOGIC_AdapterIdInit();
-			{
-				Id.Code = DataTable[REG_DEV_CASE];
-				Id.ClampHeightMm = DataTable[REG_DBG_ADAPTER_CLAMP_HEIGHT];
-				Id.MaxCurrent = DataTable[REG_TEST_CURRENT];
-				Id.MaxVoltage = DataTable[REG_TEST_VOLTAGE];
-				Id.Serial = DataTable[REG_DBG_ADAPTER_SERIAL];
-				if(!LOGIC_AdapterIdWrite(&Id))
-					*UserError = ERR_DEVICE_NOT_READY;
-			}
-			break;
-
 		case ACT_ADAPTER_READ_ID:
 			LOGIC_AdapterIdInit();
 			{

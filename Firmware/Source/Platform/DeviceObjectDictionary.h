@@ -12,7 +12,7 @@
 #define ACT_CLR_WARNING						4	// Clear warning
 #define ACT_CLR_HALT						5	// Clear halt state
 
-#define ACT_ADAPTER_WRITE_ID				10	//	Запись в индификатор
+#define ACT_DBG_ADAPTER_WRITE_ID			10	//	Запись в индификатор
 #define ACT_ADAPTER_READ_ID					11	//	Чтение с индификатора
 
 #define ACT_DBG_MEAS_PRESSURE				20	// Измерение и запись в REG_DBG значения напряжения на входе АЦП датчика давления

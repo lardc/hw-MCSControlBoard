@@ -14,6 +14,7 @@
 #include "LowLevel.h"
 #include "Delay.h"
 #include "Timer3_Ch4PWM.h"
+#include "Logic.h"
 
 // Variables
 static Int8U DS2431DeviceIndex = 0;
@@ -296,6 +297,20 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 				MemLabel_Read(0, Labels, MEM_LABEL_MAX_LABELS);
 				DataTable[REG_DBG] = Labels[Index].Type;
 				DataTable[REG_DBG2] = Labels[Index].Value;
+			}
+			break;
+
+		case ACT_DBG_ADAPTER_WRITE_ID:
+			LOGIC_AdapterIdInit();
+			{
+				AdapterIdentifier Id;
+				Id.Code = DataTable[REG_DEV_CASE];
+				Id.ClampHeightMm = DataTable[REG_DBG_ADAPTER_CLAMP_HEIGHT];
+				Id.MaxCurrent = DataTable[REG_TEST_CURRENT];
+				Id.MaxVoltage = DataTable[REG_TEST_VOLTAGE];
+				Id.Serial = DataTable[REG_DBG_ADAPTER_SERIAL];
+				if(LOGIC_AdapterIdWrite(&Id))
+					DataTable[REG_OP_RESULT] = OPRESULT_OK;
 			}
 			break;
 

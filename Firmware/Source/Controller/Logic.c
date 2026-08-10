@@ -140,6 +140,12 @@ Boolean LOGIC_AdapterIdRead(pAdapterIdentifier Id)
 	Int8U LabelCount;
 	Int8U FilledCount = 0;
 
+	DataTable[REG_ADAPTER_CODE] = 0;
+	DataTable[REG_ADAPTER_CLAMP_HEIGHT] = 0;
+	DataTable[REG_ADAPTER_MAX_CURRENT] = 0;
+	DataTable[REG_ADAPTER_MAX_VOLTAGE] = 0;
+	DataTable[REG_ADAPTER_SERIAL] = 0;
+
 	if(DS2431_GetDeviceCount() == 0)
 	{
 		CONTROL_FinishedWithProblem(PROBLEM_OW_NO_DEVICE);
@@ -195,9 +201,34 @@ Boolean LOGIC_AdapterIdRead(pAdapterIdentifier Id)
 
 Boolean LOGIC_AdapterIdWrite(pAdapterIdentifier Id)
 {
-	// TODO: запись идентификатора в отдельную микросхему
-	LOGIC_AdapterIdPublish(Id);
-	return TRUE;
+	if(DS2431_GetDeviceCount() == 0)
+	{
+		CONTROL_FinishedWithProblem(PROBLEM_OW_NO_DEVICE);
+		return FALSE;
+	}
+
+	if(!MemLabel_EraseAll(0))
+	{
+		CONTROL_FinishedWithProblem(CONTROL_ProblemFromDs2431());
+		return false;
+	}
+
+	MemLabelEntry Labels[5] =
+	{
+		{.Type = ML_AdapterCode,	.Value = Id->Code },
+		{.Type = ML_ClampHeight,	.Value = Id->ClampHeightMm },
+		{.Type = ML_MaxCurrent,		.Value = Id->MaxCurrent },
+		{.Type = ML_MaxVoltage,		.Value = Id->MaxVoltage },
+		{.Type = ML_Serial,			.Value = Id->Serial },
+	};
+
+	if(!MemLabel_AddArray(0, Labels, 5))
+	{
+		CONTROL_FinishedWithProblem(CONTROL_ProblemFromDs2431());
+		return false;
+	}
+
+	return true;
 }
 // ----------------------------------------
 
