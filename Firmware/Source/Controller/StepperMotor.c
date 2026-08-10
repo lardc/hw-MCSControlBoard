@@ -166,9 +166,15 @@ void SM_Config(pSM_Params Params, Int16U PositionMm)
 // ----------------------------------------
 
 // Переход в новую позицию, мм; скорости в мм/с
-void SM_GoToPosition(pSM_Params Params)
+Boolean SM_GoToPosition(pSM_Params Params)
 {
 	Int16U SlowDownDist;
+
+	if(Params->MinSpeed > Params->MaxSpeed)
+	{
+		SM_StopMotion();
+		return FALSE;
+	}
 
 	SM_HomingDoneFlag = FALSE;
 	SM_StartSteps = SM_GlobalStepsCounter;
@@ -177,7 +183,7 @@ void SM_GoToPosition(pSM_Params Params)
 	if(SM_DestSteps == SM_GlobalStepsCounter)
 	{
 		SM_StopMotion();
-		return;
+		return TRUE;
 	}
 
 	SM_UpDirection(SM_DestSteps > SM_GlobalStepsCounter);
@@ -194,6 +200,7 @@ void SM_GoToPosition(pSM_Params Params)
 	T3Ch4PWM_SetPeriodTicks(SM_CyclesToToggle);
 	T3Ch4PWM_Start();
 	Motor_State = MS_Movement;
+	return TRUE;
 }
 // ----------------------------------------
 

@@ -36,6 +36,7 @@
 #define PNEUMATIC_POWER_TIMEOUT			2000	// мс
 #define HOMING_PAUSE					500		// мс
 #define HOMING_REVERSE_PAUSE			100		// мс
+#define HOMING_TIMEOUT					45000	// мс
 #define TRM_READ_PAUSE					1000	// мс
 #define SPI_WAIT_TIMEOUT				2000	// мс
 #define ADAPTER_HOLD_PRESSURE_TIMEOUT	2000	// мс

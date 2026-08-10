@@ -163,18 +163,18 @@
 
 //  Fault codes
 #define DF_NONE								0	// No fault
-// 1-3
-#define DF_TRM								4	// TRM communication fault
-#define DF_PRESSURE							5	// Давление ниже нормы
-// 6-9
-#define DF_SELFTEST							10	// Ошибка самодиагностики оптронов
-#define DF_SPI_TIMEOUT						11	// Таймаут ожидания SPI-входа
+#define DF_TRM								1	// TRM communication fault
+#define DF_PRESSURE							2	// Давление ниже нормы
+#define DF_HOMING_TIMEOUT					3	// Таймаут хоуминга
+#define DF_SELFTEST							4	// Ошибка самодиагностики оптронов
+#define DF_SPI_TIMEOUT						5	// Таймаут ожидания SPI-входа
 
 // Problem
 #define PROBLEM_NONE						0	// No problem
 #define PROBLEM_MISSING_LABEL				1	// Недостаточно данных в метке
 #define PROBLEM_ADAPTER_MISMATCH			2	// Несовпадение идентификатора адаптера
 #define PROBLEM_NO_HOLD_OR_MISMATCH			3	// Не выполнено зажатие или было несовпадение адаптера
+#define PROBLEM_INVALID_SPEED				4	// MinSpeed > MaxSpeed в регистрах позиционирования
 #define PROBLEM_OW_ERROR_LINE				20	// Проблема подключения на линии OW
 #define PROBLEM_OW_NO_DEVICE				21	// Устройство не найдено / неверный индекс
 #define PROBLEM_OW_VERIFY					22	// Ошибка verify / scratchpad / CRC / copy

@@ -25,7 +25,7 @@ void SM_ConnectAlterHandler(void *Handler);
 // Config Stepper Motor
 void SM_Config(pSM_Params Params, Int16U PositionMm);
 // New position in mm, speed in mm/s
-void SM_GoToPosition(pSM_Params Params);
+Boolean SM_GoToPosition(pSM_Params Params);
 Boolean SM_IsBusy();
 Boolean SM_IsPositioningDone();
 // Homing

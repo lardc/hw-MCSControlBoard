@@ -156,22 +156,18 @@ static void CONTROL_SetFans(Boolean State)
 
 static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 {
-	AdapterIdentifier Id;
 	switch(ActionID)
 	{
 		case ACT_ADAPTER_READ_ID:
 			LOGIC_AdapterIdInit();
-			{
-				if(!LOGIC_AdapterIdRead(&Id))
-					*UserError = ERR_DEVICE_NOT_READY;
-			}
+			if(!LOGIC_AdapterIdRead(&LOGIC_Id))
+				*UserError = ERR_DEVICE_NOT_READY;
 			break;
 
 		case ACT_HOMING:
 			if(CONTROL_State == DS_None || CONTROL_State == DS_Halt || CONTROL_State == DS_Ready)
 			{
 				HomingDuration = CONTROL_TimeCounter;
-				SM_Homing();
 				CONTROL_SetDeviceState(DS_Homing, DSS_HomingSearchSensor);
 			}
 			else
@@ -187,6 +183,12 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 					break;
 				}
 
+				if((Int16U)DataTable[REG_POS_SPEED_MIN] > (Int16U)DataTable[REG_POS_SPEED_MAX])
+				{
+					CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
+					break;
+				}
+
 				ClampingDuration = CONTROL_TimeCounter;
 				CONTROL_ResetOutputRegisters();
 				CONTROL_SetDeviceState(DS_Clamping, DSS_None);
@@ -198,6 +200,12 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 		case ACT_RELEASE_CLAMPING:
 			if(CONTROL_State == DS_Halt || CONTROL_State == DS_ClampingDone || CONTROL_State == DS_Ready)
 			{
+				if((Int16U)DataTable[REG_POS_SPEED_MIN] > (Int16U)DataTable[REG_POS_SPEED_MAX])
+				{
+					CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
+					break;
+				}
+
 				ReleaseDuration = CONTROL_TimeCounter;
 				HomingDuration = 0;
 				CONTROL_SetDeviceState(DS_ClampingRelease, DSS_None);
@@ -232,7 +240,9 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 
 		case ACT_UPDATE_ADAPTER_MATCH:
 			CONTROL_ResetOutputRegisters();
-			if(LOGIC_ValidateAdapter(&Id))
+			if(!LOGIC_Id.Cached)
+				*UserError = ERR_DEVICE_NOT_READY;
+			else if(LOGIC_ValidateAdapter(&LOGIC_Id))
 				DataTable[REG_OP_RESULT] = OPRESULT_OK;
 			else
 				CONTROL_FinishedWithProblem(PROBLEM_ADAPTER_MISMATCH);

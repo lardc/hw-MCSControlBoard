@@ -18,17 +18,18 @@ static Int64U LOGIC_WaitDeadline = 0;
 static Int64U LOGIC_StateTimeout = 0;
 static Boolean IsHolding = false;
 static Boolean LOGIC_FaultSpiAfterRelease = FALSE;
+AdapterIdentifier LOGIC_Id = {0};
 
-static void LOGIC_PrepareHoming();
+static Boolean LOGIC_PrepareClamping(Boolean Clamp);
+static Boolean LOGIC_PrepareHoming();
 static Boolean LOGIC_WaitSpiInBit(Int8U Bit);
 static Boolean LOGIC_ReadAdapterId();
 static void LOGIC_AbortHoldToRelease();
 static void LOGIC_ProcessSelfTest();
 static void LOGIC_MonitorCycleFaults();
-static void LOGIC_PrepareClamping(Boolean Clamp);
 static Int16U LOGIC_GetClampHeightMm();
 
-static void LOGIC_PrepareClamping(Boolean Clamp)
+static Boolean LOGIC_PrepareClamping(Boolean Clamp)
 {
 	SM_Params Params;
 
@@ -37,11 +38,11 @@ static void LOGIC_PrepareClamping(Boolean Clamp)
 	else
 		SM_Config(&Params, 0);
 
-	SM_GoToPosition(&Params);
+	return SM_GoToPosition(&Params);
 }
 // ----------------------------------------
 
-static void LOGIC_PrepareHoming()
+static Boolean LOGIC_PrepareHoming()
 {
 	SM_Params Params;
 
@@ -49,7 +50,7 @@ static void LOGIC_PrepareHoming()
 	Params.MaxSpeed = DataTable[REG_HOMING_SPEED];
 	Params.MinSpeed = DataTable[REG_HOMING_SPEED];
 
-	SM_GoToPosition(&Params);
+	return SM_GoToPosition(&Params);
 }
 // ----------------------------------------
 
@@ -91,13 +92,11 @@ static void LOGIC_AbortHoldToRelease()
 
 static Boolean LOGIC_ReadAdapterId()
 {
-	AdapterIdentifier Id;
-
 	LOGIC_AdapterIdInit();
-	if(!LOGIC_AdapterIdRead(&Id))
+	if(!LOGIC_AdapterIdRead(&LOGIC_Id))
 		return FALSE;
 
-	LOGIC_ClampHeightMm = Id.ClampHeightMm;
+	LOGIC_ClampHeightMm = LOGIC_Id.ClampHeightMm;
 	return TRUE;
 }
 // ----------------------------------------
@@ -123,6 +122,8 @@ Boolean LOGIC_AdapterIdRead(pAdapterIdentifier Id)
 	MemLabelEntry Labels[MEM_LABEL_MAX_LABELS];
 	Int8U LabelCount;
 	Int8U FilledCount = 0;
+
+	Id->Cached = FALSE;
 
 	DataTable[REG_ADAPTER_CODE] = 0;
 	DataTable[REG_ADAPTER_CLAMP_HEIGHT] = 0;
@@ -179,6 +180,8 @@ Boolean LOGIC_AdapterIdRead(pAdapterIdentifier Id)
 	}
 
 	LOGIC_AdapterIdPublish(Id);
+	Id->Cached = TRUE;
+	LOGIC_Id = *Id;
 	return TRUE;
 }
 // ----------------------------------------
@@ -321,18 +324,35 @@ void LOGIC_Process()
 			switch(CONTROL_SubState)
 			{
 				case DSS_HomingSearchSensor:
+					SM_Homing();
+					LOGIC_StateTimeout = CONTROL_TimeCounter + HOMING_TIMEOUT;
+					CONTROL_SetDeviceState(CONTROL_State, DSS_HomingSearchSensorWait);
+					break;
+
+				case DSS_HomingSearchSensorWait:
 					if(SM_IsHomingDone())
 					{
 						LOGIC_StateTimeout = CONTROL_TimeCounter + HOMING_PAUSE;
-						CONTROL_SetDeviceState(CONTROL_State, DSS_HomingPause);
+						CONTROL_SetDeviceState(CONTROL_State, DSS_HomingPauseBeforeOffset);
+					}
+					else if(CONTROL_TimeCounter > LOGIC_StateTimeout)
+					{
+						SM_RequestStop();
+						CONTROL_SwitchToFault(DF_HOMING_TIMEOUT);
 					}
 					break;
 
-				case DSS_HomingPause:
+				case DSS_HomingPauseBeforeOffset:
 					if(CONTROL_TimeCounter > LOGIC_StateTimeout)
 					{
-						LOGIC_PrepareHoming();
-						CONTROL_SetDeviceState(CONTROL_State, DSS_HomingMakeOffset);
+						if(LOGIC_PrepareHoming())
+							CONTROL_SetDeviceState(CONTROL_State, DSS_HomingMakeOffset);
+						else
+						{
+							SM_RequestStop();
+							CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
+							CONTROL_SetDeviceState(DS_Ready, DSS_None);
+						}
 					}
 					break;
 
@@ -357,6 +377,7 @@ void LOGIC_Process()
 			{
 				case DSS_AdapterHold_CheckPressure:
 					IsHolding = false;
+					LOGIC_Id.Cached = FALSE;
 					DataTable[REG_ADAPTER_MATCH] = false;
 					LOGIC_FaultSpiAfterRelease = FALSE;
 					LOGIC_StateTimeout = CONTROL_TimeCounter + ADAPTER_HOLD_PRESSURE_TIMEOUT;
@@ -418,8 +439,13 @@ void LOGIC_Process()
 				case DSS_None:
 					if(DataTable[REG_ADAPTER_MATCH] && IsHolding )
 					{
-						LOGIC_PrepareClamping(TRUE);
-						CONTROL_SetDeviceState(CONTROL_State, DSS_ClampingOperating);
+						if(LOGIC_PrepareClamping(TRUE))
+							CONTROL_SetDeviceState(CONTROL_State, DSS_ClampingOperating);
+						else
+						{
+							CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
+							CONTROL_SetDeviceState(DS_Ready, DSS_None);
+						}
 					}
 					else
 					{
@@ -448,8 +474,13 @@ void LOGIC_Process()
 			switch(CONTROL_SubState)
 			{
 				case DSS_None:
-					LOGIC_PrepareClamping(FALSE);
-					CONTROL_SetDeviceState(CONTROL_State, DSS_ClampingReleaseOperating);
+					if(LOGIC_PrepareClamping(FALSE))
+						CONTROL_SetDeviceState(CONTROL_State, DSS_ClampingReleaseOperating);
+					else
+					{
+						CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
+						CONTROL_SetDeviceState(DS_Ready, DSS_None);
+					}
 					break;
 
 				case DSS_ClampingReleaseOperating:
@@ -515,6 +546,7 @@ void LOGIC_Process()
 
 					LOGIC_ClampHeightMm = 0;
 					DataTable[REG_ADAPTER_MATCH] = false;
+					LOGIC_Id.Cached = FALSE;
 					CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterRelease_Done);
 				}
 					break;
