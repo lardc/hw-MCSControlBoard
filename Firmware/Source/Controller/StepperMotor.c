@@ -170,13 +170,14 @@ Boolean SM_GoToPosition(pSM_Params Params)
 {
 	Int16U SlowDownDist;
 
+	SM_HomingDoneFlag = FALSE;
+
 	if(Params->MinSpeed > Params->MaxSpeed)
 	{
 		SM_StopMotion();
 		return FALSE;
 	}
 
-	SM_HomingDoneFlag = FALSE;
 	SM_StartSteps = SM_GlobalStepsCounter;
 	SM_DestSteps = SM_PosToSteps(Params->NewPosition);
 
