@@ -16,14 +16,11 @@ static void LOGIC_AdapterIdPublish(pAdapterIdentifier Id);
 static Int16U LOGIC_ClampHeightMm = 0;
 static Int64U LOGIC_WaitDeadline = 0;
 static Int64U LOGIC_StateTimeout = 0;
-static DeviceState LOGIC_LatchState = DS_None;
-static DeviceSubState LOGIC_LatchSubState = DSS_None;
 static Boolean IsHolding = false;
 static Boolean LOGIC_FaultSpiAfterRelease = FALSE;
 
 static void LOGIC_PrepareHoming();
 static Boolean LOGIC_WaitSpiInBit(Int8U Bit);
-static Boolean LOGIC_OnSubStateEntry(DeviceState State, DeviceSubState SubState);
 static Boolean LOGIC_ReadAdapterId();
 static void LOGIC_AbortHoldToRelease();
 static void LOGIC_ProcessSelfTest();
@@ -62,19 +59,6 @@ static Int16U LOGIC_GetClampHeightMm()
 		return LOGIC_ClampHeightMm;
 
 	return DataTable[REG_ADAPTER_CLAMP_HEIGHT];
-}
-// ----------------------------------------
-
-static Boolean LOGIC_OnSubStateEntry(DeviceState State, DeviceSubState SubState)
-{
-	if(LOGIC_LatchState != State || LOGIC_LatchSubState != SubState)
-	{
-		LOGIC_LatchState = State;
-		LOGIC_LatchSubState = SubState;
-		return TRUE;
-	}
-
-	return FALSE;
 }
 // ----------------------------------------
 
@@ -372,14 +356,14 @@ void LOGIC_Process()
 			switch(CONTROL_SubState)
 			{
 				case DSS_AdapterHold_CheckPressure:
-					if(LOGIC_OnSubStateEntry(CONTROL_State, CONTROL_SubState))
-					{
-						IsHolding = false;
-						DataTable[REG_ADAPTER_MATCH] = false;
-						LOGIC_FaultSpiAfterRelease = FALSE;
-						LOGIC_StateTimeout = CONTROL_TimeCounter + ADAPTER_HOLD_PRESSURE_TIMEOUT;
-					}
+					IsHolding = false;
+					DataTable[REG_ADAPTER_MATCH] = false;
+					LOGIC_FaultSpiAfterRelease = FALSE;
+					LOGIC_StateTimeout = CONTROL_TimeCounter + ADAPTER_HOLD_PRESSURE_TIMEOUT;
+					CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterHold_CheckPressureWait);
+					break;
 
+				case DSS_AdapterHold_CheckPressureWait:
 					if(MEAS_IsPressureOk())
 						CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterHold_ConnectAdapter);
 					else if(CONTROL_TimeCounter > LOGIC_StateTimeout)
@@ -387,35 +371,34 @@ void LOGIC_Process()
 					break;
 
 				case DSS_AdapterHold_ConnectAdapter:
-					if(LOGIC_OnSubStateEntry(CONTROL_State, CONTROL_SubState))
-					{
-						LL_SPI_SetOutBit(SPI_OUT_ADAPTER, true);
-						LL_SPI_FlushOut();
-						LOGIC_WaitDeadline = CONTROL_TimeCounter + SPI_WAIT_TIMEOUT;
-					}
-					else if(LOGIC_WaitSpiInBit(SPI_IN_ADAPTER_HELD))
+					LL_SPI_SetOutBit(SPI_OUT_ADAPTER, true);
+					LL_SPI_FlushOut();
+					LOGIC_WaitDeadline = CONTROL_TimeCounter + SPI_WAIT_TIMEOUT;
+					CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterHold_ConnectAdapterWait);
+					break;
+
+				case DSS_AdapterHold_ConnectAdapterWait:
+					if(LOGIC_WaitSpiInBit(SPI_IN_ADAPTER_HELD))
 						CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterHold_ConnectBus);
 					break;
 
 				case DSS_AdapterHold_ConnectBus:
-					if(LOGIC_OnSubStateEntry(CONTROL_State, CONTROL_SubState))
-					{
-						LL_SPI_SetOutBit(SPI_OUT_BUS, true);
-						LL_SPI_FlushOut();
-						LOGIC_WaitDeadline = CONTROL_TimeCounter + SPI_WAIT_TIMEOUT;
-					}
-					else if(LOGIC_WaitSpiInBit(SPI_IN_BUS_HELD))
+					LL_SPI_SetOutBit(SPI_OUT_BUS, true);
+					LL_SPI_FlushOut();
+					LOGIC_WaitDeadline = CONTROL_TimeCounter + SPI_WAIT_TIMEOUT;
+					CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterHold_ConnectBusWait);
+					break;
+
+				case DSS_AdapterHold_ConnectBusWait:
+					if(LOGIC_WaitSpiInBit(SPI_IN_BUS_HELD))
 						CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterHold_ReadId);
 					break;
 
 				case DSS_AdapterHold_ReadId:
-					if(LOGIC_OnSubStateEntry(CONTROL_State, CONTROL_SubState))
-					{
-						if(LOGIC_ReadAdapterId())
-							CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterHold_Done);
-						else
-							LOGIC_AbortHoldToRelease();
-					}
+					if(LOGIC_ReadAdapterId())
+						CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterHold_Done);
+					else
+						LOGIC_AbortHoldToRelease();
 					break;
 
 				case DSS_AdapterHold_Done:
@@ -488,51 +471,52 @@ void LOGIC_Process()
 			switch(CONTROL_SubState)
 			{
 				case DSS_AdapterRelease_Bus:
-					if(LOGIC_OnSubStateEntry(CONTROL_State, CONTROL_SubState))
-					{
-						LL_SPI_SetOutBit(SPI_OUT_BUS, false);
-						LL_SPI_FlushOut();
-						LOGIC_WaitDeadline = CONTROL_TimeCounter + SPI_WAIT_TIMEOUT;
-					}
-					else if(LOGIC_WaitSpiInBit(SPI_IN_BUS_RELEASED))
+					LL_SPI_SetOutBit(SPI_OUT_BUS, false);
+					LL_SPI_FlushOut();
+					LOGIC_WaitDeadline = CONTROL_TimeCounter + SPI_WAIT_TIMEOUT;
+					CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterRelease_BusWait);
+					break;
+
+				case DSS_AdapterRelease_BusWait:
+					if(LOGIC_WaitSpiInBit(SPI_IN_BUS_RELEASED))
 						CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterRelease_Adapter);
 					break;
 
 				case DSS_AdapterRelease_Adapter:
-					if(LOGIC_OnSubStateEntry(CONTROL_State, CONTROL_SubState))
-					{
-						LL_SPI_SetOutBit(SPI_OUT_ADAPTER, false);
-						LL_SPI_FlushOut();
-						LOGIC_WaitDeadline = CONTROL_TimeCounter + SPI_WAIT_TIMEOUT;
-					}
-					else if(LOGIC_WaitSpiInBit(SPI_IN_ADAPTER_RELEASED))
+					LL_SPI_SetOutBit(SPI_OUT_ADAPTER, false);
+					LL_SPI_FlushOut();
+					LOGIC_WaitDeadline = CONTROL_TimeCounter + SPI_WAIT_TIMEOUT;
+					CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterRelease_AdapterWait);
+					break;
+
+				case DSS_AdapterRelease_AdapterWait:
+					if(LOGIC_WaitSpiInBit(SPI_IN_ADAPTER_RELEASED))
 						CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterRelease_HeatingOff);
 					break;
 
 				case DSS_AdapterRelease_HeatingOff:
-					if(LOGIC_OnSubStateEntry(CONTROL_State, CONTROL_SubState))
+				{
+					TRMError error = TRME_None;
+
+					if(DataTable[REG_USE_HEATING])
+						TRM_Stop(TRM_CH1_ADDR, &error);
+
+					if(error != TRME_None)
 					{
-						TRMError error = TRME_None;
-
-						if(DataTable[REG_USE_HEATING])
-							TRM_Stop(TRM_CH1_ADDR, &error);
-
-						if(error != TRME_None)
-						{
-							DataTable[REG_TRM_ERROR] = error;
-							CONTROL_SwitchToFault(DF_TRM);
-							break;
-						}
-
-						LL_SPI_SetOutBit(SPI_OUT_FAN1, false);
-						LL_SPI_SetOutBit(SPI_OUT_FAN2, false);
-						LL_SPI_FlushOut();
-						HeatingActive = FALSE;
-
-						LOGIC_ClampHeightMm = 0;
-						DataTable[REG_ADAPTER_MATCH] = false;
-						CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterRelease_Done);
+						DataTable[REG_TRM_ERROR] = error;
+						CONTROL_SwitchToFault(DF_TRM);
+						break;
 					}
+
+					LL_SPI_SetOutBit(SPI_OUT_FAN1, false);
+					LL_SPI_SetOutBit(SPI_OUT_FAN2, false);
+					LL_SPI_FlushOut();
+					HeatingActive = FALSE;
+
+					LOGIC_ClampHeightMm = 0;
+					DataTable[REG_ADAPTER_MATCH] = false;
+					CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterRelease_Done);
+				}
 					break;
 
 				case DSS_AdapterRelease_Done:
