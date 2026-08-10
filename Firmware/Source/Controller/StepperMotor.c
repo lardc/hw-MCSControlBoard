@@ -34,6 +34,7 @@ static xTimerAlterHandler AlterHandler = NULL;
 static volatile Boolean SM_HomingDoneFlag = FALSE;
 static volatile Int32S SM_GlobalStepsCounter = 0, SM_DestSteps = 0, SM_StartSteps = 0;
 static Int16U SM_CyclesToToggle, SM_MinCycles, SM_MaxCycles;	// MinCycles — быстрый ход, MaxCycles — медленный ход
+static Int32U SM_SpeedChangeSteps = 0;
 static Int64U SM_HomingPauseDeadline = 0;
 
 // Forward functions
@@ -105,12 +106,6 @@ void SM_LogicHandler()
 			}
 			break;
 		case MS_Movement:
-		{
-			Int32U SpeedChangeSteps = SM_PosToSteps(DataTable[REG_SLOW_DOWN_DIST]);
-
-			if(SpeedChangeSteps == 0)
-				SpeedChangeSteps = 1;
-
 			// Счёт шагов позиционирования
 			SM_GlobalStepsCounter += (LL_IsDirUp()) ? 1 : -1;
 
@@ -125,27 +120,26 @@ void SM_LogicHandler()
 			StepsTraveled = abs(SM_GlobalStepsCounter - SM_StartSteps);
 			Target = SM_MinCycles;
 
-			if(StepsTraveled < SpeedChangeSteps)
+			if(StepsTraveled < SM_SpeedChangeSteps)
 			{
 				AccelTarget = SM_MaxCycles
-						- (Int16U)((SM_MaxCycles - SM_MinCycles) * StepsTraveled / SpeedChangeSteps);
+						- (Int16U)((SM_MaxCycles - SM_MinCycles) * StepsTraveled / SM_SpeedChangeSteps);
 
 				if(AccelTarget > Target)
 					Target = AccelTarget;
 			}
 
-			if(StepsToGo <= SpeedChangeSteps)
+			if(StepsToGo <= SM_SpeedChangeSteps)
 			{
 				DecelTarget = SM_MinCycles
-						+ (Int16U)((SM_MaxCycles - SM_MinCycles) * (SpeedChangeSteps - StepsToGo)
-								/ SpeedChangeSteps);
+						+ (Int16U)((SM_MaxCycles - SM_MinCycles) * (SM_SpeedChangeSteps - StepsToGo)
+								/ SM_SpeedChangeSteps);
 
 				if(DecelTarget > Target)
 					Target = DecelTarget;
 			}
 
 			SM_ToggleCyclesToTarget(Target);
-		}
 			break;
 
 		default:
@@ -174,6 +168,8 @@ void SM_Config(pSM_Params Params, Int16U PositionMm)
 // Переход в новую позицию, мм; скорости в мм/с
 void SM_GoToPosition(pSM_Params Params)
 {
+	Int16U SlowDownDist;
+
 	SM_HomingDoneFlag = FALSE;
 	SM_StartSteps = SM_GlobalStepsCounter;
 	SM_DestSteps = SM_PosToSteps(Params->NewPosition);
@@ -185,6 +181,11 @@ void SM_GoToPosition(pSM_Params Params)
 	}
 
 	SM_UpDirection(SM_DestSteps > SM_GlobalStepsCounter);
+
+	SlowDownDist = DataTable[REG_SLOW_DOWN_DIST];
+	if(SlowDownDist < SLOW_DOWN_DEF)
+		SlowDownDist = SLOW_DOWN_DEF;
+	SM_SpeedChangeSteps = SM_PosToSteps(SlowDownDist);
 
 	SM_MinCycles = SM_SpeedToCycles(Params->MaxSpeed);
 	SM_MaxCycles = SM_SpeedToCycles(Params->MinSpeed);
