@@ -20,9 +20,8 @@ float MEAS_GetRawVoltage()
 
 float MEAS_GetPressureBar()
 {
-	float Offset = DataTable[REG_PRESSURE_OFFSET];
-	float K = DataTable[REG_PRESSURE_K];
-	float Pressure = MEAS_GetRawVoltage() * K - Offset * ADC_REF_VOLTAGE / ADC_RESOLUTION * K;
+	float voltageMv = MEAS_GetRawVoltage() * ADC_PRESSURE_INPUT_GAIN;
+	float Pressure = voltageMv * DataTable[REG_PRESSURE_K] + DataTable[REG_PRESSURE_OFFSET];
 
 	return (Pressure > 0.0f) ? Pressure : 0.0f;
 }

@@ -89,7 +89,7 @@
 #define REG_USE_HEATING						20	// Включение/выключение обработки команд системы нагрева
 // 21-29
 #define REG_PRESSURE_OFFSET 				30	// Смещение давления
-#define REG_PRESSURE_K						31  // Линейный коэффициент давления x1000
+#define REG_PRESSURE_K						31  // Линейный коэффициент давления
 #define REG_PRESSURE_OK						32	// Корректное давление системы бар x1000
 // 33-63
 
@@ -124,7 +124,7 @@
 #define REG_TEMP_CH1						102	// Sampled temperature on channel 1
 #define REG_TRM_DATA						103	// Data read from TRM
 #define REG_TRM_ERROR						104	// TRM error value
-#define REG_PRESSURE						105	// Давление в пневмомагистрали
+#define REG_PRESSURE						105	// Давление в пневмомагистрали в бар x1000
 #define REG_SENSOR_S2						106	// Датчик столика S2 (PA10)
 #define REG_HOMING_SENSOR					107	// Состояние датчика хоуминга
 #define REG_BUS_TOOLING_SENSOR				108	// SPI: датчик подключения силовых шин

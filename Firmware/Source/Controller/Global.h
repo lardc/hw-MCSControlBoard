@@ -26,6 +26,8 @@
 // АЦП
 #define ADC_REF_VOLTAGE					3300.0f	// мВ
 #define ADC_RESOLUTION					4095
+// PA0, АЦП1 канал 1: делитель 47k/(47k+10k); восстановление напряжения на датчике
+#define ADC_PRESSURE_INPUT_GAIN					1.213f	// 1 / (47k / (47k + 10k))
 
 // Таймауты циклов
 #define SC_FILTER_T						100		// мс
