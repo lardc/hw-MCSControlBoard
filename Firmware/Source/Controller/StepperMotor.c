@@ -189,8 +189,6 @@ Boolean SM_GoToPosition(pSM_Params Params)
 	SM_UpDirection(SM_DestSteps > SM_GlobalStepsCounter);
 
 	SlowDownDist = DataTable[REG_SLOW_DOWN_DIST];
-	if(SlowDownDist < SLOW_DOWN_DEF)
-		SlowDownDist = SLOW_DOWN_DEF;
 	SM_SpeedChangeSteps = SM_PosToSteps(SlowDownDist);
 
 	SM_MinCycles = SM_SpeedToCycles(Params->MaxSpeed);
