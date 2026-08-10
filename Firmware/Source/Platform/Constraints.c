@@ -19,9 +19,9 @@ const TableItemConstraint Constraint[DATA_TABLE_WP_START] = {
 	{0, 0, 0},																		// 7
 	{0, 0, 0},																		// 8
 	{0, 0, 0},																		// 9
-	{SPEED_MIN, SPEED_MAX, SPEED_DEF},												// 10
-	{SPEED_MIN, SPEED_MAX, SPEED_DEF},												// 11
-	{SPEED_MIN, SPEED_MAX, SPEED_DEF},												// 12
+	{0, 0, 0},																		// 10
+	{0, 0, 0},																		// 11
+	{0, 0, 0},																		// 12
 	{SLOW_DOWN_MIN, SLOW_DOWN_MAX, SLOW_DOWN_DEF},									// 13
 	{SPEED_MIN, SPEED_MAX, SPEED_DEF},												// 14
 	{HOMING_OFFS_MIN, HOMING_OFFS_MAX, HOMING_OFFS_DEF},							// 15

@@ -125,7 +125,7 @@ static void CONTROL_FillWPPartDefault()
 	DataTable[REG_WARNING] = WARNING_NONE;
 	DataTable[REG_PROBLEM] = PROBLEM_NONE;
 	DataTable[REG_ADAPTER_MATCH] = false;
-	DataTable[REG_ADAPTER_MISMATCH] = ADAPTER_MISMATCH_NONE;
+	DataTable[REG_ADAPTER_MISMATCH_CODE] = ADAPTER_MISMATCH_NONE;
 }
 // ----------------------------------------
 
@@ -408,7 +408,7 @@ void CONTROL_InitStoragePointers()
 	STF_AssignPointer(14, (Int32U)&DataTable[REG_DEV_SUBSTATE]);
 	STF_AssignPointer(15, (Int32U)&DataTable[REG_SELFTEST_RESULT]);
 	STF_AssignPointer(16, (Int32U)&DataTable[REG_ADAPTER_MATCH]);
-	STF_AssignPointer(17, (Int32U)&DataTable[REG_ADAPTER_MISMATCH]);
+	STF_AssignPointer(17, (Int32U)&DataTable[REG_ADAPTER_MISMATCH_CODE]);
 	STF_AssignPointer(18, (Int32U)&DataTable[REG_SPI_IN_STATE]);
 	STF_AssignPointer(19, (Int32U)&DataTable[REG_SENSOR_S3]);
 	STF_AssignPointer(20, (Int32U)&DataTable[REG_SENSOR_S5]);

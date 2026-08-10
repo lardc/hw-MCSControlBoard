@@ -9,11 +9,9 @@
 // Includes
 #include "SysConfig.h"
 #include "Global.h"
+#include "Controller.h"
 #include "Timer3_Ch4PWM.h"
 #include <stdlib.h>
-
-// Definitions
-#define SM_SPEED_CHANGE_STEPS		(2 * SM_FULL_ROUND_STEPS)	// Длина линейного разгона/торможения, шаги
 
 // Types
 typedef void (*xTimerAlterHandler)();
@@ -23,8 +21,9 @@ typedef enum __MotorState
 	MS_None	= 0,
 	MS_Stop = 1,
 	MS_HomingSearch = 2,
-	MS_HomingRelease = 3,
-	MS_Movement = 4
+	MS_HomingPause = 3,
+	MS_HomingRelease = 4,
+	MS_Movement = 5
 } MotorState;
 
 static volatile MotorState Motor_State = MS_None;
@@ -35,6 +34,7 @@ static xTimerAlterHandler AlterHandler = NULL;
 static volatile Boolean SM_HomingDoneFlag = FALSE;
 static volatile Int32S SM_GlobalStepsCounter = 0, SM_DestSteps = 0, SM_StartSteps = 0;
 static Int16U SM_CyclesToToggle, SM_MinCycles, SM_MaxCycles;	// MinCycles — быстрый ход, MaxCycles — медленный ход
+static Int64U SM_HomingPauseDeadline = 0;
 
 // Forward functions
 void SM_LogicHandler();
@@ -82,8 +82,17 @@ void SM_LogicHandler()
 		case MS_HomingSearch:
 			if(LL_HomeSensorActuate())
 			{
+				SM_HomingPauseDeadline = CONTROL_TimeCounter + HOMING_REVERSE_PAUSE;
+				T3Ch4PWM_SetPeriodTicks(0);
+				Motor_State = MS_HomingPause;
+			}
+			break;
+		case MS_HomingPause:
+			if(CONTROL_TimeCounter > SM_HomingPauseDeadline)
+			{
 				SM_UpDirection(TRUE);
 				Motor_State = MS_HomingRelease;
+				T3Ch4PWM_SetPeriodTicks(SM_CyclesToToggle);
 			}
 			break;
 		case MS_HomingRelease:
@@ -96,6 +105,12 @@ void SM_LogicHandler()
 			}
 			break;
 		case MS_Movement:
+		{
+			Int32U SpeedChangeSteps = SM_PosToSteps(DataTable[REG_SLOW_DOWN_DIST]);
+
+			if(SpeedChangeSteps == 0)
+				SpeedChangeSteps = 1;
+
 			// Счёт шагов позиционирования
 			SM_GlobalStepsCounter += (LL_IsDirUp()) ? 1 : -1;
 
@@ -110,26 +125,27 @@ void SM_LogicHandler()
 			StepsTraveled = abs(SM_GlobalStepsCounter - SM_StartSteps);
 			Target = SM_MinCycles;
 
-			if(StepsTraveled < SM_SPEED_CHANGE_STEPS)
+			if(StepsTraveled < SpeedChangeSteps)
 			{
 				AccelTarget = SM_MaxCycles
-						- (Int16U)((SM_MaxCycles - SM_MinCycles) * StepsTraveled / SM_SPEED_CHANGE_STEPS);
+						- (Int16U)((SM_MaxCycles - SM_MinCycles) * StepsTraveled / SpeedChangeSteps);
 
 				if(AccelTarget > Target)
 					Target = AccelTarget;
 			}
 
-			if(StepsToGo <= SM_SPEED_CHANGE_STEPS)
+			if(StepsToGo <= SpeedChangeSteps)
 			{
 				DecelTarget = SM_MinCycles
-						+ (Int16U)((SM_MaxCycles - SM_MinCycles) * (SM_SPEED_CHANGE_STEPS - StepsToGo)
-								/ SM_SPEED_CHANGE_STEPS);
+						+ (Int16U)((SM_MaxCycles - SM_MinCycles) * (SpeedChangeSteps - StepsToGo)
+								/ SpeedChangeSteps);
 
 				if(DecelTarget > Target)
 					Target = DecelTarget;
 			}
 
 			SM_ToggleCyclesToTarget(Target);
+		}
 			break;
 
 		default:
@@ -151,7 +167,7 @@ void SM_Config(pSM_Params Params, Int16U PositionMm)
 {
 	Params->NewPosition = PositionMm;
 	Params->MaxSpeed = DataTable[REG_POS_SPEED_MAX];
-	Params->MinSpeed = DataTable[REG_CLAMP_SPEED_MIN];
+	Params->MinSpeed = DataTable[REG_POS_SPEED_MIN];
 }
 // ----------------------------------------
 
