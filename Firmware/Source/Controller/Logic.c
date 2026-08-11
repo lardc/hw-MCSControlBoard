@@ -164,7 +164,7 @@ Boolean LOGIC_AdapterIdRead(pAdapterIdentifier Id)
 				Id->MaxVoltage = Labels[i].Value;
 				FilledCount++;
 				break;
-			case ML_Serial:
+			case ML_SerialNumber:
 				Id->Serial = Labels[i].Value;
 				FilledCount++;
 				break;
@@ -206,7 +206,7 @@ Boolean LOGIC_AdapterIdWrite(pAdapterIdentifier Id)
 		{.Type = ML_ClampHeight,	.Value = Id->ClampHeightMm },
 		{.Type = ML_MaxCurrent,		.Value = Id->MaxCurrent },
 		{.Type = ML_MaxVoltage,		.Value = Id->MaxVoltage },
-		{.Type = ML_Serial,			.Value = Id->Serial },
+		{.Type = ML_SerialNumber,			.Value = Id->Serial },
 	};
 
 	if(!MemLabel_AddArray(0, Labels, 5))

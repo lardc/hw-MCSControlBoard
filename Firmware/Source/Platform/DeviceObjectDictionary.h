@@ -140,12 +140,13 @@
 #define REG_SENSOR_S3						115	// Датчик безопасности S3 (PA9)
 #define REG_SENSOR_S5						116	// Датчик безопасности S5 (PA12)
 // 117-119
-#define REG_ADAPTER_CODE					120	// Код адаптера в идентификаторе 1-Wire
+#define REG_ADAPTER_VERSION					120	// Версия адаптера
 #define REG_ADAPTER_SERIAL					121	// Серийный номер адаптера
-#define REG_ADAPTER_CLAMP_HEIGHT			122	// Высота зажатия из идентификатора (мм)
-#define REG_ADAPTER_MAX_CURRENT				123	// Макс. ток из идентификатора
-#define REG_ADAPTER_MAX_VOLTAGE				124	// Макс. напряжение из идентификатора
-// 125-158
+#define REG_ADAPTER_CODE					122	// Код адаптера в идентификаторе 1-Wire
+#define REG_ADAPTER_MAX_VOLTAGE				123	// Макс. напряжение из идентификатора
+#define REG_ADAPTER_MAX_CURRENT				124	// Макс. ток из идентификатора
+#define REG_ADAPTER_CLAMP_HEIGHT			125	// Высота зажатия из идентификатора (мм)
+// 126-158
 #define REG_SP__3							159
 // 160-255
 //

@@ -1,9 +1,6 @@
 // Header
 #include "MemLabel.h"
 
-// Defines
-#define MEM_LABEL_EMPTY_TYPE		0xFF
-
 // Forward functions
 static Boolean MemLabel_ReadRaw(Int8U deviceIndex, Int8U *Buffer);
 static Int8U MemLabel_GetLabelCount(const Int8U *Buffer);
@@ -35,7 +32,7 @@ Int8U MemLabel_Read(Int8U deviceIndex, MemLabelEntry *Labels, Int8U MaxLabels)
 	// Разбор останавливаем на первой пустой записи (Type == 0xFF).
 	for(Int16U Offset = 0; Offset + MEM_LABEL_LABEL_SIZE <= ReadBytes; Offset += MEM_LABEL_LABEL_SIZE)
 	{
-		if(Buffer[Offset] == MEM_LABEL_EMPTY_TYPE)
+		if(Buffer[Offset] == ML_None)
 			break;
 
 		if(Filled >= MaxLabels)
@@ -81,7 +78,7 @@ Boolean MemLabel_AddArray(Int8U deviceIndex, const MemLabelEntry *Labels, Int8U 
 
 	for(Int8U Index = 0; Index < LabelCount; Index++)
 	{
-		if(Labels[Index].Type == MEM_LABEL_EMPTY_TYPE)
+		if(Labels[Index].Type == ML_None)
 			return false;
 
 		if(MemLabel_FindLabelOffset(Buffer, Labels[Index].Type, &Offset))
@@ -102,7 +99,7 @@ Boolean MemLabel_Update(Int8U deviceIndex, MemLabelEntry Label)
 	Int8U Buffer[DS2431_EEPROM_SIZE];
 	Int8U Offset;
 
-	if(Label.Type == MEM_LABEL_EMPTY_TYPE)
+	if(Label.Type == ML_None)
 		return false;
 
 	if(!MemLabel_ReadRaw(deviceIndex, Buffer))
@@ -141,7 +138,7 @@ static Int8U MemLabel_GetLabelCount(const Int8U *Buffer)
 
 	for(Int8U Offset = 0; Offset <= (DS2431_EEPROM_SIZE - MEM_LABEL_LABEL_SIZE); Offset += MEM_LABEL_LABEL_SIZE)
 	{
-		if(Buffer[Offset] == MEM_LABEL_EMPTY_TYPE)
+		if(Buffer[Offset] == ML_None)
 			break;
 
 		LabelCount++;
@@ -156,7 +153,7 @@ static Boolean MemLabel_FindLabelOffset(const Int8U *Buffer, Int8U Type, Int8U *
 {
 	for(Int8U LabelOffset = 0; LabelOffset <= (DS2431_EEPROM_SIZE - MEM_LABEL_LABEL_SIZE); LabelOffset += MEM_LABEL_LABEL_SIZE)
 	{
-		if(Buffer[LabelOffset] == MEM_LABEL_EMPTY_TYPE)
+		if(Buffer[LabelOffset] == ML_None)
 			return false;
 
 		if(Buffer[LabelOffset] == Type)
