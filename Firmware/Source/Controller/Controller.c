@@ -393,7 +393,7 @@ void CONTROL_UpdatePressureOK()
 	if(CONTROL_ShouldMonitorPressureFault()
 			&& CONTROL_TimeCounter > PressureOkTime + PNEUMATIC_READ_PAUSE)
 	{
-		DataTable[REG_DBG] = Pressure;
+		DataTable[REG_PRESSURE] = Pressure;
 		CONTROL_SwitchToFault(DF_PRESSURE);
 	}
 }
