@@ -139,13 +139,13 @@
 #define REG_SPI_IN_STATE					114	// Сырой байт регистра входа 2SPI
 #define REG_SENSOR_S3						115	// Датчик безопасности S3 (PA9)
 #define REG_SENSOR_S5						116	// Датчик безопасности S5 (PA12)
-//
-#define REG_ADAPTER_CODE					117	// Код адаптера в идентификаторе 1-Wire
-#define REG_ADAPTER_SERIAL					118	// Серийный номер адаптера
-#define REG_ADAPTER_CLAMP_HEIGHT			119	// Высота зажатия из идентификатора (мм)
-#define REG_ADAPTER_MAX_CURRENT				120	// Макс. ток из идентификатора
-#define REG_ADAPTER_MAX_VOLTAGE				121	// Макс. напряжение из идентификатора
-// 121-158
+// 117-119
+#define REG_ADAPTER_CODE					120	// Код адаптера в идентификаторе 1-Wire
+#define REG_ADAPTER_SERIAL					121	// Серийный номер адаптера
+#define REG_ADAPTER_CLAMP_HEIGHT			122	// Высота зажатия из идентификатора (мм)
+#define REG_ADAPTER_MAX_CURRENT				123	// Макс. ток из идентификатора
+#define REG_ADAPTER_MAX_VOLTAGE				124	// Макс. напряжение из идентификатора
+// 125-158
 #define REG_SP__3							159
 // 160-255
 //
