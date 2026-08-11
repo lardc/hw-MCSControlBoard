@@ -105,7 +105,9 @@
 //
 #define REG_DBG_ADAPTER_SERIAL				85	// Серийный номер адаптера
 #define REG_DBG_ADAPTER_CLAMP_HEIGHT		86	// Высота зажатия из идентификатора (мм)
-// 87-89
+#define REG_DBG_ADAPTER_VERSION				87	// Версия адаптера
+#define REG_DBG_ADAPTER_DEVICE				88	// Тип устройства в метке адаптера
+// 89
 #define REG_DBG_STEP_DIV					90	// Коэффициент деления шагов в отладочном режиме
 #define REG_DBG_STEPS_MAX					91	// Количество шагов для поворота в отладочном режиме
 //
@@ -176,6 +178,7 @@
 #define PROBLEM_ADAPTER_MISMATCH			2	// Несовпадение идентификатора адаптера
 #define PROBLEM_NO_HOLD_OR_MISMATCH			3	// Не выполнено зажатие или было несовпадение адаптера
 #define PROBLEM_INVALID_SPEED				4	// MinSpeed > MaxSpeed в регистрах позиционирования
+#define PROBLEM_INCORRECT_DEVICE			5	// Установлено не корректное устройство.
 #define PROBLEM_OW_ERROR_LINE				20	// Проблема подключения на линии OW
 #define PROBLEM_OW_NO_DEVICE				21	// Устройство не найдено / неверный индекс
 #define PROBLEM_OW_VERIFY					22	// Ошибка verify / scratchpad / CRC / copy

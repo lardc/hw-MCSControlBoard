@@ -309,6 +309,8 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 				Id.MaxCurrent = DataTable[REG_TEST_CURRENT];
 				Id.MaxVoltage = DataTable[REG_TEST_VOLTAGE];
 				Id.Serial = DataTable[REG_DBG_ADAPTER_SERIAL];
+				Id.Version = DataTable[REG_DBG_ADAPTER_VERSION];
+				Id.Device = DataTable[REG_DBG_ADAPTER_DEVICE];
 				if(LOGIC_AdapterIdWrite(&Id))
 					DataTable[REG_OP_RESULT] = OPRESULT_OK;
 			}

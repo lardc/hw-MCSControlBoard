@@ -10,6 +10,8 @@ typedef struct __AdapterIdentifier
 	Int16U MaxCurrent;
 	Int16U MaxVoltage;
 	Int16U Serial;
+	Int16U Version;
+	Int16U Device;
 	Boolean Cached;
 } AdapterIdentifier, *pAdapterIdentifier;
 

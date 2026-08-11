@@ -114,6 +114,7 @@ static void LOGIC_AdapterIdPublish(pAdapterIdentifier Id)
 	DataTable[REG_ADAPTER_MAX_CURRENT] = Id->MaxCurrent;
 	DataTable[REG_ADAPTER_MAX_VOLTAGE] = Id->MaxVoltage;
 	DataTable[REG_ADAPTER_SERIAL] = Id->Serial;
+	DataTable[REG_ADAPTER_VERSION] = Id->Version;
 }
 // ----------------------------------------
 
@@ -126,6 +127,7 @@ Boolean LOGIC_AdapterIdRead(pAdapterIdentifier Id)
 	Id->Cached = FALSE;
 
 	DataTable[REG_ADAPTER_CODE] = 0;
+	DataTable[REG_ADAPTER_VERSION] = 0;
 	DataTable[REG_ADAPTER_CLAMP_HEIGHT] = 0;
 	DataTable[REG_ADAPTER_MAX_CURRENT] = 0;
 	DataTable[REG_ADAPTER_MAX_VOLTAGE] = 0;
@@ -168,12 +170,23 @@ Boolean LOGIC_AdapterIdRead(pAdapterIdentifier Id)
 				Id->Serial = Labels[i].Value;
 				FilledCount++;
 				break;
+			case ML_Version:
+				Id->Version = Labels[i].Value;
+				FilledCount++;
+				break;
+			case ML_Device:
+				if(Labels[i].Value != 0)
+				{
+					CONTROL_FinishedWithProblem(PROBLEM_INCORRECT_DEVICE);
+					return FALSE;
+				}
+				break;
 			default:
 				break;
 		}
 	}
 
-	if(FilledCount < 5)
+	if(FilledCount < 6)
 	{
 		CONTROL_FinishedWithProblem(PROBLEM_MISSING_LABEL);
 		return FALSE;
@@ -200,16 +213,20 @@ Boolean LOGIC_AdapterIdWrite(pAdapterIdentifier Id)
 		return false;
 	}
 
-	MemLabelEntry Labels[5] =
+	MemLabelEntry Labels[] =
 	{
 		{.Type = ML_AdapterCode,	.Value = Id->Code },
 		{.Type = ML_ClampHeight,	.Value = Id->ClampHeightMm },
 		{.Type = ML_MaxCurrent,		.Value = Id->MaxCurrent },
 		{.Type = ML_MaxVoltage,		.Value = Id->MaxVoltage },
-		{.Type = ML_SerialNumber,			.Value = Id->Serial },
+		{.Type = ML_SerialNumber,	.Value = Id->Serial },
+		{.Type = ML_Version,		.Value = Id->Version },
+		{.Type = ML_Device,			.Value = Id->Device },
 	};
 
-	if(!MemLabel_AddArray(0, Labels, 5))
+	const Int8U Count = sizeof(Labels) / sizeof(Labels[0]);
+
+	if(!MemLabel_AddArray(0, Labels, Count))
 	{
 		CONTROL_FinishedWithProblem(CONTROL_ProblemFromDs2431());
 		return false;
