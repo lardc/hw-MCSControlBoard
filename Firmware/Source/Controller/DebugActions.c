@@ -34,8 +34,7 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 				if(DataTable[REG_DBG] > 7)
 					break;
 				LL_SPI_SetOutBit(Exit, true);
-				DELAY_MS(100);
-				LL_SPI_SetOutBit(Exit, false);
+				LL_SPI_FlushOut();
 			}
 			break;
 		case ACT_DBG_MEAS_INPUT:
@@ -58,7 +57,7 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 		case ACT_DBG_DQ_PWR:
 			{
 				Boolean prev = GPIO_GetState(GPIO_DQ_PWR);
-				GPIO_SetState(GPIO_DQ_PWR, true);
+				GPIO_SetState(GPIO_DQ_PWR, !prev);
 				DELAY_MS(100);
 				GPIO_SetState(GPIO_DQ_PWR, prev);
 			}
