@@ -9,7 +9,7 @@
 #define YES		1
 
 const TableItemConstraint Constraint[DATA_TABLE_WP_START] = {
-	{0, 0, 0},																		// 0
+	{NO, YES, NO},																	// 0
 	{0, 0, 0},																		// 1
 	{0, 0, 0},																		// 2
 	{0, 0, 0},																		// 3
@@ -103,6 +103,6 @@ const TableItemConstraint Constraint[DATA_TABLE_WP_START] = {
 	{0, INT16U_MAX, 0},																// 91
 	{0, INT16U_MAX, 0},																// 92
 	{0, INT16U_MAX, 0},																// 93
-	{0, 0, 0},																		// 94
-	{0, 0, 0}																		// 95
+	{0, INT16U_MAX, 0},																// 94
+	{0, INT16U_MAX, 0}																// 95
 };

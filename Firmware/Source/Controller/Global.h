@@ -22,6 +22,7 @@
 #define TIME_LED_BLINK					500		// мс
 #define PRESSURE_SAMPLE_PERIOD			500		// мс
 #define AVG_SAMPLES_DEF					4
+#define CT_SAVE_TIMEOUT					1800000 // в мс
 
 // АЦП
 #define ADC_REF_VOLTAGE					3300.0f	// мВ

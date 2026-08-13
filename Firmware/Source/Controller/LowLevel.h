@@ -23,6 +23,9 @@
 #define SPI_IN_BUS_HELD			5
 
 #define SPI_IN_MASK_COIL_24V	((1u << SPI_IN_ADAPTER_COIL_24V) | (1u << SPI_IN_BUS_COIL_24V))
+#define COMMUTATION_TABLE_SIZE 3
+
+extern Int32U CycleCounters[COMMUTATION_TABLE_SIZE];
 
 Boolean LL_FilterSafetyCircuit(Boolean NewState);
 

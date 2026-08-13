@@ -74,11 +74,18 @@
 #define ACT_FLASH_DIAG_SAVE					332	// Сохранение блока отладочной информации во флэш
 #define ACT_FLASH_DIAG_ERASE				333	// Стирание области отладочной информации
 
+#define ACT_FLASH_CNT_INIT_READ				334	// Перемещение указателя в область счетчиков
+#define ACT_SET_COUNTER						336	// Установка значения счетчика
+#define ACT_SAVE_COUNTERS					337	// Сохранить счетчики в памяти
+#define ACT_ERASE_COUNTERS					338	// Удалить счетчики из памяти
+#define ACT_FLASH_COUNTER_TO_EP				339 // Выполнить чтение массива из памяти счетчиков отработки в EP
+
 #define ACT_FLASH_DIAG_TO_EP				340	// Выполнить чтение массива из памяти отладочной информации в EP
 
 // Регистры
 // Сохраняемые регистры
-// 0-12
+#define REG_CNT_ACTIVE						0	// Включение сохранения счетчиков
+// 1-12
 #define REG_SLOW_DOWN_DIST					13	// Расстояние от таргетной точки для начала замедления (мм)
 #define REG_HOMING_SPEED					14	// Скорость хоуминга (мм/сек)
 #define REG_HOMING_OFFSET					15	// Оффсет хоуминга (мм)
@@ -113,7 +120,8 @@
 //
 #define REG_DBG								92	// Отладочный регистр
 #define REG_DBG2							93	// Отладочный регистр
-// 94-95
+#define REG_CNT_NUMBER						94	// Номер счетчика, в который будет записано значение
+#define REG_CNT_VALUE						95	// Значение, которое будет записано в счетчик
 
 // Регистры только чтение
 #define REG_DEV_STATE						96	// Device state

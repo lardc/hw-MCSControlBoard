@@ -22,7 +22,7 @@ RecordDescription StorageDescription[] =
 	{"REG_SELFTEST_RESULT",			DT_Float, 1},
 
 	{"REG_ADAPTER_MATCH",			DT_Float, 1},
-	{"REG_ADAPTER_MISMATCH_CODE",		DT_Float, 1},
+	{"REG_ADAPTER_MISMATCH_CODE",	DT_Float, 1},
 
 	{"REG_SPI_IN_STATE",			DT_Float, 1},
 	{"REG_SENSOR_S3",				DT_Float, 1},
@@ -31,3 +31,12 @@ RecordDescription StorageDescription[] =
 
 Int32U TablePointers[sizeof(StorageDescription) / sizeof(StorageDescription[0])] = {0};
 const Int16U StorageSize = sizeof(StorageDescription) / sizeof(StorageDescription[0]);
+
+const CounterDescription CounterStorageDescription[] =
+{
+	{"0. Pneumatic cylinders"},
+	{"1. Bus"},
+	{"2. Clampings"},
+};
+CounterData CounterTablePointers[sizeof(CounterStorageDescription) / sizeof(CounterStorageDescription[0])] = {0};
+const Int16U CounterStorageSize = sizeof(CounterStorageDescription) / sizeof(CounterStorageDescription[0]);

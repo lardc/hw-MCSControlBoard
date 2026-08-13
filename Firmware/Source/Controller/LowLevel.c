@@ -1,11 +1,14 @@
 ﻿#include "LowLevel.h"
 
+#include "DataTable.h"
 #include "Delay.h"
+#include "DeviceObjectDictionary.h"
 #include "Global.h"
 #include "SysConfig.h"
 #include "ZwSPI.h"
 
 static Int8U SpiOutShadow = 0;
+Int32U CycleCounters[COMMUTATION_TABLE_SIZE] = {0};
 //-----------------------------
 
 static void LL_SPI_WriteRaw(Int8U Data)
@@ -39,10 +42,20 @@ Boolean LL_FilterSafetyCircuit(Boolean NewState)
 
 void LL_SPI_SetOutBit(Int8U Bit, Boolean State)
 {
+	Int8U PrevShadow = SpiOutShadow;
+
 	if(State)
 		SpiOutShadow |= (Int8U)(1u << Bit);
 	else
 		SpiOutShadow &= (Int8U)~(1u << Bit);
+
+	if(DataTable[REG_CNT_ACTIVE] && State && !(PrevShadow & (1u << Bit)))
+	{
+		if(Bit == SPI_OUT_ADAPTER)
+			CycleCounters[0]++;
+		else if(Bit == SPI_OUT_BUS)
+			CycleCounters[1]++;
+	}
 }
 //-----------------------------
 

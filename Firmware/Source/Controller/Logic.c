@@ -379,7 +379,6 @@ void LOGIC_Process()
 						SM_ResetZeroPoint();
 						HomingDuration = CONTROL_TimeCounter - HomingDuration;
 						ClampingDuration = ReleaseDuration = 0;
-						RequestSaveToFlash = TRUE;
 						CONTROL_SetDeviceState(DS_Ready, DSS_None);
 					}
 					break;
@@ -476,7 +475,8 @@ void LOGIC_Process()
 					{
 						ClampingDuration = CONTROL_TimeCounter - ClampingDuration;
 						HomingDuration = ReleaseDuration = 0;
-						RequestSaveToFlash = TRUE;
+						if(DataTable[REG_CNT_ACTIVE])
+							CycleCounters[2]++;
 						DataTable[REG_OP_RESULT] = OPRESULT_OK;
 						CONTROL_SetDeviceState(DS_ClampingDone, DSS_None);
 					}
@@ -505,7 +505,6 @@ void LOGIC_Process()
 					{
 						ReleaseDuration = CONTROL_TimeCounter - ReleaseDuration;
 						HomingDuration = ClampingDuration = 0;
-						RequestSaveToFlash = TRUE;
 						CONTROL_SetDeviceState(DS_Ready, DSS_None);
 					}
 					break;

@@ -26,6 +26,7 @@ volatile Int64U CONTROL_TimeCounter = 0;
 volatile DeviceState CONTROL_State = DS_None;
 volatile DeviceSubState CONTROL_SubState = DSS_None;
 volatile Int16U CONTROL_ExtInfoCounter = 0;
+static Int64U CT_SaveTimer = 0;
 
 volatile Int32U HomingDuration = 0, ClampingDuration = 0, ReleaseDuration = 0;
 volatile Boolean RequestSaveToFlash = FALSE;
@@ -68,8 +69,11 @@ void CONTROL_Init()
 
 	// Reset control values
 	DEVPROFILE_ResetControlSection();
-	CONTROL_InitStoragePointers();
+
 	SM_ResetZeroPoint();
+	// Настройка указателей и счетчиков
+	CONTROL_InitStoragePointers();
+	STF_LoadCounters();
 
 	if(DataTable[REG_USE_HEATING])
 	{
@@ -98,12 +102,19 @@ void CONTROL_Idle()
 	CONTROL_UpdatePressureOK();
 	LOGIC_Process();
 
-	if(RequestSaveToFlash && (CONTROL_State == DS_None || CONTROL_State == DS_Fault ||  CONTROL_State == DS_Ready || CONTROL_State == DS_Halt
-							|| CONTROL_State == DS_ClampingDone))
-
+	if(CONTROL_State == DS_None || CONTROL_State == DS_Fault ||  CONTROL_State == DS_Ready || CONTROL_State == DS_Halt
+	|| CONTROL_State == DS_ClampingDone)
 	{
-		RequestSaveToFlash = FALSE;
-		STF_SaveDiagData();
+		if(RequestSaveToFlash)
+		{
+			RequestSaveToFlash = FALSE;
+			STF_SaveDiagData();
+		}
+		if(DataTable[REG_CNT_ACTIVE] && (CONTROL_TimeCounter - CT_SaveTimer) >= CT_SAVE_TIMEOUT)
+		{
+			STF_SaveCounterData();
+			CT_SaveTimer = CONTROL_TimeCounter;
+		}
 	}
 
 	CONTROL_WatchDogUpdate();
@@ -401,6 +412,9 @@ void CONTROL_UpdatePressureOK()
 
 void CONTROL_InitStoragePointers()
 {
+	for(Int16U i = 0; i < COMMUTATION_TABLE_SIZE; ++i)
+		STF_AssignCounterPointer(i, (Int32U)&CycleCounters[i]);
+
 	STF_AssignPointer(0, (Int32U)&DataTable[REG_DEV_STATE]);
 	STF_AssignPointer(1, (Int32U)&DataTable[REG_FAULT_REASON]);
 	STF_AssignPointer(2, (Int32U)&DataTable[REG_DISABLE_REASON]);
