@@ -329,8 +329,11 @@ static void LOGIC_ProcessSelfTest()
 
 void LOGIC_Process()
 {
-	LOGIC_ProcessSelfTest();
-	LOGIC_MonitorCycleFaults();
+	if((Int16U)DataTable[REG_USE_ST])
+	{
+		LOGIC_ProcessSelfTest();
+		LOGIC_MonitorCycleFaults();
+	}
 
 	if(CONTROL_State == DS_Fault || CONTROL_State == DS_Halt)
 		return;

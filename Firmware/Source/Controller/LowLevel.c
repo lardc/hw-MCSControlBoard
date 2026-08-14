@@ -1,14 +1,15 @@
 ﻿#include "LowLevel.h"
 
-#include "DataTable.h"
 #include "Delay.h"
-#include "DeviceObjectDictionary.h"
 #include "Global.h"
 #include "SysConfig.h"
 #include "ZwSPI.h"
+#include "DeviceObjectDictionary.h"
+#include "DataTable.h"
+
+Int32U CycleCounters[COMMUTATION_TABLE_SIZE] = {0};
 
 static Int8U SpiOutShadow = 0;
-Int32U CycleCounters[COMMUTATION_TABLE_SIZE] = {0};
 //-----------------------------
 
 static void LL_SPI_WriteRaw(Int8U Data)
@@ -43,7 +44,6 @@ Boolean LL_FilterSafetyCircuit(Boolean NewState)
 void LL_SPI_SetOutBit(Int8U Bit, Boolean State)
 {
 	Int8U PrevShadow = SpiOutShadow;
-
 	if(State)
 		SpiOutShadow |= (Int8U)(1u << Bit);
 	else
@@ -134,13 +134,19 @@ void LL_RS485_SetTxMode(Boolean State)
 
 void LL_SwitchUpDir(Boolean State)
 {
-	GPIO_SetState(GPIO_STPM_DIR, !State);
+	GPIO_SetState(GPIO_STPM_DIR, State);
 }
 //-----------------------------
 
 Boolean LL_IsDirUp()
 {
-	return !GPIO_GetState(GPIO_STPM_DIR);
+	return GPIO_GetState(GPIO_STPM_DIR);
+}
+//-----------------------------
+
+void LL_SetStepperEnable(Boolean Enabled)
+{
+	GPIO_SetState(GPIO_STPM_EN, Enabled);
 }
 //-----------------------------
 

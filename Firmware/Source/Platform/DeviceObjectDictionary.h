@@ -45,7 +45,7 @@
 #define ACT_DBG_READ_TRM_POWER				116	// Read TRM output power
 #define ACT_DBG_TRM_START					117	// Start TRM operation
 #define ACT_DBG_TRM_STOP					118	// Stop TRM operation
-// 119-120
+#define ACT_DBG_MOTOR_DISTANCE				120	// Перемещение в позицию REG_DBG (мм) со скоростями REG_POS_SPEED_MIN/MAX
 #define ACT_DBG_MOTOR_START					121	// Запуск отладочного вращения моторов
 #define ACT_DBG_MOTOR_STOP					122	// Остановка отладочного вращения моторов
 
@@ -92,13 +92,14 @@
 #define REG_POS_SPEED_MIN					16	// Минимальная скорость перемещения при позиционировании зажатия (мм/сек)
 // 17
 #define REG_POS_SPEED_MAX					18	// Максимальная скорость перемещения при позиционировании зажатия (мм/сек)
-#define REG_SM_TOGGLE_ACCELERATION			19	// Наклон ускорения
+#define REG_SM_TOGGLE_ACCELERATION			19	// Макс. изменение периода STEP (тиков TIM3) за один шаг; меньше — плавнее разгон/торможение
 #define REG_USE_HEATING						20	// Включение/выключение обработки команд системы нагрева
 // 21-29
 #define REG_PRESSURE_OFFSET 				30	// Смещение давления
 #define REG_PRESSURE_K						31  // Линейный коэффициент давления
 #define REG_PRESSURE_OK						32	// Корректное давление системы бар x1000
-// 33-63
+// 33-62
+#define REG_USE_ST							63	// Включение самодиагностики и безопастности
 
 // Несохраняемые регистры чтения-записи
 // 64
@@ -149,7 +150,6 @@
 #define REG_SPI_IN_STATE					114	// Сырой байт регистра входа 2SPI
 #define REG_SENSOR_S3						115	// Датчик безопасности S3 (PA9)
 #define REG_SENSOR_S5						116	// Датчик безопасности S5 (PA12)
-// 117-119
 #define REG_ADAPTER_VERSION					120	// Версия адаптера
 #define REG_ADAPTER_SERIAL					121	// Серийный номер адаптера
 #define REG_ADAPTER_CODE					122	// Код адаптера в идентификаторе 1-Wire

@@ -196,6 +196,7 @@ Boolean SM_GoToPosition(pSM_Params Params)
 	SM_MaxCycles = SM_SpeedToCycles(Params->MinSpeed);
 	SM_CyclesToToggle = SM_MaxCycles;
 
+	LL_SetStepperEnable(true);
 	T3Ch4PWM_SetPeriodTicks(SM_CyclesToToggle);
 	T3Ch4PWM_Start();
 	Motor_State = MS_Movement;
@@ -219,6 +220,7 @@ void SM_Homing()
 	}
 	SM_CyclesToToggle = SM_SpeedToCycles(DataTable[REG_HOMING_SPEED]);
 
+	LL_SetStepperEnable(true);
 	T3Ch4PWM_SetPeriodTicks(SM_CyclesToToggle);
 	T3Ch4PWM_Start();
 }
@@ -287,28 +289,36 @@ void SM_ResetZeroPoint()
 }
 // ----------------------------------------
 
-// Плавное изменение скорости ШИМ
+// Ограничение скорости изменения периода ШИМ (REG_SM_TOGGLE_ACCELERATION — тиков за шаг)
 void SM_ToggleCyclesToTarget(Int16U Target)
 {
-	static Int16U EnableCounter = 0;
-	// Сброс при достижении целевого периода
+	Int16U MaxDelta, Delta;
+
 	if(SM_CyclesToToggle == Target)
-	{
-		EnableCounter = 0;
 		return;
-	}
 
-	if(++EnableCounter > DataTable[REG_SM_TOGGLE_ACCELERATION])
+	MaxDelta = DataTable[REG_SM_TOGGLE_ACCELERATION];
+	if(MaxDelta == 0)
+		MaxDelta = 1;
+
+	if(SM_CyclesToToggle > Target)
 	{
-		EnableCounter = 0;
-
-		if(SM_CyclesToToggle < Target)
-			++SM_CyclesToToggle;
-		else if(SM_CyclesToToggle > Target)
-			--SM_CyclesToToggle;
-
-		T3Ch4PWM_SetPeriodTicks(SM_CyclesToToggle);
+		Delta = SM_CyclesToToggle - Target;
+		if(Delta > MaxDelta)
+			SM_CyclesToToggle -= MaxDelta;
+		else
+			SM_CyclesToToggle = Target;
 	}
+	else
+	{
+		Delta = Target - SM_CyclesToToggle;
+		if(Delta > MaxDelta)
+			SM_CyclesToToggle += MaxDelta;
+		else
+			SM_CyclesToToggle = Target;
+	}
+
+	T3Ch4PWM_SetPeriodTicks(SM_CyclesToToggle);
 }
 // ----------------------------------------
 
@@ -316,6 +326,7 @@ void SM_ToggleCyclesToTarget(Int16U Target)
 void SM_StopMotion()
 {
 	T3Ch4PWM_Stop();
+	LL_SetStepperEnable(false);
 	Motor_State = MS_None;
 }
 // ----------------------------------------
