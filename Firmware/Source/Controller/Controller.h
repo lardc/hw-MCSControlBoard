@@ -64,8 +64,11 @@ extern volatile Int32U ClampingDuration;
 extern volatile Int32U ReleaseDuration;
 extern volatile Boolean RequestSaveToFlash;
 extern volatile Int16U CONTROL_ExtInfoCounter;
+extern volatile Int16U CONTROL_ValuesCounter;
 extern Boolean HeatingActive;
 
+extern float CONTROL_MotorMovement[VALUES_x_SIZE];
+extern float CONTROL_MotorSpeed[VALUES_x_SIZE];
 extern volatile float CONTROL_ExtInfoData[VALUES_EXT_INFO_SIZE];
 
 // Functions

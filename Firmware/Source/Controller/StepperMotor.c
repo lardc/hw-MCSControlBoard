@@ -33,14 +33,19 @@ static xTimerAlterHandler AlterHandler = NULL;
 
 static volatile Boolean SM_HomingDoneFlag = FALSE;
 static volatile Int32S SM_GlobalStepsCounter = 0, SM_DestSteps = 0, SM_StartSteps = 0;
-static Int16U SM_CyclesToToggle, SM_MinCycles, SM_MaxCycles;	// MinCycles — быстрый ход, MaxCycles — медленный ход
+static volatile Int16U SM_CyclesToToggle;
+static Int16U SM_MinCycles, SM_MaxCycles;	// MinCycles — быстрый ход, MaxCycles — медленный ход
 static Int32U SM_SpeedChangeSteps = 0;
 static Int64U SM_HomingPauseDeadline = 0;
+volatile Int16U SM_LogScaleCoef = 1;
+volatile Int16U SM_LogScaleCounter = 1;
 
 // Forward functions
 void SM_LogicHandler();
 Int16U SM_SpeedToCycles(Int16U Speed);
 Int32U SM_PosToSteps(Int16U NewPos);
+Int32U SM_EstimateMoveMs(Int32U DistSteps, Int16U MinSpeed);
+static void SM_MotorLogStart(Int32U ExpectedMs);
 void SM_UpDirection(Boolean State);
 void SM_ToggleCyclesToTarget(Int16U Target);
 void SM_StopMotion();
@@ -120,7 +125,7 @@ void SM_LogicHandler()
 			StepsTraveled = abs(SM_GlobalStepsCounter - SM_StartSteps);
 			Target = SM_MinCycles;
 
-			if(StepsTraveled < SM_SpeedChangeSteps)
+			if(StepsTraveled <= SM_SpeedChangeSteps)
 			{
 				AccelTarget = SM_MaxCycles
 						- (Int16U)((SM_MaxCycles - SM_MinCycles) * StepsTraveled / SM_SpeedChangeSteps);
@@ -199,6 +204,7 @@ Boolean SM_GoToPosition(pSM_Params Params)
 	LL_SetStepperEnable(true);
 	T3Ch4PWM_SetPeriodTicks(SM_CyclesToToggle);
 	T3Ch4PWM_Start();
+	SM_MotorLogStart(SM_EstimateMoveMs((Int32U)abs(SM_DestSteps - SM_StartSteps), Params->MinSpeed));
 	Motor_State = MS_Movement;
 	return TRUE;
 }
@@ -208,6 +214,7 @@ Boolean SM_GoToPosition(pSM_Params Params)
 void SM_Homing()
 {
 	SM_HomingDoneFlag = FALSE;
+	SM_MotorLogStart(HOMING_TIMEOUT);
 	if(LL_HomeSensorActuate())
 	{
 		SM_UpDirection(TRUE);
@@ -229,6 +236,31 @@ void SM_Homing()
 Boolean SM_IsBusy()
 {
 	return Motor_State != MS_None;
+}
+// ----------------------------------------
+
+float SM_GetPositionMm()
+{
+	return (float)SM_GlobalStepsCounter * (float)SM_MOVING_RER_ROUND
+			/ (1000.0f * (float)SM_FULL_ROUND_STEPS);
+}
+// ----------------------------------------
+
+float SM_GetSpeedMmS()
+{
+	Int32U TimerClk, StepsPerSec;
+	float Speed;
+
+	if(Motor_State == MS_None || Motor_State == MS_Stop || Motor_State == MS_HomingPause
+			|| SM_CyclesToToggle == 0)
+		return 0.0f;
+
+	TimerClk = SYSCLK / (TIM3->PSC + 1);
+	StepsPerSec = TimerClk / SM_CyclesToToggle;
+	Speed = (float)StepsPerSec * (float)SM_MOVING_RER_ROUND
+			/ (1000.0f * (float)SM_FULL_ROUND_STEPS);
+
+	return LL_IsDirUp() ? Speed : -Speed;
 }
 // ----------------------------------------
 
@@ -256,6 +288,43 @@ void SM_RequestStop()
 Int32U SM_PosToSteps(Int16U NewPos)
 {
 	return 1000ul * NewPos * SM_FULL_ROUND_STEPS / SM_MOVING_RER_ROUND;
+}
+// ----------------------------------------
+
+// Оценка длительности хода по минимальной скорости, мс
+Int32U SM_EstimateMoveMs(Int32U DistSteps, Int16U MinSpeed)
+{
+	Int32U Denom;
+
+	if(MinSpeed == 0)
+		MinSpeed = 1;
+
+	Denom = (Int32U)SM_FULL_ROUND_STEPS * MinSpeed;
+	return (DistSteps * SM_MOVING_RER_ROUND + Denom - 1) / Denom;
+}
+// ----------------------------------------
+
+static void SM_MotorLogStart(Int32U ExpectedMs)
+{
+	Int32U ExpectedTicks, Coef;
+
+	if(ExpectedMs == 0)
+		ExpectedMs = 1;
+
+	ExpectedTicks = ExpectedMs * 1000ul / TIMER7_uS;
+	if(ExpectedTicks == 0)
+		ExpectedTicks = 1;
+
+	Coef = (ExpectedTicks + VALUES_x_SIZE - 1) / VALUES_x_SIZE;
+	if(Coef == 0)
+		Coef = 1;
+	else if(Coef > INT16U_MAX)
+		Coef = INT16U_MAX;
+
+	SM_LogScaleCoef = (Int16U)Coef;
+	SM_LogScaleCounter = 1;
+	CONTROL_ValuesCounter = 0;
+	DataTable[REG_DEBUG_SCALING_COEF] = SM_LogScaleCoef;
 }
 // ----------------------------------------
 

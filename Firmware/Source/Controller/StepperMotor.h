@@ -28,6 +28,8 @@ void SM_Config(pSM_Params Params, Int16U PositionMm);
 Boolean SM_GoToPosition(pSM_Params Params);
 Boolean SM_IsBusy();
 Boolean SM_IsPositioningDone();
+float SM_GetPositionMm();
+float SM_GetSpeedMmS();
 // Homing
 void SM_Homing();
 Boolean SM_IsHomingDone();

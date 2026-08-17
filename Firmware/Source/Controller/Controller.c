@@ -26,11 +26,14 @@ volatile Int64U CONTROL_TimeCounter = 0;
 volatile DeviceState CONTROL_State = DS_None;
 volatile DeviceSubState CONTROL_SubState = DSS_None;
 volatile Int16U CONTROL_ExtInfoCounter = 0;
+volatile Int16U CONTROL_ValuesCounter = 0;
 static Int64U CT_SaveTimer = 0;
 
 volatile Int32U HomingDuration = 0, ClampingDuration = 0, ReleaseDuration = 0;
 volatile Boolean RequestSaveToFlash = FALSE;
 
+float CONTROL_MotorMovement[VALUES_x_SIZE] = {0};
+float CONTROL_MotorSpeed[VALUES_x_SIZE] = {0};
 volatile float CONTROL_ExtInfoData[VALUES_EXT_INFO_SIZE];
 
 // Forward functions
@@ -47,13 +50,13 @@ void CONTROL_ResetOutputRegisters();
 void CONTROL_Init()
 {
 	// Переменные для конфигурации EndPoint
-	Int16U FEPIndexes[FEP_COUNT] = {EP_ExtInfoData};
+	Int16U FEPIndexes[FEP_COUNT] = {EP_MotorMovement, EP_MotorSpeed, EP_ExtInfoData};
 
-	Int16U FEPSized[FEP_COUNT] = {VALUES_EXT_INFO_SIZE};
+	Int16U FEPSized[FEP_COUNT] = {VALUES_x_SIZE, VALUES_x_SIZE, VALUES_EXT_INFO_SIZE};
 
-	pInt16U FEPCounters[FEP_COUNT] = {(pInt16U)&CONTROL_ExtInfoCounter};
+	pInt16U FEPCounters[FEP_COUNT] = {(pInt16U)&CONTROL_ValuesCounter, (pInt16U)&CONTROL_ValuesCounter, (pInt16U)&CONTROL_ExtInfoCounter};
 
-	pFloat32 FEPDatas[FEP_COUNT] = {(pFloat32)&CONTROL_ExtInfoData};
+	pFloat32 FEPDatas[FEP_COUNT] = {(pFloat32)CONTROL_MotorMovement, (pFloat32)CONTROL_MotorSpeed, (pFloat32)CONTROL_ExtInfoData};
 
 	// Data-table EPROM service configuration
 	EPROMServiceConfig EPROMService = {	(FUNC_EPROM_WriteValues)&NFLASH_WriteDT, (FUNC_EPROM_ReadValues)&NFLASH_ReadDT};

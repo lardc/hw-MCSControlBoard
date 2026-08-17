@@ -12,10 +12,10 @@
 
 #define EP_COUNT						0
 #define EP_WRITE_COUNT					0
-#define FEP_COUNT						1
+#define FEP_COUNT						3
 
 // Размеры массивов EP
-#define VALUES_x_SIZE					500
+#define VALUES_x_SIZE					1000
 #define VALUES_EXT_INFO_SIZE			300
 
 // Системные временные параметры

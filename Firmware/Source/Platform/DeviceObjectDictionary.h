@@ -156,7 +156,8 @@
 #define REG_ADAPTER_MAX_VOLTAGE				123	// Макс. напряжение из идентификатора
 #define REG_ADAPTER_MAX_CURRENT				124	// Макс. ток из идентификатора
 #define REG_ADAPTER_CLAMP_HEIGHT			125	// Высота зажатия из идентификатора (мм)
-// 126-158
+#define REG_DEBUG_SCALING_COEF				126	// Рассчитанный коэф масштабирования EP скорости/перемещения
+// 127-158
 #define REG_SP__3							159
 // 160-255
 //
@@ -207,6 +208,9 @@
 #define ERR_TRM_COMM_ERR					7	// Communication with TRM failed
 
 // ENDPOINTS
+#define EP_MotorMovement					1	// Перемещение двигателя
+#define EP_MotorSpeed						2	// Скорость двигателя
+
 #define EP_ExtInfoData						20	// Diag data drom flash
 
 #endif // __DEV_OBJ_DIC_H
