@@ -84,7 +84,7 @@ Boolean SMD_GoToDistanceMm(Int16U PositionMm)
 	if(PositionMm > POS_MAX)
 		return FALSE;
 
-	if((Int16U)DataTable[REG_POS_SPEED_MIN] > (Int16U)DataTable[REG_POS_SPEED_MAX])
+	if(DataTable[REG_POS_SPEED_MIN] > DataTable[REG_POS_SPEED_MAX])
 		return FALSE;
 
 	SM_Config(&Params, PositionMm);

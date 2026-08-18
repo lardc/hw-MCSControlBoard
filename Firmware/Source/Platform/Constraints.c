@@ -42,7 +42,7 @@ const TableItemConstraint Constraint[DATA_TABLE_WP_START] = {
 	{0, INT16U_MAX, 0},																// 30
 	{0, INT16U_MAX, 0},																// 31
 	{0, INT16U_MAX, PRESSURE_OK_DEF},												// 32
-	{NO, YES, YES},																	// 33
+	{0, 0, 0},																		// 33
 	{0, 0, 0},																		// 34
 	{0, 0, 0},																		// 35
 	{0, 0, 0},																		// 36
@@ -72,7 +72,7 @@ const TableItemConstraint Constraint[DATA_TABLE_WP_START] = {
 	{0, 0, 0},																		// 60
 	{0, 0, 0},																		// 61
 	{0, 0, 0},																		// 62
-	{0, 0, 0},																		// 63
+	{NO, YES, YES},																	// 63
 	{0, 0, 0},																		// 64
 	{0, INT16U_MAX, 0},																// 65
 	{0, INT16U_MAX, 0},																// 66

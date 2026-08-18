@@ -197,7 +197,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 					break;
 				}
 
-				if((Int16U)DataTable[REG_POS_SPEED_MIN] > (Int16U)DataTable[REG_POS_SPEED_MAX])
+				if(DataTable[REG_POS_SPEED_MIN] > DataTable[REG_POS_SPEED_MAX])
 				{
 					CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
 					break;
@@ -214,7 +214,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 		case ACT_RELEASE_CLAMPING:
 			if(CONTROL_State == DS_Halt || CONTROL_State == DS_ClampingDone || CONTROL_State == DS_Ready)
 			{
-				if((Int16U)DataTable[REG_POS_SPEED_MIN] > (Int16U)DataTable[REG_POS_SPEED_MAX])
+				if(DataTable[REG_POS_SPEED_MIN] > DataTable[REG_POS_SPEED_MAX])
 				{
 					CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
 					break;
@@ -439,5 +439,8 @@ void CONTROL_InitStoragePointers()
 	STF_AssignPointer(18, (Int32U)&DataTable[REG_SPI_IN_STATE]);
 	STF_AssignPointer(19, (Int32U)&DataTable[REG_SENSOR_S3]);
 	STF_AssignPointer(20, (Int32U)&DataTable[REG_SENSOR_S5]);
+	STF_AssignPointer(21, (Int32U)&DataTable[REG_DEBUG_SCALING_COEF]);
+	STF_AssignPointer(22, (Int32U)CONTROL_MotorMovement);
+	STF_AssignPointer(23, (Int32U)CONTROL_MotorSpeed);
 }
 //--------------------

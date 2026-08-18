@@ -11,9 +11,11 @@
 extern volatile Int16U SM_LogScaleCoef;
 extern volatile Int16U SM_LogScaleCounter;
 
+// Functions
+//
 static void CONTROL_MotorLogSample()
 {
-	if(!SM_IsBusy() || CONTROL_ValuesCounter >= VALUES_x_SIZE)
+	if(!SM_IsLogging() || CONTROL_ValuesCounter >= VALUES_x_SIZE)
 		return;
 
 	if(SM_LogScaleCounter > 1)
@@ -27,9 +29,7 @@ static void CONTROL_MotorLogSample()
 	CONTROL_MotorSpeed[CONTROL_ValuesCounter] = SM_GetSpeedMmS();
 	CONTROL_ValuesCounter++;
 }
-
-// Functions
-//
+//-----------------------------------------
 void USART2_IRQHandler()
 {
 	if(USARTx_RecieveCheck(USART2))

@@ -1,4 +1,5 @@
 #include "StorageDescription.h"
+#include "Global.h"
 
 RecordDescription StorageDescription[] =
 {
@@ -27,6 +28,10 @@ RecordDescription StorageDescription[] =
 	{"REG_SPI_IN_STATE",			DT_Float, 1},
 	{"REG_SENSOR_S3",				DT_Float, 1},
 	{"REG_SENSOR_S5",				DT_Float, 1},
+	{"REG_DEBUG_SCALING_COEF",		DT_Float, 1},
+
+	{"EP_MotorMovement",			DT_Float, VALUES_x_SIZE},
+	{"EP_MotorSpeed",				DT_Float, VALUES_x_SIZE},
 };
 
 Int32U TablePointers[sizeof(StorageDescription) / sizeof(StorageDescription[0])] = {0};
