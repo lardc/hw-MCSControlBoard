@@ -96,8 +96,8 @@ const TableItemConstraint Constraint[DATA_TABLE_WP_START] = {
 	{0, 255, 0},																	// 84
 	{0, INT16U_MAX, 0},																// 85
 	{ADAPTER_CLAMP_HEIGHT_MIN, ADAPTER_CLAMP_HEIGHT_MAX, ADAPTER_CLAMP_HEIGHT_DEF},	// 86
-	{0, 0, 0},																		// 87
-	{0, 0, 0},																		// 88
+	{0, INT16U_MAX, 0},																// 87
+	{0, INT16U_MAX, 0},																// 88
 	{0, 0, 0},																		// 89
 	{0, INT16U_MAX, 0},																// 90
 	{0, INT16U_MAX, 0},																// 91

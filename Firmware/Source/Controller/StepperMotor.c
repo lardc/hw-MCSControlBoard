@@ -220,10 +220,10 @@ Boolean SM_GoToPosition(pSM_Params Params)
 
 	LL_SetStepperEnable(true);
 	T3Ch4PWM_SetPeriodTicks(SM_CyclesToToggle);
-	T3Ch4PWM_Start();
 	if(!ContinueLog)
 		SM_MotorLogStart(SM_EstimateMoveMs((Int32U)abs(SM_DestSteps - SM_StartSteps)));
 	Motor_State = MS_Movement;
+	T3Ch4PWM_Start();
 	return TRUE;
 }
 // ----------------------------------------
@@ -235,12 +235,12 @@ void SM_Homing()
 	Int16U OffsetMm;
 
 	SM_HomingDoneFlag = FALSE;
-	SM_LogContinue = TRUE;
 	SM_MinCycles = SM_MaxCycles = SM_SpeedToCycles(DataTable[REG_HOMING_SPEED]);
 	SM_SpeedChangeSteps = 0;
 	OffsetMm = (Int16U)DataTable[REG_HOMING_OFFSET];
 	OffsetMs = SM_EstimateMoveMs(SM_PosToSteps(OffsetMm));
 	SM_MotorLogStart(HOMING_TIMEOUT + HOMING_PAUSE + OffsetMs);
+	SM_LogContinue = TRUE;
 	if(LL_HomeSensorActuate())
 	{
 		SM_UpDirection(TRUE);

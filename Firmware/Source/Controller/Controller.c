@@ -366,14 +366,20 @@ void CONTROL_UpdateTRMTemperature()
 	static Int64U ReadTimeout = 0;
 	static TRMError error = TRME_None;
 
+	if(!DataTable[REG_USE_HEATING])
+	{
+		error = TRME_None;
+		return;
+	}
+
 	// Условие разрешения считывания температуры
-	if(DataTable[REG_USE_HEATING] && error == TRME_None && CONTROL_State != DS_Fault && CONTROL_TimeCounter > ReadTimeout)
+	if(error == TRME_None && CONTROL_State != DS_Fault && CONTROL_TimeCounter > ReadTimeout)
 	{
 		DataTable[REG_TEMP_CH1] = TRM_ReadTemp(TRM_CH1_ADDR, &error);
 		ReadTimeout = CONTROL_TimeCounter + TRM_READ_PAUSE;
 	}
 
-	// Фолт при ошибке срабатывает только после завершения операции зажатия
+	// Фолт при ошибке срабатывает только после выхода в Ready (хоуминг/зажатие)
 	if(CONTROL_State == DS_Ready && error != TRME_None)
 	{
 		CONTROL_SwitchToFault(DF_TRM);

@@ -182,6 +182,8 @@ static Boolean DEVPROFILE_DispatchAction(Int16U ActionID, pInt16U UserError)
 			break;
 
 		case ACT_SET_COUNTER:
+			if((Int16U)DataTable[REG_CNT_NUMBER] >= COMMUTATION_TABLE_SIZE)
+				*UserError = ERR_OPERATION_BLOCKED;
 			CycleCounters[(Int16U)DataTable[REG_CNT_NUMBER]] = DataTable[REG_CNT_VALUE];
 			break;
 

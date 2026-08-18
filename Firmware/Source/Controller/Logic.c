@@ -334,6 +334,8 @@ void LOGIC_Process()
 		LOGIC_ProcessSelfTest();
 		LOGIC_MonitorCycleFaults();
 	}
+	else if(CONTROL_State == DS_SelfTest)
+		CONTROL_SetDeviceState(DS_Ready, DSS_None);
 
 	if(CONTROL_State == DS_Fault || CONTROL_State == DS_Halt)
 		return;
@@ -551,6 +553,11 @@ void LOGIC_Process()
 					if(DataTable[REG_USE_HEATING])
 						TRM_Stop(TRM_CH1_ADDR, &error);
 
+					IsHolding = false;
+					LOGIC_ClampHeightMm = 0;
+					DataTable[REG_ADAPTER_MATCH] = false;
+					LOGIC_Id.Cached = FALSE;
+
 					if(error != TRME_None)
 					{
 						DataTable[REG_TRM_ERROR] = error;
@@ -563,15 +570,11 @@ void LOGIC_Process()
 					LL_SPI_FlushOut();
 					HeatingActive = FALSE;
 
-					LOGIC_ClampHeightMm = 0;
-					DataTable[REG_ADAPTER_MATCH] = false;
-					LOGIC_Id.Cached = FALSE;
 					CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterRelease_Done);
 				}
 					break;
 
 				case DSS_AdapterRelease_Done:
-					IsHolding = false;
 					if(LOGIC_FaultSpiAfterRelease)
 					{
 						LOGIC_FaultSpiAfterRelease = FALSE;
