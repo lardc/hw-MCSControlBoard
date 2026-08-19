@@ -188,6 +188,33 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 				*UserError = ERR_OPERATION_BLOCKED;
 			break;
 
+		case ACT_GOTO_POSITION:
+			if(CONTROL_State == DS_Ready)
+			{
+				SM_Params Params;
+				if(!SM_IsHomingDone())
+				{
+					*UserError = ERR_DEVICE_NOT_READY;
+					break;
+				}
+				if(DataTable[REG_CUSTOM_POS] > POS_MAX)
+				{
+					*UserError = ERR_OPERATION_BLOCKED;
+					break;
+				}
+				if(DataTable[REG_POS_SPEED_MIN] > DataTable[REG_POS_SPEED_MAX])
+				{
+					CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
+					break;
+				}
+				SM_Config(&Params, (Int16U)DataTable[REG_CUSTOM_POS]);
+				if(!SM_GoToPosition(&Params))
+					CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
+			}
+			else
+				*UserError = ERR_DEVICE_NOT_READY;
+			break;
+
 		case ACT_START_CLAMPING:
 			if(CONTROL_State == DS_Ready)
 			{

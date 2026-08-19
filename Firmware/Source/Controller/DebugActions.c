@@ -161,17 +161,6 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 			SMD_ConnectHandler();
 			break;
 
-		case ACT_DBG_MOTOR_DISTANCE:
-			if(SM_IsBusy())
-				*UserError = ERR_OPERATION_BLOCKED;
-			else if(DataTable[REG_DBG] > POS_MAX)
-				*UserError = ERR_OPERATION_BLOCKED;
-			else if(DataTable[REG_POS_SPEED_MIN] > DataTable[REG_POS_SPEED_MAX])
-				CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
-			else if(!SMD_GoToDistanceMm((Int16U)DataTable[REG_DBG]))
-				CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
-			break;
-
 		case ACT_DBG_MOTOR_STOP:
 			SMD_RequstStop();
 			SM_RequestStop();

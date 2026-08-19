@@ -29,7 +29,7 @@
 #define ACT_DBG_TRM_WRITE					31	// Запись FLOAT32 в holding-регистр TRM10; REG_DBG_TRM_ADDRESS — slave, REG_DBG — адрес, REG_DBG2 — значение
 
 #define ACT_HOMING							100	// Start homing
-// 101
+#define ACT_GOTO_POSITION					101	// Перемещение в позицию REG_CUSTOM_POS (мм) со скоростями REG_POS_SPEED_MIN/MAX
 #define ACT_START_CLAMPING					102 // Star clamping
 // 103
 #define ACT_RELEASE_CLAMPING				104 // Perform unclamp
@@ -45,7 +45,7 @@
 #define ACT_DBG_READ_TRM_POWER				116	// Read TRM output power
 #define ACT_DBG_TRM_START					117	// Start TRM operation
 #define ACT_DBG_TRM_STOP					118	// Stop TRM operation
-#define ACT_DBG_MOTOR_DISTANCE				120	// Перемещение в позицию REG_DBG (мм) со скоростями REG_POS_SPEED_MIN/MAX
+// 120
 #define ACT_DBG_MOTOR_START					121	// Запуск отладочного вращения моторов
 #define ACT_DBG_MOTOR_STOP					122	// Остановка отладочного вращения моторов
 
@@ -100,7 +100,7 @@
 // 33-63
 
 // Несохраняемые регистры чтения-записи
-// 64
+#define REG_CUSTOM_POS						64	// Mannually configured position (in mm)
 #define REG_TEST_CURRENT					65	// Заданный Master предел тока для сверки
 #define REG_TEST_VOLTAGE					66	// Заданный Master предел напряжения для сверки
 // 67-70
