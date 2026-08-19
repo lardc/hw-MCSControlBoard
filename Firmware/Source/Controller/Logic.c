@@ -329,19 +329,18 @@ static void LOGIC_ProcessSelfTest()
 
 void LOGIC_Process()
 {
-	if((Int16U)DataTable[REG_USE_ST])
-	{
-		LOGIC_ProcessSelfTest();
-		LOGIC_MonitorCycleFaults();
-	}
-	else if(CONTROL_State == DS_SelfTest)
-		CONTROL_SetDeviceState(DS_Ready, DSS_None);
-
+	LOGIC_MonitorCycleFaults();
+	
 	if(CONTROL_State == DS_Fault || CONTROL_State == DS_Halt)
 		return;
 
 	switch(CONTROL_State)
 	{
+		case DS_SelfTest:
+			// TODO: требует переделки
+			LOGIC_ProcessSelfTest();
+			break;
+
 		case DS_Homing:
 			switch(CONTROL_SubState)
 			{

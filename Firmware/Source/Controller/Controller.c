@@ -84,7 +84,7 @@ void CONTROL_Init()
 		TRM_Stop(TRM_CH1_ADDR, &dummy_error);
 	}
 
-	CONTROL_SetDeviceState(DS_SelfTest, DSS_None);
+	CONTROL_SetDeviceState(DataTable[REG_USE_ST] ? DS_SelfTest : DS_None, DSS_None);
 }
 // ----------------------------------------
 
