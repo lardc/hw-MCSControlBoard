@@ -55,6 +55,9 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 
 			GPIO_InitAltFunction(GPIO_STPM_STEP, AltFn_2);
 			break;
+		case ACT_DBG_STPM_EN:
+			GPIO_SetState(GPIO_STPM_EN, DataTable[REG_DBG]);
+			break;
 		case ACT_DBG_DQ_PWR:
 			{
 				Boolean prev = GPIO_GetState(GPIO_DQ_PWR);

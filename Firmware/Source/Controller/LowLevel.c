@@ -144,12 +144,6 @@ Boolean LL_IsDirUp()
 }
 //-----------------------------
 
-void LL_SetStepperEnable(Boolean Enabled)
-{
-	GPIO_SetState(GPIO_STPM_EN, Enabled);
-}
-//-----------------------------
-
 void LL_ToggleBoardLED()
 {
 	GPIO_Toggle(GPIO_LED);

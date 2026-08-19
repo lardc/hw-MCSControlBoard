@@ -64,7 +64,7 @@ void INITCFG_ConfigGPIO()
 	GPIO_SetState(GPIO_LED, false);
 	GPIO_SetState(GPIO_RS485_CTRL, false);
 	GPIO_SetState(GPIO_STPM_DIR, false);
-	GPIO_SetState(GPIO_STPM_EN, false);
+	GPIO_SetState(GPIO_STPM_EN, true);
 	GPIO_SetState(GPIO_SPI_SS, false);
 	GPIO_SetState(GPIO_TEST, false);
 	GPIO_SetState(GPIO_SPI_LD, false);

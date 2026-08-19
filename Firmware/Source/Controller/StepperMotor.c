@@ -213,7 +213,6 @@ Boolean SM_GoToPosition(pSM_Params Params)
 	if(SM_SpeedChangeSteps > (TotalMoveSteps / 2))
 		SM_SpeedChangeSteps = TotalMoveSteps / 2;
 
-	LL_SetStepperEnable(true);
 	T3Ch4PWM_SetPeriodTicks(SM_CyclesToToggle);
 	if(!ContinueLog)
 		SM_MotorLogStart(SM_EstimateMoveMs((Int32U)abs(SM_DestSteps - SM_StartSteps)));
@@ -248,7 +247,6 @@ void SM_Homing()
 	}
 	SM_CyclesToToggle = SM_MinCycles;
 
-	LL_SetStepperEnable(true);
 	T3Ch4PWM_SetPeriodTicks(SM_CyclesToToggle);
 	T3Ch4PWM_Start();
 }
@@ -427,7 +425,6 @@ void SM_ToggleCyclesToTarget(Int16U Target)
 void SM_StopMotion()
 {
 	T3Ch4PWM_Stop();
-	LL_SetStepperEnable(false);
 	Motor_State = MS_None;
 }
 // ----------------------------------------

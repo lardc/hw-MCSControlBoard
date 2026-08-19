@@ -44,7 +44,6 @@ void LL_SetTestLine(Boolean State);
 void LL_RS485_SetTxMode(Boolean State);
 void LL_SwitchUpDir(Boolean State);
 Boolean LL_IsDirUp();
-void LL_SetStepperEnable(Boolean Enabled);
 
 void LL_ToggleBoardLED();
 

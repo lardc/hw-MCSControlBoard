@@ -40,6 +40,9 @@
 #define ACT_RELEASE_ADAPTER					109	// Release adapter for changing
 #define ACT_HOLD_ADAPTER					110	// Hold adapter
 
+// 111-113
+#define ACT_DBG_STPM_EN						111	// Set GPIO_STPM_EN from REG_DBG (0/1)
+
 #define ACT_DBG_READ_EXT_TEMP				114 // Read actual temperature value from Ext TRM
 #define ACT_DBG_READ_TRM_TEMP				115	// Read temperature value from TRM
 #define ACT_DBG_READ_TRM_POWER				116	// Read TRM output power
