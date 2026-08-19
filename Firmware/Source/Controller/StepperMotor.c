@@ -176,8 +176,8 @@ void SM_Config(pSM_Params Params, Int16U PositionMm)
 // Переход в новую позицию, мм; скорости в мм/с
 Boolean SM_GoToPosition(pSM_Params Params)
 {
-	Int16U SlowDownDist, AccelLimit;
-	Int32U SpeedChangeStepsByDist, SpeedChangeStepsByAccel, TotalMoveSteps;
+	Int16U AccelLimit;
+	Int32U TotalMoveSteps;
 	Boolean ContinueLog = SM_LogContinue;
 
 	SM_HomingDoneFlag = FALSE;
@@ -203,16 +203,11 @@ Boolean SM_GoToPosition(pSM_Params Params)
 	SM_MinCycles = SM_SpeedToCycles(Params->MaxSpeed);
 	SM_MaxCycles = SM_SpeedToCycles(Params->MinSpeed);
 	SM_CyclesToToggle = SM_MaxCycles;
-	SlowDownDist = DataTable[REG_SLOW_DOWN_DIST];
-	SpeedChangeStepsByDist = SM_PosToSteps(SlowDownDist);
 	AccelLimit = DataTable[REG_SM_TOGGLE_ACCELERATION];
 	if(AccelLimit == 0)
 		AccelLimit = 1;
 
-	SpeedChangeStepsByAccel = (SM_MaxCycles - SM_MinCycles + AccelLimit - 1) / AccelLimit;
-	SM_SpeedChangeSteps = (SpeedChangeStepsByDist > SpeedChangeStepsByAccel)
-			? SpeedChangeStepsByDist
-			: SpeedChangeStepsByAccel;
+	SM_SpeedChangeSteps = (SM_MaxCycles - SM_MinCycles + AccelLimit - 1) / AccelLimit;
 
 	TotalMoveSteps = abs(SM_DestSteps - SM_GlobalStepsCounter);
 	if(SM_SpeedChangeSteps > (TotalMoveSteps / 2))

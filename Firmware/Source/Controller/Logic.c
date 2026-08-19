@@ -329,7 +329,8 @@ static void LOGIC_ProcessSelfTest()
 
 void LOGIC_Process()
 {
-	LOGIC_MonitorCycleFaults();
+	if(DataTable[REG_USE_SAFETY])
+		LOGIC_MonitorCycleFaults();
 	
 	if(CONTROL_State == DS_Fault || CONTROL_State == DS_Halt)
 		return;

@@ -72,7 +72,7 @@ const TableItemConstraint Constraint[DATA_TABLE_WP_START] = {
 	{0, 0, 0},																		// 60
 	{0, 0, 0},																		// 61
 	{0, 0, 0},																		// 62
-	{NO, YES, YES},																	// 63
+	{0, 0, 0},																		// 63
 	{0, 0, 0},																		// 64
 	{0, INT16U_MAX, 0},																// 65
 	{0, INT16U_MAX, 0},																// 66
@@ -91,8 +91,8 @@ const TableItemConstraint Constraint[DATA_TABLE_WP_START] = {
 	{0, 0, 0},																		// 79
 	{0, 0, 0},																		// 80
 	{0, 0, 0},																		// 81
-	{0, 0, 0},																		// 82
-	{0, 0, 0},																		// 83
+	{NO, YES, YES},																	// 82
+	{NO, YES, YES},																	// 83
 	{0, 255, 0},																	// 84
 	{0, INT16U_MAX, 0},																// 85
 	{ADAPTER_CLAMP_HEIGHT_MIN, ADAPTER_CLAMP_HEIGHT_MAX, ADAPTER_CLAMP_HEIGHT_DEF},	// 86
