@@ -26,10 +26,14 @@ volatile Int64U CONTROL_TimeCounter = 0;
 volatile DeviceState CONTROL_State = DS_None;
 volatile DeviceSubState CONTROL_SubState = DSS_None;
 volatile Int16U CONTROL_ExtInfoCounter = 0;
+volatile Int16U CONTROL_ValuesCounter = 0;
+static Int64U CT_SaveTimer = 0;
 
 volatile Int32U HomingDuration = 0, ClampingDuration = 0, ReleaseDuration = 0;
 volatile Boolean RequestSaveToFlash = FALSE;
 
+float CONTROL_MotorMovement[VALUES_x_SIZE] = {0};
+float CONTROL_MotorSpeed[VALUES_x_SIZE] = {0};
 volatile float CONTROL_ExtInfoData[VALUES_EXT_INFO_SIZE];
 
 // Forward functions
@@ -46,13 +50,13 @@ void CONTROL_ResetOutputRegisters();
 void CONTROL_Init()
 {
 	// Переменные для конфигурации EndPoint
-	Int16U FEPIndexes[FEP_COUNT] = {EP_ExtInfoData};
+	Int16U FEPIndexes[FEP_COUNT] = {EP_MotorMovement, EP_MotorSpeed, EP_ExtInfoData};
 
-	Int16U FEPSized[FEP_COUNT] = {VALUES_EXT_INFO_SIZE};
+	Int16U FEPSized[FEP_COUNT] = {VALUES_x_SIZE, VALUES_x_SIZE, VALUES_EXT_INFO_SIZE};
 
-	pInt16U FEPCounters[FEP_COUNT] = {(pInt16U)&CONTROL_ExtInfoCounter};
+	pInt16U FEPCounters[FEP_COUNT] = {(pInt16U)&CONTROL_ValuesCounter, (pInt16U)&CONTROL_ValuesCounter, (pInt16U)&CONTROL_ExtInfoCounter};
 
-	pFloat32 FEPDatas[FEP_COUNT] = {(pFloat32)&CONTROL_ExtInfoData};
+	pFloat32 FEPDatas[FEP_COUNT] = {(pFloat32)CONTROL_MotorMovement, (pFloat32)CONTROL_MotorSpeed, (pFloat32)CONTROL_ExtInfoData};
 
 	// Data-table EPROM service configuration
 	EPROMServiceConfig EPROMService = {	(FUNC_EPROM_WriteValues)&NFLASH_WriteDT, (FUNC_EPROM_ReadValues)&NFLASH_ReadDT};
@@ -68,8 +72,11 @@ void CONTROL_Init()
 
 	// Reset control values
 	DEVPROFILE_ResetControlSection();
-	CONTROL_InitStoragePointers();
+
 	SM_ResetZeroPoint();
+	// Настройка указателей и счетчиков
+	CONTROL_InitStoragePointers();
+	STF_LoadCounters();
 
 	if(DataTable[REG_USE_HEATING])
 	{
@@ -77,7 +84,7 @@ void CONTROL_Init()
 		TRM_Stop(TRM_CH1_ADDR, &dummy_error);
 	}
 
-	CONTROL_SetDeviceState(DS_SelfTest, DSS_None);
+	CONTROL_SetDeviceState(DataTable[REG_USE_ST] ? DS_SelfTest : DS_None, DSS_None);
 }
 // ----------------------------------------
 
@@ -98,12 +105,19 @@ void CONTROL_Idle()
 	CONTROL_UpdatePressureOK();
 	LOGIC_Process();
 
-	if(RequestSaveToFlash && (CONTROL_State == DS_None || CONTROL_State == DS_Fault ||  CONTROL_State == DS_Ready || CONTROL_State == DS_Halt
-							|| CONTROL_State == DS_ClampingDone))
-
+	if(CONTROL_State == DS_None || CONTROL_State == DS_Fault ||  CONTROL_State == DS_Ready || CONTROL_State == DS_Halt
+	|| CONTROL_State == DS_ClampingDone)
 	{
-		RequestSaveToFlash = FALSE;
-		STF_SaveDiagData();
+		if(RequestSaveToFlash)
+		{
+			RequestSaveToFlash = FALSE;
+			STF_SaveDiagData();
+		}
+		if(DataTable[REG_CNT_ACTIVE] && (CONTROL_TimeCounter - CT_SaveTimer) >= CT_SAVE_TIMEOUT)
+		{
+			STF_SaveCounterData();
+			CT_SaveTimer = CONTROL_TimeCounter;
+		}
 	}
 
 	CONTROL_WatchDogUpdate();
@@ -125,7 +139,7 @@ static void CONTROL_FillWPPartDefault()
 	DataTable[REG_WARNING] = WARNING_NONE;
 	DataTable[REG_PROBLEM] = PROBLEM_NONE;
 	DataTable[REG_ADAPTER_MATCH] = false;
-	DataTable[REG_ADAPTER_MISMATCH] = ADAPTER_MISMATCH_NONE;
+	DataTable[REG_ADAPTER_MISMATCH_CODE] = ADAPTER_MISMATCH_NONE;
 }
 // ----------------------------------------
 
@@ -156,35 +170,18 @@ static void CONTROL_SetFans(Boolean State)
 
 static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 {
-	AdapterIdentifier Id;
 	switch(ActionID)
 	{
-		case ACT_ADAPTER_WRITE_ID:
-			LOGIC_AdapterIdInit();
-			{
-				Id.Code = DataTable[REG_DEV_CASE];
-				Id.ClampHeightMm = DataTable[REG_DBG_ADAPTER_CLAMP_HEIGHT];
-				Id.MaxCurrent = DataTable[REG_TEST_CURRENT];
-				Id.MaxVoltage = DataTable[REG_TEST_VOLTAGE];
-				Id.Serial = DataTable[REG_DBG_ADAPTER_SERIAL];
-				if(!LOGIC_AdapterIdWrite(&Id))
-					*UserError = ERR_DEVICE_NOT_READY;
-			}
-			break;
-
 		case ACT_ADAPTER_READ_ID:
 			LOGIC_AdapterIdInit();
-			{
-				if(!LOGIC_AdapterIdRead(&Id))
-					*UserError = ERR_DEVICE_NOT_READY;
-			}
+			if(!LOGIC_AdapterIdRead(&LOGIC_Id))
+				*UserError = ERR_DEVICE_NOT_READY;
 			break;
 
 		case ACT_HOMING:
 			if(CONTROL_State == DS_None || CONTROL_State == DS_Halt || CONTROL_State == DS_Ready)
 			{
 				HomingDuration = CONTROL_TimeCounter;
-				SM_Homing();
 				CONTROL_SetDeviceState(DS_Homing, DSS_HomingSearchSensor);
 			}
 			else
@@ -200,6 +197,12 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 					break;
 				}
 
+				if(DataTable[REG_POS_SPEED_MIN] > DataTable[REG_POS_SPEED_MAX])
+				{
+					CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
+					break;
+				}
+
 				ClampingDuration = CONTROL_TimeCounter;
 				CONTROL_ResetOutputRegisters();
 				CONTROL_SetDeviceState(DS_Clamping, DSS_None);
@@ -211,6 +214,12 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 		case ACT_RELEASE_CLAMPING:
 			if(CONTROL_State == DS_Halt || CONTROL_State == DS_ClampingDone || CONTROL_State == DS_Ready)
 			{
+				if(DataTable[REG_POS_SPEED_MIN] > DataTable[REG_POS_SPEED_MAX])
+				{
+					CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
+					break;
+				}
+
 				ReleaseDuration = CONTROL_TimeCounter;
 				HomingDuration = 0;
 				CONTROL_SetDeviceState(DS_ClampingRelease, DSS_None);
@@ -245,7 +254,9 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 
 		case ACT_UPDATE_ADAPTER_MATCH:
 			CONTROL_ResetOutputRegisters();
-			if(LOGIC_ValidateAdapter(&Id))
+			if(!LOGIC_Id.Cached)
+				*UserError = ERR_DEVICE_NOT_READY;
+			else if(LOGIC_ValidateAdapter(&LOGIC_Id))
 				DataTable[REG_OP_RESULT] = OPRESULT_OK;
 			else
 				CONTROL_FinishedWithProblem(PROBLEM_ADAPTER_MISMATCH);
@@ -355,14 +366,20 @@ void CONTROL_UpdateTRMTemperature()
 	static Int64U ReadTimeout = 0;
 	static TRMError error = TRME_None;
 
+	if(!DataTable[REG_USE_HEATING])
+	{
+		error = TRME_None;
+		return;
+	}
+
 	// Условие разрешения считывания температуры
-	if(DataTable[REG_USE_HEATING] && error == TRME_None && CONTROL_State != DS_Fault && CONTROL_TimeCounter > ReadTimeout)
+	if(error == TRME_None && CONTROL_State != DS_Fault && CONTROL_TimeCounter > ReadTimeout)
 	{
 		DataTable[REG_TEMP_CH1] = TRM_ReadTemp(TRM_CH1_ADDR, &error);
 		ReadTimeout = CONTROL_TimeCounter + TRM_READ_PAUSE;
 	}
 
-	// Фолт при ошибке срабатывает только после завершения операции зажатия
+	// Фолт при ошибке срабатывает только после выхода в Ready (хоуминг/зажатие)
 	if(CONTROL_State == DS_Ready && error != TRME_None)
 	{
 		CONTROL_SwitchToFault(DF_TRM);
@@ -396,7 +413,7 @@ void CONTROL_UpdatePressureOK()
 	if(CONTROL_ShouldMonitorPressureFault()
 			&& CONTROL_TimeCounter > PressureOkTime + PNEUMATIC_READ_PAUSE)
 	{
-		DataTable[REG_DBG] = Pressure;
+		DataTable[REG_PRESSURE] = Pressure;
 		CONTROL_SwitchToFault(DF_PRESSURE);
 	}
 }
@@ -404,6 +421,9 @@ void CONTROL_UpdatePressureOK()
 
 void CONTROL_InitStoragePointers()
 {
+	for(Int16U i = 0; i < COMMUTATION_TABLE_SIZE; ++i)
+		STF_AssignCounterPointer(i, (Int32U)&CycleCounters[i]);
+
 	STF_AssignPointer(0, (Int32U)&DataTable[REG_DEV_STATE]);
 	STF_AssignPointer(1, (Int32U)&DataTable[REG_FAULT_REASON]);
 	STF_AssignPointer(2, (Int32U)&DataTable[REG_DISABLE_REASON]);
@@ -421,9 +441,12 @@ void CONTROL_InitStoragePointers()
 	STF_AssignPointer(14, (Int32U)&DataTable[REG_DEV_SUBSTATE]);
 	STF_AssignPointer(15, (Int32U)&DataTable[REG_SELFTEST_RESULT]);
 	STF_AssignPointer(16, (Int32U)&DataTable[REG_ADAPTER_MATCH]);
-	STF_AssignPointer(17, (Int32U)&DataTable[REG_ADAPTER_MISMATCH]);
+	STF_AssignPointer(17, (Int32U)&DataTable[REG_ADAPTER_MISMATCH_CODE]);
 	STF_AssignPointer(18, (Int32U)&DataTable[REG_SPI_IN_STATE]);
 	STF_AssignPointer(19, (Int32U)&DataTable[REG_SENSOR_S3]);
 	STF_AssignPointer(20, (Int32U)&DataTable[REG_SENSOR_S5]);
+	STF_AssignPointer(21, (Int32U)&DataTable[REG_DEBUG_SCALING_COEF]);
+	STF_AssignPointer(22, (Int32U)CONTROL_MotorMovement);
+	STF_AssignPointer(23, (Int32U)CONTROL_MotorSpeed);
 }
 //--------------------

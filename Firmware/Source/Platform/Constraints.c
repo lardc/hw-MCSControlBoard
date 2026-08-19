@@ -9,7 +9,7 @@
 #define YES		1
 
 const TableItemConstraint Constraint[DATA_TABLE_WP_START] = {
-	{0, 0, 0},																		// 0
+	{NO, YES, NO},																	// 0
 	{0, 0, 0},																		// 1
 	{0, 0, 0},																		// 2
 	{0, 0, 0},																		// 3
@@ -19,14 +19,14 @@ const TableItemConstraint Constraint[DATA_TABLE_WP_START] = {
 	{0, 0, 0},																		// 7
 	{0, 0, 0},																		// 8
 	{0, 0, 0},																		// 9
-	{SPEED_MIN, SPEED_MAX, SPEED_DEF},												// 10
-	{SPEED_MIN, SPEED_MAX, SPEED_DEF},												// 11
-	{SPEED_MIN, SPEED_MAX, SPEED_DEF},												// 12
+	{0, 0, 0},																		// 10
+	{0, 0, 0},																		// 11
+	{0, 0, 0},																		// 12
 	{SLOW_DOWN_MIN, SLOW_DOWN_MAX, SLOW_DOWN_DEF},									// 13
 	{SPEED_MIN, SPEED_MAX, SPEED_DEF},												// 14
 	{HOMING_OFFS_MIN, HOMING_OFFS_MAX, HOMING_OFFS_DEF},							// 15
 	{SPEED_MIN, SPEED_MAX, SPEED_DEF},												// 16
-	{SPEED_MIN, SPEED_MAX, SPEED_DEF},												// 17
+	{0, 0, 0},																		// 17
 	{SPEED_MIN, SPEED_MAX, SPEED_DEF},												// 18
 	{1, 100, 50},																	// 19
 	{NO, YES, YES},																	// 20
@@ -72,7 +72,7 @@ const TableItemConstraint Constraint[DATA_TABLE_WP_START] = {
 	{0, 0, 0},																		// 60
 	{0, 0, 0},																		// 61
 	{0, 0, 0},																		// 62
-	{0, 0, 0},																		// 63
+	{NO, YES, YES},																	// 63
 	{0, 0, 0},																		// 64
 	{0, INT16U_MAX, 0},																// 65
 	{0, INT16U_MAX, 0},																// 66
@@ -96,13 +96,13 @@ const TableItemConstraint Constraint[DATA_TABLE_WP_START] = {
 	{0, 255, 0},																	// 84
 	{0, INT16U_MAX, 0},																// 85
 	{ADAPTER_CLAMP_HEIGHT_MIN, ADAPTER_CLAMP_HEIGHT_MAX, ADAPTER_CLAMP_HEIGHT_DEF},	// 86
-	{0, 0, 0},																		// 87
-	{0, 0, 0},																		// 88
+	{0, INT16U_MAX, 0},																// 87
+	{0, INT16U_MAX, 0},																// 88
 	{0, 0, 0},																		// 89
 	{0, INT16U_MAX, 0},																// 90
 	{0, INT16U_MAX, 0},																// 91
 	{0, INT16U_MAX, 0},																// 92
 	{0, INT16U_MAX, 0},																// 93
-	{0, 0, 0},																		// 94
-	{0, 0, 0}																		// 95
+	{0, (COMMUTATION_TABLE_SIZE - 1), 0},											// 94
+	{0, INT16U_MAX, 0}																// 95
 };

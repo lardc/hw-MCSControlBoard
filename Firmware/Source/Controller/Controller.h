@@ -31,22 +31,28 @@ typedef enum __DeviceSubState
 	DSS_None = 0,
 
 	DSS_HomingSearchSensor = 10,
-	DSS_HomingPause = 11,
+	DSS_HomingPauseBeforeOffset = 11,
 	DSS_HomingMakeOffset = 12,
+	DSS_HomingSearchSensorWait = 13,
 
 	DSS_ClampingOperating = 31,
 	DSS_ClampingReleaseOperating = 40,
 
 	DSS_AdapterHold_CheckPressure = 50,
-	DSS_AdapterHold_ConnectAdapter = 51,
-	DSS_AdapterHold_ConnectBus = 52,
-	DSS_AdapterHold_ReadId = 53,
-	DSS_AdapterHold_Done = 54,
+	DSS_AdapterHold_CheckPressureWait = 51,
+	DSS_AdapterHold_ConnectAdapter = 52,
+	DSS_AdapterHold_ConnectAdapterWait = 53,
+	DSS_AdapterHold_ConnectBus = 54,
+	DSS_AdapterHold_ConnectBusWait = 55,
+	DSS_AdapterHold_ReadId = 56,
+	DSS_AdapterHold_Done = 57,
 
 	DSS_AdapterRelease_Bus = 60,
-	DSS_AdapterRelease_Adapter = 61,
-	DSS_AdapterRelease_HeatingOff = 62,
-	DSS_AdapterRelease_Done = 63
+	DSS_AdapterRelease_BusWait = 61,
+	DSS_AdapterRelease_Adapter = 62,
+	DSS_AdapterRelease_AdapterWait = 63,
+	DSS_AdapterRelease_HeatingOff = 64,
+	DSS_AdapterRelease_Done = 65
 } DeviceSubState;
 
 // Variables
@@ -58,8 +64,11 @@ extern volatile Int32U ClampingDuration;
 extern volatile Int32U ReleaseDuration;
 extern volatile Boolean RequestSaveToFlash;
 extern volatile Int16U CONTROL_ExtInfoCounter;
+extern volatile Int16U CONTROL_ValuesCounter;
 extern Boolean HeatingActive;
 
+extern float CONTROL_MotorMovement[VALUES_x_SIZE];
+extern float CONTROL_MotorSpeed[VALUES_x_SIZE];
 extern volatile float CONTROL_ExtInfoData[VALUES_EXT_INFO_SIZE];
 
 // Functions

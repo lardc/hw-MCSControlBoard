@@ -16,6 +16,8 @@
 #include "SaveToFlash.h"
 #include "ZwNFLASH.h"
 #include "ZwIWDG.h"
+#include "StorageDescription.h"
+#include "LowLevel.h"
 
 // Types
 //
@@ -179,6 +181,18 @@ static Boolean DEVPROFILE_DispatchAction(Int16U ActionID, pInt16U UserError)
 			BOOT_LOADER_VARIABLE = BOOT_LOADER_REQUEST;
 			break;
 
+		case ACT_SET_COUNTER:
+			if((Int16U)DataTable[REG_CNT_NUMBER] >= COMMUTATION_TABLE_SIZE)
+				*UserError = ERR_OPERATION_BLOCKED;
+			CycleCounters[(Int16U)DataTable[REG_CNT_NUMBER]] = DataTable[REG_CNT_VALUE];
+			break;
+
+		case ACT_FLASH_CNT_INIT_READ:
+			STF_ResetStateMachine();
+			MemoryPointer = FLASH_COUNTER_START_ADDR;
+			MemoryEndPointer = FLASH_COUNTER_END_ADDR;
+			break;
+
 		case ACT_FLASH_DIAG_INIT_READ:
 			MemoryPointer = FLASH_DIAG_START_ADDR;
 			MemoryEndPointer = FLASH_DIAG_END_ADDR;
@@ -188,10 +202,27 @@ static Boolean DEVPROFILE_DispatchAction(Int16U ActionID, pInt16U UserError)
 			STF_SaveDiagData();
 			break;
 
+		case ACT_SAVE_COUNTERS:
+			STF_SaveCounterData();
+			break;
+
 		case ACT_FLASH_DIAG_ERASE:
 			IWDG_ConfigureSlowUpdate();
 			STF_EraseDataSector();
 			IWDG_ConfigureFastUpdate();
+			break;
+
+		case ACT_ERASE_COUNTERS:
+			{
+				NFLASH_Unlock();
+				// Обнуляем RAM-значения счётчиков и их кэш, чтобы последующее сохранение не вернуло старые значения
+				for(int i = 0; i < CounterStorageSize; ++i)
+				{
+					*(pInt32U)CounterTablePointers[i].Address = 0;
+					CounterTablePointers[i].Value = 0;
+				}
+				STF_EraseCounterDataSector();
+			}
 			break;
 
 		case ACT_FLASH_DIAG_TO_EP:
@@ -204,6 +235,17 @@ static Boolean DEVPROFILE_DispatchAction(Int16U ActionID, pInt16U UserError)
 					CONTROL_ExtInfoData[CONTROL_ExtInfoCounter++] = NFLASH_ReadWord16(MemoryPointer);
 					MemoryPointer += 2;
 				}
+			}
+			break;
+
+		case ACT_FLASH_COUNTER_TO_EP:
+			DEVPROFILE_ResetEPReadState();
+			DEVPROFILE_ResetScopes(0);
+
+			for(CONTROL_ExtInfoCounter = 0; CONTROL_ExtInfoCounter < VALUES_EXT_INFO_SIZE && MemoryPointer <= MemoryEndPointer;)
+			{
+				CONTROL_ExtInfoData[CONTROL_ExtInfoCounter++] = STF_ReadCounter();
+				MemoryPointer += 4;
 			}
 			break;
 
@@ -294,7 +336,13 @@ Int16U DEVPROFILE_CallbackReadX(Int16U Endpoint, pInt16U* Buffer, Boolean Stream
 	
 	// Update content state
 	epState->LastReadCounter = epState->ReadCounter;
-	epState->ReadCounter += pLen;
+	if (!Streamed)
+	{
+		if (pLen == 0)
+			epState->ReadCounter = 0;
+		else
+			epState->ReadCounter += pLen;
+	}
 	
 	return pLen;
 }
@@ -320,9 +368,7 @@ Int16U DEVPROFILE_CallbackReadFastFloatX(Int16U Endpoint, float** Buffer, void* 
 	if(MaxNonStreamSize)
 		pLen = (pLen > MaxNonStreamSize) ? MaxNonStreamSize : pLen;
 
-	// Update content state
 	epState->LastReadCounter = epState->ReadCounter;
-	epState->ReadCounter += pLen;
 
 	return pLen;
 }

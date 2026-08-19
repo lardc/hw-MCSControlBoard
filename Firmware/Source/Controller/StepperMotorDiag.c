@@ -9,6 +9,8 @@
 #include "DataTable.h"
 #include "SysConfig.h"
 #include "Timer3_Ch4PWM.h"
+#include "Constraints.h"
+#include "LowLevel.h"
 
 // Variables
 //
@@ -66,7 +68,26 @@ void SMD_ConnectHandler()
 	TicksMaxCounter = DataTable[REG_DBG_STEPS_MAX];
 
 	SM_ConnectAlterHandler(&SMD_LogicHandler);
+	LL_SetStepperEnable(true);
 	T3Ch4PWM_SetPeriodTicks(SMD_DivisorToCycles(StepDivisorLimit));
 	T3Ch4PWM_Start();
+}
+// ----------------------------------------
+
+Boolean SMD_GoToDistanceMm(Int16U PositionMm)
+{
+	SM_Params Params;
+
+	if(SM_IsBusy())
+		return FALSE;
+
+	if(PositionMm > POS_MAX)
+		return FALSE;
+
+	if(DataTable[REG_POS_SPEED_MIN] > DataTable[REG_POS_SPEED_MAX])
+		return FALSE;
+
+	SM_Config(&Params, PositionMm);
+	return SM_GoToPosition(&Params);
 }
 // ----------------------------------------

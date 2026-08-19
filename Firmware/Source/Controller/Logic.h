@@ -10,7 +10,12 @@ typedef struct __AdapterIdentifier
 	Int16U MaxCurrent;
 	Int16U MaxVoltage;
 	Int16U Serial;
+	Int16U Version;
+	Int16U Device;
+	Boolean Cached;
 } AdapterIdentifier, *pAdapterIdentifier;
+
+extern AdapterIdentifier LOGIC_Id;
 
 void LOGIC_Process();
 Boolean LOGIC_IsCycleActive();

@@ -12,7 +12,7 @@
 #define ACT_CLR_WARNING						4	// Clear warning
 #define ACT_CLR_HALT						5	// Clear halt state
 
-#define ACT_ADAPTER_WRITE_ID				10	//	Запись в индификатор
+#define ACT_DBG_ADAPTER_WRITE_ID			10	//	Запись в индификатор
 #define ACT_ADAPTER_READ_ID					11	//	Чтение с индификатора
 
 #define ACT_DBG_MEAS_PRESSURE				20	// Измерение и запись в REG_DBG значения напряжения на входе АЦП датчика давления
@@ -45,7 +45,7 @@
 #define ACT_DBG_READ_TRM_POWER				116	// Read TRM output power
 #define ACT_DBG_TRM_START					117	// Start TRM operation
 #define ACT_DBG_TRM_STOP					118	// Stop TRM operation
-// 119-120
+#define ACT_DBG_MOTOR_DISTANCE				120	// Перемещение в позицию REG_DBG (мм) со скоростями REG_POS_SPEED_MIN/MAX
 #define ACT_DBG_MOTOR_START					121	// Запуск отладочного вращения моторов
 #define ACT_DBG_MOTOR_STOP					122	// Остановка отладочного вращения моторов
 
@@ -74,27 +74,32 @@
 #define ACT_FLASH_DIAG_SAVE					332	// Сохранение блока отладочной информации во флэш
 #define ACT_FLASH_DIAG_ERASE				333	// Стирание области отладочной информации
 
+#define ACT_FLASH_CNT_INIT_READ				334	// Перемещение указателя в область счетчиков
+#define ACT_SET_COUNTER						336	// Установка значения счетчика
+#define ACT_SAVE_COUNTERS					337	// Сохранить счетчики в памяти
+#define ACT_ERASE_COUNTERS					338	// Удалить счетчики из памяти
+#define ACT_FLASH_COUNTER_TO_EP				339 // Выполнить чтение массива из памяти счетчиков отработки в EP
+
 #define ACT_FLASH_DIAG_TO_EP				340	// Выполнить чтение массива из памяти отладочной информации в EP
 
 // Регистры
 // Сохраняемые регистры
-// 0-9
-#define REG_POS_SPEED_MIN					10	// Минимальная скорость перемещения при позиционировании (мм/сек)
-#define REG_POS_SPEED_LOW					11	// Пониженная скорость перемещения при позиционировании (мм/сек)
-#define REG_POS_SPEED_MAX					12	// Максимальная скорость перемещения при позиционировании (мм/сек)
+#define REG_CNT_ACTIVE						0	// Включение сохранения счетчиков
+// 1-12
 #define REG_SLOW_DOWN_DIST					13	// Расстояние от таргетной точки для начала замедления (мм)
-#define REG_HOMING_SPEED					14	// Скорость хоуминга (мм/сек)
+#define REG_HOMING_SPEED					14	// Скорость хоуминга (мм/с)
 #define REG_HOMING_OFFSET					15	// Оффсет хоуминга (мм)
-#define REG_CLAMP_SPEED_MIN					16	// Минимальная скорость перемещения при позиционировании зажатия (мм/сек)
-#define REG_CLAMP_SPEED_LOW					17	// Пониженная скорость перемещения при позиционировании зажатия (мм/сек)
-#define REG_CLAMP_SPEED_MAX					18	// Максимальная скорость перемещения при позиционировании зажатия (мм/сек)
-#define REG_SM_TOGGLE_ACCELERATION			19	// Наклон ускорения
+#define REG_POS_SPEED_MIN					16	// Минимальная скорость перемещения при позиционировании зажатия (мм/с)
+// 17
+#define REG_POS_SPEED_MAX					18	// Максимальная скорость перемещения при позиционировании зажатия (мм/с)
+#define REG_SM_TOGGLE_ACCELERATION			19	// Макс. наклон профиля STEP (тиков TIM3 на шаг); вместе с REG_SLOW_DOWN_DIST задаёт разгон/торможение
 #define REG_USE_HEATING						20	// Включение/выключение обработки команд системы нагрева
 // 21-29
 #define REG_PRESSURE_OFFSET 				30	// Смещение давления
-#define REG_PRESSURE_K						31  // Линейный коэффициент давления x1000
+#define REG_PRESSURE_K						31  // Линейный коэффициент давления
 #define REG_PRESSURE_OK						32	// Корректное давление системы бар x1000
-// 33-63
+// 33-62
+#define REG_USE_ST							63	// Включение самодиагностики и безопастности
 
 // Несохраняемые регистры чтения-записи
 // 64
@@ -108,13 +113,16 @@
 //
 #define REG_DBG_ADAPTER_SERIAL				85	// Серийный номер адаптера
 #define REG_DBG_ADAPTER_CLAMP_HEIGHT		86	// Высота зажатия из идентификатора (мм)
-// 87-89
+#define REG_DBG_ADAPTER_VERSION				87	// Версия адаптера
+#define REG_DBG_ADAPTER_DEVICE				88	// Тип устройства в метке адаптера
+// 89
 #define REG_DBG_STEP_DIV					90	// Коэффициент деления шагов в отладочном режиме
 #define REG_DBG_STEPS_MAX					91	// Количество шагов для поворота в отладочном режиме
 //
 #define REG_DBG								92	// Отладочный регистр
 #define REG_DBG2							93	// Отладочный регистр
-// 94-95
+#define REG_CNT_NUMBER						94	// Номер счетчика, в который будет записано значение
+#define REG_CNT_VALUE						95	// Значение, которое будет записано в счетчик
 
 // Регистры только чтение
 #define REG_DEV_STATE						96	// Device state
@@ -127,7 +135,7 @@
 #define REG_TEMP_CH1						102	// Sampled temperature on channel 1
 #define REG_TRM_DATA						103	// Data read from TRM
 #define REG_TRM_ERROR						104	// TRM error value
-#define REG_PRESSURE						105	// Давление в пневмомагистрали
+#define REG_PRESSURE						105	// Давление в пневмомагистрали в бар x1000
 #define REG_SENSOR_S2						106	// Датчик столика S2 (PA10)
 #define REG_HOMING_SENSOR					107	// Состояние датчика хоуминга
 #define REG_BUS_TOOLING_SENSOR				108	// SPI: датчик подключения силовых шин
@@ -137,18 +145,19 @@
 #define REG_SELFTEST_RESULT					111	// Маска ошибок самодиагностики ОШ (бит0=ОШ1, бит1=ОШ2)
 //
 #define REG_ADAPTER_MATCH					112	// Результат сверки идентификатора
-#define REG_ADAPTER_MISMATCH				113 // Показатель того, что разошлось при сверке (1 - код, 2 - ток, 3 - напряжение, 4 -высота)
+#define REG_ADAPTER_MISMATCH_CODE			113 // Показатель того, что разошлось при сверке (1 - код, 2 - ток, 3 - напряжение, 4 -высота)
 //
 #define REG_SPI_IN_STATE					114	// Сырой байт регистра входа 2SPI
 #define REG_SENSOR_S3						115	// Датчик безопасности S3 (PA9)
 #define REG_SENSOR_S5						116	// Датчик безопасности S5 (PA12)
-//
-#define REG_ADAPTER_CODE					117	// Код адаптера в идентификаторе 1-Wire
-#define REG_ADAPTER_SERIAL					118	// Серийный номер адаптера
-#define REG_ADAPTER_CLAMP_HEIGHT			119	// Высота зажатия из идентификатора (мм)
-#define REG_ADAPTER_MAX_CURRENT				120	// Макс. ток из идентификатора
-#define REG_ADAPTER_MAX_VOLTAGE				121	// Макс. напряжение из идентификатора
-// 121-158
+#define REG_ADAPTER_VERSION					120	// Версия адаптера
+#define REG_ADAPTER_SERIAL					121	// Серийный номер адаптера
+#define REG_ADAPTER_CODE					122	// Код адаптера в идентификаторе 1-Wire
+#define REG_ADAPTER_MAX_VOLTAGE				123	// Макс. напряжение из идентификатора
+#define REG_ADAPTER_MAX_CURRENT				124	// Макс. ток из идентификатора
+#define REG_ADAPTER_CLAMP_HEIGHT			125	// Высота зажатия из идентификатора (мм)
+#define REG_DEBUG_SCALING_COEF				126	// Рассчитанный коэф масштабирования EP скорости/перемещения
+// 127-158
 #define REG_SP__3							159
 // 160-255
 //
@@ -166,18 +175,19 @@
 
 //  Fault codes
 #define DF_NONE								0	// No fault
-// 1-3
-#define DF_TRM								4	// TRM communication fault
-#define DF_PRESSURE							5	// Давление ниже нормы
-// 6-9
-#define DF_SELFTEST							10	// Ошибка самодиагностики оптронов
-#define DF_SPI_TIMEOUT						11	// Таймаут ожидания SPI-входа
+#define DF_TRM								1	// TRM communication fault
+#define DF_PRESSURE							2	// Давление ниже нормы
+#define DF_HOMING_TIMEOUT					3	// Таймаут хоуминга
+#define DF_SELFTEST							4	// Ошибка самодиагностики оптронов
+#define DF_SPI_TIMEOUT						5	// Таймаут ожидания SPI-входа
 
 // Problem
 #define PROBLEM_NONE						0	// No problem
 #define PROBLEM_MISSING_LABEL				1	// Недостаточно данных в метке
 #define PROBLEM_ADAPTER_MISMATCH			2	// Несовпадение идентификатора адаптера
 #define PROBLEM_NO_HOLD_OR_MISMATCH			3	// Не выполнено зажатие или было несовпадение адаптера
+#define PROBLEM_INVALID_SPEED				4	// MinSpeed > MaxSpeed в регистрах позиционирования
+#define PROBLEM_INCORRECT_DEVICE			5	// Установлено не корректное устройство.
 #define PROBLEM_OW_ERROR_LINE				20	// Проблема подключения на линии OW
 #define PROBLEM_OW_NO_DEVICE				21	// Устройство не найдено / неверный индекс
 #define PROBLEM_OW_VERIFY					22	// Ошибка verify / scratchpad / CRC / copy
@@ -198,6 +208,9 @@
 #define ERR_TRM_COMM_ERR					7	// Communication with TRM failed
 
 // ENDPOINTS
+#define EP_MotorMovement					1	// Перемещение двигателя
+#define EP_MotorSpeed						2	// Скорость двигателя
+
 #define EP_ExtInfoData						20	// Diag data drom flash
 
 #endif // __DEV_OBJ_DIC_H

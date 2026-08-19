@@ -8,8 +8,28 @@
 #include "ZwUSART.h"
 #include "ZwTIM.h"
 
+extern volatile Int16U SM_LogScaleCoef;
+extern volatile Int16U SM_LogScaleCounter;
+
 // Functions
 //
+static void CONTROL_MotorLogSample()
+{
+	if(!SM_IsLogging() || CONTROL_ValuesCounter >= VALUES_x_SIZE)
+		return;
+
+	if(SM_LogScaleCounter > 1)
+	{
+		SM_LogScaleCounter--;
+		return;
+	}
+
+	SM_LogScaleCounter = SM_LogScaleCoef;
+	CONTROL_MotorMovement[CONTROL_ValuesCounter] = SM_GetPositionMm();
+	CONTROL_MotorSpeed[CONTROL_ValuesCounter] = SM_GetSpeedMmS();
+	CONTROL_ValuesCounter++;
+}
+//-----------------------------------------
 void USART2_IRQHandler()
 {
 	if(USARTx_RecieveCheck(USART2))
@@ -51,6 +71,8 @@ void TIM7_IRQHandler()
 			LL_ToggleBoardLED();
 			LED_BlinkTimeCounter = 0;
 		}
+
+		CONTROL_MotorLogSample();
 
 		TIM_StatusClear(TIM7);
 	}

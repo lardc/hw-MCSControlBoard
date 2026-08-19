@@ -14,6 +14,8 @@
 #include "LowLevel.h"
 #include "Delay.h"
 #include "Timer3_Ch4PWM.h"
+#include "Logic.h"
+#include "StepperMotor.h"
 
 // Variables
 static Int8U DS2431DeviceIndex = 0;
@@ -33,8 +35,7 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 				if(DataTable[REG_DBG] > 7)
 					break;
 				LL_SPI_SetOutBit(Exit, true);
-				DELAY_MS(100);
-				LL_SPI_SetOutBit(Exit, false);
+				LL_SPI_FlushOut();
 			}
 			break;
 		case ACT_DBG_MEAS_INPUT:
@@ -57,7 +58,7 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 		case ACT_DBG_DQ_PWR:
 			{
 				Boolean prev = GPIO_GetState(GPIO_DQ_PWR);
-				GPIO_SetState(GPIO_DQ_PWR, true);
+				GPIO_SetState(GPIO_DQ_PWR, !prev);
 				DELAY_MS(100);
 				GPIO_SetState(GPIO_DQ_PWR, prev);
 			}
@@ -160,8 +161,20 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 			SMD_ConnectHandler();
 			break;
 
+		case ACT_DBG_MOTOR_DISTANCE:
+			if(SM_IsBusy())
+				*UserError = ERR_OPERATION_BLOCKED;
+			else if(DataTable[REG_DBG] > POS_MAX)
+				*UserError = ERR_OPERATION_BLOCKED;
+			else if(DataTable[REG_POS_SPEED_MIN] > DataTable[REG_POS_SPEED_MAX])
+				CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
+			else if(!SMD_GoToDistanceMm((Int16U)DataTable[REG_DBG]))
+				CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
+			break;
+
 		case ACT_DBG_MOTOR_STOP:
 			SMD_RequstStop();
+			SM_RequestStop();
 			break;
 
 		case ACT_DBG_DS18_READ:
@@ -296,6 +309,22 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 				MemLabel_Read(0, Labels, MEM_LABEL_MAX_LABELS);
 				DataTable[REG_DBG] = Labels[Index].Type;
 				DataTable[REG_DBG2] = Labels[Index].Value;
+			}
+			break;
+
+		case ACT_DBG_ADAPTER_WRITE_ID:
+			LOGIC_AdapterIdInit();
+			{
+				AdapterIdentifier Id;
+				Id.Code = DataTable[REG_DEV_CASE];
+				Id.ClampHeightMm = DataTable[REG_DBG_ADAPTER_CLAMP_HEIGHT];
+				Id.MaxCurrent = DataTable[REG_TEST_CURRENT];
+				Id.MaxVoltage = DataTable[REG_TEST_VOLTAGE];
+				Id.Serial = DataTable[REG_DBG_ADAPTER_SERIAL];
+				Id.Version = DataTable[REG_DBG_ADAPTER_VERSION];
+				Id.Device = DataTable[REG_DBG_ADAPTER_DEVICE];
+				if(LOGIC_AdapterIdWrite(&Id))
+					DataTable[REG_OP_RESULT] = OPRESULT_OK;
 			}
 			break;
 
