@@ -59,8 +59,10 @@ void T3Ch4PWM_Init(uint32_t SystemClock, uint32_t Period)
 	T3Ch4PWM_WaitUpdateFlag();
 	TIM3->SR = ~TIM_SR_UIF;
 
-	// Разрешение прерывания
+	// Разрешение IRQ TIM3 и перевод шаговой логики на событие compare канала 4
 	TIM_Interupt(TIM3, 0, true);
+	TIM3->DIER &= ~TIM_DIER_UIE;
+	TIM3->DIER |= TIM_DIER_CC4IE;
 }
 //------------------------------------------------
 
@@ -97,19 +99,19 @@ void T3Ch4PWM_Start()
 
 void T3Ch4PWM_Stop()
 {
+	// Сначала запрещаем compare-прерывание, чтобы не поймать "хвост" при остановке
+	TIM3->DIER &= ~TIM_DIER_CC4IE;
+	TIM3->SR = ~(TIM_SR_CC4IF | TIM_SR_UIF);
+
 	T3Ch4PWM_SetPeriodTicks(0);
 	TIM_Stop(TIM3);
-
-	// Запрет прерывания и очистка флага
-	TIM3->DIER &= ~TIM_DIER_UIE;
-	TIM3->SR = ~TIM_SR_UIF;
 
 	// Форсирование обновления регистров таймера
 	TIM3->EGR |= TIM_EGR_UG;
 	T3Ch4PWM_WaitUpdateFlag();
-	TIM3->SR = ~TIM_SR_UIF;
+	TIM3->SR = ~(TIM_SR_CC4IF | TIM_SR_UIF);
 
-	// Разрешение прерывания
-	TIM3->DIER |= TIM_DIER_UIE;
+	// Возвращаем compare-прерывание для следующего запуска
+	TIM3->DIER |= TIM_DIER_CC4IE;
 }
 //------------------------------------------------
