@@ -59,10 +59,9 @@ void T3Ch4PWM_Init(uint32_t SystemClock, uint32_t Period)
 	T3Ch4PWM_WaitUpdateFlag();
 	TIM3->SR = ~TIM_SR_UIF;
 
-	// Разрешение IRQ TIM3 и перевод шаговой логики на событие compare канала 4
+	// NVIC TIM3 разрешён; CC4IE включается только в Start() после UG и очистки флагов
 	TIM_Interupt(TIM3, 0, true);
-	TIM3->DIER &= ~TIM_DIER_UIE;
-	TIM3->DIER |= TIM_DIER_CC4IE;
+	TIM3->DIER &= ~(TIM_DIER_UIE | TIM_DIER_CC4IE);
 }
 //------------------------------------------------
 
@@ -93,25 +92,31 @@ void T3Ch4PWM_SetPeriodTicks(uint32_t Cycles)
 
 void T3Ch4PWM_Start()
 {
+	// Preload ARR/CCR уже должен быть записан через SetPeriodTicks() до вызова Start().
+	// UG переносит preload в активные регистры и сбрасывает CNT, иначе при
+	// активном CCR4==0 возможен ложный CC4IF до первого импульса STEP.
+	TIM3->DIER &= ~TIM_DIER_CC4IE;
+	TIM3->SR = ~(TIM_SR_CC4IF | TIM_SR_UIF);
+	TIM3->EGR |= TIM_EGR_UG;
+	T3Ch4PWM_WaitUpdateFlag();
+	TIM3->SR = ~(TIM_SR_CC4IF | TIM_SR_UIF);
+
+	TIM3->DIER |= TIM_DIER_CC4IE;
 	TIM_Start(TIM3);
 }
 //------------------------------------------------
 
 void T3Ch4PWM_Stop()
 {
-	// Сначала запрещаем compare-прерывание, чтобы не поймать "хвост" при остановке
+	// CC4IE остаётся выключенным до следующего Start()
 	TIM3->DIER &= ~TIM_DIER_CC4IE;
 	TIM3->SR = ~(TIM_SR_CC4IF | TIM_SR_UIF);
 
 	T3Ch4PWM_SetPeriodTicks(0);
 	TIM_Stop(TIM3);
 
-	// Форсирование обновления регистров таймера
 	TIM3->EGR |= TIM_EGR_UG;
 	T3Ch4PWM_WaitUpdateFlag();
 	TIM3->SR = ~(TIM_SR_CC4IF | TIM_SR_UIF);
-
-	// Возвращаем compare-прерывание для следующего запуска
-	TIM3->DIER |= TIM_DIER_CC4IE;
 }
 //------------------------------------------------
