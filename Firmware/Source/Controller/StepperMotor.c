@@ -207,11 +207,26 @@ Boolean SM_GoToPosition(pSM_Params Params)
 	if(AccelLimit == 0)
 		AccelLimit = 1;
 
+	TotalMoveSteps = abs(SM_DestSteps - SM_GlobalStepsCounter);
 	SM_SpeedChangeSteps = (SM_MaxCycles - SM_MinCycles + AccelLimit - 1) / AccelLimit;
 
-	TotalMoveSteps = abs(SM_DestSteps - SM_GlobalStepsCounter);
+	// Для короткого хода не увеличиваем наклон выше AccelLimit:
+	// укорачиваем рампу и снижаем пиковую скорость (поднимаем SM_MinCycles).
 	if(SM_SpeedChangeSteps > (TotalMoveSteps / 2))
-		SM_SpeedChangeSteps = TotalMoveSteps / 2;
+	{
+		Int32U AvailableSteps = TotalMoveSteps / 2;
+		Int32U MaxDeltaCycles;
+
+		SM_SpeedChangeSteps = AvailableSteps;
+		if(AvailableSteps == 0)
+			SM_MinCycles = SM_MaxCycles;
+		else
+		{
+			MaxDeltaCycles = AvailableSteps * (Int32U)AccelLimit;
+			if((Int32U)(SM_MaxCycles - SM_MinCycles) > MaxDeltaCycles)
+				SM_MinCycles = SM_MaxCycles - (Int16U)MaxDeltaCycles;
+		}
+	}
 
 	T3Ch4PWM_SetPeriodTicks(SM_CyclesToToggle);
 	if(!ContinueLog)

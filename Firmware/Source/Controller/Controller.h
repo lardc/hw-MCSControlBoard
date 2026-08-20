@@ -17,9 +17,11 @@ typedef enum __DeviceState
 	DS_Ready = 3,
 	DS_Halt = 4,
 	DS_Homing = 5,
+	DS_Movement = 6,
 
 	DS_Clamping = 7,
 	DS_ClampingDone = 8,
+
 	DS_SelfTest = 9,
 	DS_ClampingRelease = 10,
 	DS_AdapterHold = 11,
@@ -34,6 +36,9 @@ typedef enum __DeviceSubState
 	DSS_HomingPauseBeforeOffset = 11,
 	DSS_HomingMakeOffset = 12,
 	DSS_HomingSearchSensorWait = 13,
+
+	DSS_MovementStart = 20,
+	DSS_MovementEnd = 21,
 
 	DSS_ClampingOperating = 31,
 	DSS_ClampingReleaseOperating = 40,

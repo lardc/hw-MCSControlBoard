@@ -279,6 +279,7 @@ Boolean LOGIC_IsCycleActive()
 		case DS_ClampingRelease:
 		case DS_AdapterHold:
 		case DS_AdapterRelease:
+		case DS_Movement:
 			return TRUE;
 		default:
 			return FALSE;
@@ -319,6 +320,42 @@ void LOGIC_Process()
 				CONTROL_SetDeviceState(DS_Ready, DSS_None);
 			else
 				CONTROL_SwitchToFault(DF_SELFTEST);
+			break;
+
+		case DS_Movement:
+			switch(CONTROL_SubState)
+			{
+				case DSS_MovementStart:
+					{
+						SM_Params Params;
+						SM_Config(&Params, (Int16U)DataTable[REG_CUSTOM_POS]);
+						LOGIC_StateTimeout = CONTROL_TimeCounter + MOVEMENT_TIMEOUT;
+						if(!SM_GoToPosition(&Params))
+						{
+							CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
+							CONTROL_SetDeviceState(DS_Ready, DSS_None);
+						}
+						else
+							 CONTROL_SetDeviceState(CONTROL_State, DSS_MovementEnd);
+					}
+					break;
+
+				case DSS_MovementEnd:
+					if(!SM_IsBusy())
+					{
+						DataTable[REG_OP_RESULT] = OPRESULT_OK;
+						CONTROL_SetDeviceState(DS_Ready, DSS_None);
+					}
+					else if(CONTROL_TimeCounter > LOGIC_StateTimeout)
+					{
+						SM_RequestStop();
+						CONTROL_SetDeviceState(DS_Ready, DSS_None);
+						CONTROL_FinishedWithProblem(PROBLEM_MOVEMENT_TIMEOUT);
+					}
+					break;
+				default:
+					break;
+			}
 			break;
 
 		case DS_Homing:

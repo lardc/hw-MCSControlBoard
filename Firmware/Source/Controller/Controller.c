@@ -191,25 +191,23 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 		case ACT_GOTO_POSITION:
 			if(CONTROL_State == DS_Ready)
 			{
-				SM_Params Params;
 				if(!SM_IsHomingDone())
 				{
-					*UserError = ERR_DEVICE_NOT_READY;
+					CONTROL_FinishedWithProblem(PROBLEM_NO_HOMING);
 					break;
 				}
-				if(DataTable[REG_CUSTOM_POS] > POS_MAX)
+				else if(DataTable[REG_CUSTOM_POS] > POS_MAX)
 				{
-					*UserError = ERR_OPERATION_BLOCKED;
+					CONTROL_FinishedWithProblem(PROBLEM_INVALID_POSITION);
 					break;
 				}
-				if(DataTable[REG_POS_SPEED_MIN] > DataTable[REG_POS_SPEED_MAX])
+				else if(DataTable[REG_POS_SPEED_MIN] > DataTable[REG_POS_SPEED_MAX])
 				{
 					CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
 					break;
 				}
-				SM_Config(&Params, (Int16U)DataTable[REG_CUSTOM_POS]);
-				if(!SM_GoToPosition(&Params))
-					CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
+				else
+					CONTROL_SetDeviceState(DS_Movement, DSS_MovementStart);
 			}
 			else
 				*UserError = ERR_DEVICE_NOT_READY;

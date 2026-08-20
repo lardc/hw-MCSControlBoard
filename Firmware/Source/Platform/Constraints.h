@@ -24,11 +24,6 @@ typedef struct __TableItemConstraint
 // Параметры позиционирования (мм)
 #define POS_MAX						180
 
-// Расстояние замедления (мм)
-#define SLOW_DOWN_MIN				0
-#define SLOW_DOWN_MAX				50
-#define SLOW_DOWN_DEF				10
-
 // Оффсет хоуминга (мм)
 #define HOMING_OFFS_MIN				1
 #define HOMING_OFFS_MAX				20

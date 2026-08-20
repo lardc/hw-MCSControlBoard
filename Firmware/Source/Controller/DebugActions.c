@@ -87,7 +87,10 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 			DataTable[REG_DBG] = LL_IsSafetyS5Ok();
 			break;
 		case ACT_DBG_SELFTEST:
-			CONTROL_SetDeviceState(DS_SelfTest, DSS_None);
+			if(CONTROL_State == DS_Ready)
+				CONTROL_SetDeviceState(DS_SelfTest, DSS_None);
+			else
+				*UserError = ERR_DEVICE_NOT_READY;
 			break;
 		case ACT_DBG_TRM_READ:
 			{

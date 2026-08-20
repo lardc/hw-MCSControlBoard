@@ -191,6 +191,9 @@
 #define PROBLEM_NO_HOLD_OR_MISMATCH			3	// Не выполнено зажатие или было несовпадение адаптера
 #define PROBLEM_INVALID_SPEED				4	// MinSpeed > MaxSpeed в регистрах позиционирования
 #define PROBLEM_INCORRECT_DEVICE			5	// Установлено не корректное устройство.
+#define PROBLEM_NO_HOMING					6	// Не выполнен хоуминг
+#define PROBLEM_INVALID_POSITION			7	// Задано неверное расстояние для движения
+#define PROBLEM_MOVEMENT_TIMEOUT			8	// Движение превысило макс время для движения
 #define PROBLEM_OW_ERROR_LINE				20	// Проблема подключения на линии OW
 #define PROBLEM_OW_NO_DEVICE				21	// Устройство не найдено / неверный индекс
 #define PROBLEM_OW_VERIFY					22	// Ошибка verify / scratchpad / CRC / copy
