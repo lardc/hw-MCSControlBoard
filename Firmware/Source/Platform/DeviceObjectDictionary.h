@@ -48,7 +48,7 @@
 #define ACT_DBG_READ_TRM_POWER				116	// Read TRM output power
 #define ACT_DBG_TRM_START					117	// Start TRM operation
 #define ACT_DBG_TRM_STOP					118	// Stop TRM operation
-// 120
+#define ACT_DBG_SELFTEST					119	// Отладочный запуск самодиагностики
 #define ACT_DBG_MOTOR_START					121	// Запуск отладочного вращения моторов
 #define ACT_DBG_MOTOR_STOP					122	// Остановка отладочного вращения моторов
 

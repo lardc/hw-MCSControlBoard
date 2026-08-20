@@ -25,7 +25,6 @@ static Boolean LOGIC_PrepareHoming();
 static Boolean LOGIC_WaitSpiInBit(Int8U Bit);
 static Boolean LOGIC_ReadAdapterId();
 static void LOGIC_AbortHoldToRelease();
-static void LOGIC_ProcessSelfTest();
 static void LOGIC_MonitorCycleFaults();
 static Int16U LOGIC_GetClampHeightMm();
 
@@ -303,30 +302,6 @@ static void LOGIC_MonitorCycleFaults()
 }
 // ----------------------------------------
 
-static void LOGIC_ProcessSelfTest()
-{
-	static DeviceState SelfTestLatch = DS_None;
-
-	if(CONTROL_State != DS_SelfTest)
-	{
-		SelfTestLatch = DS_None;
-		return;
-	}
-
-	if(SelfTestLatch == DS_SelfTest)
-		return;
-
-	SelfTestLatch = DS_SelfTest;
-
-	DataTable[REG_SELFTEST_RESULT] = SELFTEST_Run();
-
-	if(DataTable[REG_SELFTEST_RESULT] == 0)
-		CONTROL_SetDeviceState(DS_Ready, DSS_None);
-	else
-		CONTROL_SwitchToFault(DF_SELFTEST);
-}
-// ----------------------------------------
-
 void LOGIC_Process()
 {
 	if(DataTable[REG_USE_SAFETY])
@@ -338,8 +313,12 @@ void LOGIC_Process()
 	switch(CONTROL_State)
 	{
 		case DS_SelfTest:
-			// TODO: требует переделки
-			LOGIC_ProcessSelfTest();
+			DataTable[REG_SELFTEST_RESULT] = SELFTEST_Run();
+
+			if(DataTable[REG_SELFTEST_RESULT] == 0)
+				CONTROL_SetDeviceState(DS_Ready, DSS_None);
+			else
+				CONTROL_SwitchToFault(DF_SELFTEST);
 			break;
 
 		case DS_Homing:

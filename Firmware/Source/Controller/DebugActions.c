@@ -86,6 +86,9 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 		case ACT_DBG_OPTICAL:
 			DataTable[REG_DBG] = LL_IsSafetyS5Ok();
 			break;
+		case ACT_DBG_SELFTEST:
+			CONTROL_SetDeviceState(DS_SelfTest, DSS_None);
+			break;
 		case ACT_DBG_TRM_READ:
 			{
 				TRMError error;
