@@ -12,6 +12,7 @@
 #include "TRM101.h"
 #include "MemLabel.h"
 
+// Variables
 static void LOGIC_AdapterIdPublish(pAdapterIdentifier Id);
 static Int16U LOGIC_ClampHeightMm = 0;
 static Int64U LOGIC_WaitDeadline = 0;
@@ -20,6 +21,7 @@ static Boolean IsHolding = false;
 static Boolean LOGIC_FaultSpiAfterRelease = FALSE;
 AdapterIdentifier LOGIC_Id = {0};
 
+// Forward functions
 static Boolean LOGIC_PrepareClamping(Boolean Clamp);
 static Boolean LOGIC_PrepareHoming();
 static Boolean LOGIC_WaitSpiInBit(Int8U Bit);
@@ -28,6 +30,8 @@ static void LOGIC_AbortHoldToRelease();
 static void LOGIC_MonitorCycleFaults();
 static Int16U LOGIC_GetClampHeightMm();
 
+// Functions
+//
 static Boolean LOGIC_PrepareClamping(Boolean Clamp)
 {
 	SM_Params Params;
@@ -314,12 +318,18 @@ void LOGIC_Process()
 	switch(CONTROL_State)
 	{
 		case DS_SelfTest:
-			DataTable[REG_SELFTEST_RESULT] = SELFTEST_Run();
+			{
+				Int16U Result = SELFTEST_Run();
 
-			if(DataTable[REG_SELFTEST_RESULT] == 0)
-				CONTROL_SetDeviceState(DS_Ready, DSS_None);
-			else
-				CONTROL_SwitchToFault(DF_SELFTEST);
+				if(Result == SELFTEST_IN_PROGRESS)
+					break;
+
+				DataTable[REG_SELFTEST_RESULT] = Result;
+				if(Result == 0)
+					CONTROL_SetDeviceState(DS_Ready, DSS_None);
+				else
+					CONTROL_SwitchToFault(DF_SELFTEST);
+			}
 			break;
 
 		case DS_Movement:
@@ -332,7 +342,7 @@ void LOGIC_Process()
 						LOGIC_StateTimeout = CONTROL_TimeCounter + MOVEMENT_TIMEOUT;
 						if(!SM_GoToPosition(&Params))
 						{
-							CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
+							CONTROL_FinishedWithProblem(PROBLEM_MOTOR_START);
 							CONTROL_SetDeviceState(DS_Ready, DSS_None);
 						}
 						else
@@ -362,9 +372,16 @@ void LOGIC_Process()
 			switch(CONTROL_SubState)
 			{
 				case DSS_HomingSearchSensor:
-					SM_Homing();
-					LOGIC_StateTimeout = CONTROL_TimeCounter + HOMING_TIMEOUT;
-					CONTROL_SetDeviceState(CONTROL_State, DSS_HomingSearchSensorWait);
+					if(!SM_Homing())
+					{
+						CONTROL_FinishedWithProblem(PROBLEM_MOTOR_START);
+						CONTROL_SetDeviceState(DS_Ready, DSS_None);
+					}
+					else
+					{
+						LOGIC_StateTimeout = CONTROL_TimeCounter + HOMING_TIMEOUT;
+						CONTROL_SetDeviceState(CONTROL_State, DSS_HomingSearchSensorWait);
+					}
 					break;
 
 				case DSS_HomingSearchSensorWait:

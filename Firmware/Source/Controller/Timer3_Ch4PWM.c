@@ -12,12 +12,14 @@
 static uint32_t PWMBase = 0;
 
 // Functions
-static void T3Ch4PWM_WaitUpdateFlag()
+static Boolean T3Ch4PWM_WaitUpdateFlag()
 {
 	uint32_t Timeout = T3CH4PWM_UPDATE_TIMEOUT_LOOPS;
 
 	while(!(TIM3->SR & TIM_SR_UIF) && Timeout > 0)
 		--Timeout;
+
+	return (TIM3->SR & TIM_SR_UIF) != 0;
 }
 
 static void T3Ch4PWM_ApplyPeriod(uint32_t PeriodTicks)
@@ -59,7 +61,6 @@ void T3Ch4PWM_Init(uint32_t SystemClock, uint32_t Period)
 	T3Ch4PWM_WaitUpdateFlag();
 	TIM3->SR = ~TIM_SR_UIF;
 
-	// NVIC TIM3 разрешён; CC4IE включается только в Start() после UG и очистки флагов
 	TIM_Interupt(TIM3, 0, true);
 	TIM3->DIER &= ~(TIM_DIER_UIE | TIM_DIER_CC4IE);
 }
@@ -90,23 +91,25 @@ void T3Ch4PWM_SetPeriodTicks(uint32_t Cycles)
 }
 //------------------------------------------------
 
-void T3Ch4PWM_Start()
+Boolean T3Ch4PWM_Start()
 {
-	// Preload ARR/CCR уже должен быть записан через SetPeriodTicks() до вызова Start().
-	// UG переносит preload в активные регистры и сбрасывает CNT, иначе при
-	// активном CCR4==0 возможен ложный CC4IF до первого импульса STEP.
 	TIM3->DIER &= ~TIM_DIER_CC4IE;
 	TIM3->SR = ~(TIM_SR_CC4IF | TIM_SR_UIF);
 	TIM3->EGR |= TIM_EGR_UG;
-	T3Ch4PWM_WaitUpdateFlag();
+	if(!T3Ch4PWM_WaitUpdateFlag())
+	{
+		TIM3->SR = ~(TIM_SR_CC4IF | TIM_SR_UIF);
+		return FALSE;
+	}
 	TIM3->SR = ~(TIM_SR_CC4IF | TIM_SR_UIF);
 
 	TIM3->DIER |= TIM_DIER_CC4IE;
 	TIM_Start(TIM3);
+	return TRUE;
 }
 //------------------------------------------------
 
-void T3Ch4PWM_Stop()
+Boolean T3Ch4PWM_Stop()
 {
 	// CC4IE остаётся выключенным до следующего Start()
 	TIM3->DIER &= ~TIM_DIER_CC4IE;
@@ -116,7 +119,12 @@ void T3Ch4PWM_Stop()
 	TIM_Stop(TIM3);
 
 	TIM3->EGR |= TIM_EGR_UG;
-	T3Ch4PWM_WaitUpdateFlag();
+	if(!T3Ch4PWM_WaitUpdateFlag())
+	{
+		TIM3->SR = ~(TIM_SR_CC4IF | TIM_SR_UIF);
+		return FALSE;
+	}
 	TIM3->SR = ~(TIM_SR_CC4IF | TIM_SR_UIF);
+	return TRUE;
 }
 //------------------------------------------------

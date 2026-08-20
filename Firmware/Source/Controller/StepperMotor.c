@@ -179,15 +179,7 @@ Boolean SM_GoToPosition(pSM_Params Params)
 	Int16U AccelLimit;
 	Int32U TotalMoveSteps;
 	Boolean ContinueLog = SM_LogContinue;
-
-	SM_HomingDoneFlag = FALSE;
 	SM_LogContinue = FALSE;
-
-	if(Params->MinSpeed > Params->MaxSpeed)
-	{
-		SM_StopMotion();
-		return FALSE;
-	}
 
 	SM_StartSteps = SM_GlobalStepsCounter;
 	SM_DestSteps = SM_PosToSteps(Params->NewPosition);
@@ -210,8 +202,6 @@ Boolean SM_GoToPosition(pSM_Params Params)
 	TotalMoveSteps = abs(SM_DestSteps - SM_GlobalStepsCounter);
 	SM_SpeedChangeSteps = (SM_MaxCycles - SM_MinCycles + AccelLimit - 1) / AccelLimit;
 
-	// Для короткого хода не увеличиваем наклон выше AccelLimit:
-	// укорачиваем рампу и снижаем пиковую скорость (поднимаем SM_MinCycles).
 	if(SM_SpeedChangeSteps > (TotalMoveSteps / 2))
 	{
 		Int32U AvailableSteps = TotalMoveSteps / 2;
@@ -231,14 +221,20 @@ Boolean SM_GoToPosition(pSM_Params Params)
 	T3Ch4PWM_SetPeriodTicks(SM_CyclesToToggle);
 	if(!ContinueLog)
 		SM_MotorLogStart(SM_EstimateMoveMs((Int32U)abs(SM_DestSteps - SM_StartSteps)));
+
+	if(!T3Ch4PWM_Start())
+	{
+		SM_StopMotion();
+		return FALSE;
+	}
+
 	Motor_State = MS_Movement;
-	T3Ch4PWM_Start();
 	return TRUE;
 }
 // ----------------------------------------
 
 // Хоуминг
-void SM_Homing()
+Boolean SM_Homing()
 {
 	Int32U OffsetMs;
 	Int16U OffsetMm;
@@ -263,7 +259,14 @@ void SM_Homing()
 	SM_CyclesToToggle = SM_MinCycles;
 
 	T3Ch4PWM_SetPeriodTicks(SM_CyclesToToggle);
-	T3Ch4PWM_Start();
+	if(!T3Ch4PWM_Start())
+	{
+		SM_LogContinue = FALSE;
+		Motor_State = MS_None;
+		return FALSE;
+	}
+
+	return TRUE;
 }
 // ----------------------------------------
 
@@ -319,7 +322,6 @@ Boolean SM_IsPositioningDone()
 
 void SM_RequestStop()
 {
-	SM_HomingDoneFlag = FALSE;
 	SM_LogContinue = FALSE;
 	Motor_State = MS_Stop;
 }
@@ -418,7 +420,6 @@ Int16U SM_SpeedToCycles(float SpeedMmS)
 
 void SM_ResetZeroPoint()
 {
-	SM_HomingDoneFlag = FALSE;
 	SM_LogContinue = FALSE;
 	SM_DestSteps = SM_GlobalStepsCounter = 0;
 	SM_StopMotion();
