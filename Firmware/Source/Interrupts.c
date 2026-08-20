@@ -77,12 +77,6 @@ void TIM7_IRQHandler()
 		TIM_StatusClear(TIM7);
 	}
 }
-
-void TIM1_UP_TIM16_IRQHandler(void)
-{
-	if(TIM_StatusCheck(TIM1))
-		TIM_StatusClear(TIM1);
-}
 //-----------------------------------------
 
 void TIM3_IRQHandler(void)

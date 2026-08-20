@@ -95,8 +95,8 @@ void CONTROL_Idle()
 	CONTROL_UpdateTRMTemperature();
 
 	DataTable[REG_SENSOR_S2] = LL_IsTableSensorOk();
-	DataTable[REG_SENSOR_S3] = LL_FilterSafetyCircuit(LL_IsSafetyS3Ok());
-	DataTable[REG_SENSOR_S5] = LL_FilterSafetyCircuit(LL_IsSafetyS5Ok());
+	DataTable[REG_SENSOR_S3] = LL_FilterSafetyCircuit(SC_CH_S3, LL_IsSafetyS3Ok());
+	DataTable[REG_SENSOR_S5] = LL_FilterSafetyCircuit(SC_CH_S5, LL_IsSafetyS5Ok());
 	DataTable[REG_HOMING_SENSOR] = LL_HomeSensorActuate();
 	DataTable[REG_BUS_TOOLING_SENSOR] = LL_SPI_GetInBit(SPI_IN_BUS_HELD);
 	DataTable[REG_ADAPTER_TOOLING_SENSOR] = LL_SPI_GetInBit(SPI_IN_ADAPTER_HELD);
@@ -191,6 +191,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 		case ACT_GOTO_POSITION:
 			if(CONTROL_State == DS_Ready)
 			{
+				CONTROL_ResetOutputRegisters();
 				if(!SM_IsHomingDone())
 				{
 					CONTROL_FinishedWithProblem(PROBLEM_NO_HOMING);
@@ -309,14 +310,14 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 						HeatingActive = TRUE;
 					}
 
-					CONTROL_SetFans(HeatingActive);
-
 					if(error != TRME_None)
 					{
 						CONTROL_SwitchToFault(DF_TRM);
 						DataTable[REG_TRM_ERROR] = error;
 						*UserError = ERR_TRM_COMM_ERR;
 					}
+					else
+						CONTROL_SetFans(HeatingActive);
 				}
 				else
 					DataTable[REG_TEMP_CH1] = DataTable[REG_TEMP_SETPOINT];

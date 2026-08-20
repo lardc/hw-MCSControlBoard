@@ -10,10 +10,6 @@
 #define SPI_OUT_FAN1			6
 #define SPI_OUT_FAN2			7
 
-#define SPI_OUT_MASK_ADAPTER	(1u << SPI_OUT_ADAPTER)
-#define SPI_OUT_MASK_BUS		(1u << SPI_OUT_BUS)
-#define SPI_OUT_MASK_FANS		((1u << SPI_OUT_FAN1) | (1u << SPI_OUT_FAN2))
-
 // --- Вход (2SPI), индекс = бит_ТТ - 1 ---
 #define SPI_IN_ADAPTER_COIL_24V	0
 #define SPI_IN_BUS_COIL_24V		1
@@ -25,9 +21,12 @@
 #define SPI_IN_MASK_COIL_24V	((1u << SPI_IN_ADAPTER_COIL_24V) | (1u << SPI_IN_BUS_COIL_24V))
 #define COMMUTATION_TABLE_SIZE 3
 
+#define SC_CH_S3				0
+#define SC_CH_S5				1
+
 extern Int32U CycleCounters[COMMUTATION_TABLE_SIZE];
 
-Boolean LL_FilterSafetyCircuit(Boolean NewState);
+Boolean LL_FilterSafetyCircuit(Int8U Channel, Boolean NewState);
 
 void LL_SPI_SetOutBit(Int8U Bit, Boolean State);
 void LL_SPI_FlushOut();

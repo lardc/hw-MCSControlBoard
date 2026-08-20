@@ -222,13 +222,13 @@ Boolean SM_GoToPosition(pSM_Params Params)
 	if(!ContinueLog)
 		SM_MotorLogStart(SM_EstimateMoveMs((Int32U)abs(SM_DestSteps - SM_StartSteps)));
 
+	Motor_State = MS_Movement;
 	if(!T3Ch4PWM_Start())
 	{
 		SM_StopMotion();
 		return FALSE;
 	}
 
-	Motor_State = MS_Movement;
 	return TRUE;
 }
 // ----------------------------------------

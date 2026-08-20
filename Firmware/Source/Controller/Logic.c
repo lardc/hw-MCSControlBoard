@@ -296,14 +296,18 @@ static void LOGIC_MonitorCycleFaults()
 	if(!LOGIC_IsCycleActive())
 		return;
 
-	if(!LL_FilterSafetyCircuit(LL_IsSafetyS3Ok()) || !LL_FilterSafetyCircuit(LL_IsSafetyS5Ok()))
+	if(!LL_FilterSafetyCircuit(SC_CH_S3, LL_IsSafetyS3Ok()) || !LL_FilterSafetyCircuit(SC_CH_S5, LL_IsSafetyS5Ok()))
 	{
+		CONTROL_FinishedWithProblem(PROBLEM_SAFETY);
 		CONTROL_Halt();
 		return;
 	}
 
 	if(!LL_SPI_IsCoil24VOk())
+	{
+		CONTROL_FinishedWithProblem(PROBLEM_SAFETY);
 		CONTROL_Halt();
+	}
 }
 // ----------------------------------------
 
@@ -405,7 +409,7 @@ void LOGIC_Process()
 						else
 						{
 							SM_RequestStop();
-							CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
+							CONTROL_FinishedWithProblem(PROBLEM_MOTOR_START);
 							CONTROL_SetDeviceState(DS_Ready, DSS_None);
 						}
 					}
@@ -497,7 +501,7 @@ void LOGIC_Process()
 							CONTROL_SetDeviceState(CONTROL_State, DSS_ClampingOperating);
 						else
 						{
-							CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
+							CONTROL_FinishedWithProblem(PROBLEM_MOTOR_START);
 							CONTROL_SetDeviceState(DS_Ready, DSS_None);
 						}
 					}
@@ -533,7 +537,7 @@ void LOGIC_Process()
 						CONTROL_SetDeviceState(CONTROL_State, DSS_ClampingReleaseOperating);
 					else
 					{
-						CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
+						CONTROL_FinishedWithProblem(PROBLEM_MOTOR_START);
 						CONTROL_SetDeviceState(DS_Ready, DSS_None);
 					}
 					break;
