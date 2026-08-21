@@ -9,7 +9,7 @@
 #include "Measurement.h"
 #include "SelfTest.h"
 #include "StepperMotor.h"
-#include "TRM101.h"
+#include "TRM10.h"
 #include "MemLabel.h"
 
 // Variables
@@ -590,7 +590,7 @@ void LOGIC_Process()
 					TRMError error = TRME_None;
 
 					if(DataTable[REG_USE_HEATING])
-						TRM_Stop(TRM_CH1_ADDR, &error);
+						TRM10_Stop(TRM_CH1_ADDR, &error);
 
 					IsHolding = false;
 					LOGIC_ClampHeightMm = 0;

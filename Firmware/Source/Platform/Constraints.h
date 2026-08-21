@@ -34,10 +34,10 @@ typedef struct __TableItemConstraint
 #define SPEED_MAX					100
 #define SPEED_DEF					5
 
-// Температура (С х10)
-#define TRM_TEMP_MIN				0		// in C x10
-#define TRM_TEMP_MAX				2000	// in C x10
-#define TRM_TEMP_DEF				0		// in C x10
+// Температура (°C)
+#define TRM_TEMP_MIN				0
+#define TRM_TEMP_MAX				200
+#define TRM_TEMP_DEF				0
 
 // Давление (мбар)
 #define PRESSURE_OK_DEF				5000

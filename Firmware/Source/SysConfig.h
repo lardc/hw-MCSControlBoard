@@ -44,8 +44,8 @@
 // ----------------------------------------------
 
 // TRM
-#define TRM_CH1_ADDR					0
-#define TRM_TEMP_THR					500
+#define TRM_CH1_ADDR					1
+#define TRM_TEMP_THR					50
 #define TRM_TIMEOUT_TICKS				100
 // ----------------------------------------------
 

@@ -7,7 +7,7 @@
 #include "DataTable.h"
 #include "DeviceObjectDictionary.h"
 #include "DeviceProfile.h"
-#include "TRM101.h"
+#include "TRM10.h"
 #include "StepperMotor.h"
 #include "LowLevel.h"
 #include "Measurement.h"
@@ -81,7 +81,7 @@ void CONTROL_Init()
 	if(DataTable[REG_USE_HEATING])
 	{
 		TRMError dummy_error;
-		TRM_Stop(TRM_CH1_ADDR, &dummy_error);
+		TRM10_Stop(TRM_CH1_ADDR, &dummy_error);
 	}
 
 	CONTROL_SetDeviceState(DataTable[REG_USE_ST] ? DS_SelfTest : DS_None, DSS_None);
@@ -291,19 +291,20 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 				if(DataTable[REG_USE_HEATING])
 				{
 					TRMError error;
+
 					if(DataTable[REG_TEMP_SETPOINT] < TRM_TEMP_THR)
 					{
-						TRM_SetTemp(TRM_CH1_ADDR, DataTable[REG_TEMP_SETPOINT], &error);
+						TRM10_SetTemp(TRM_CH1_ADDR, DataTable[REG_TEMP_SETPOINT], &error);
 						if(error == TRME_None)
-							TRM_Stop(TRM_CH1_ADDR, &error);
+							TRM10_Stop(TRM_CH1_ADDR, &error);
 
 						HeatingActive = FALSE;
 					}
 					else
 					{
-						TRM_SetTemp(TRM_CH1_ADDR, DataTable[REG_TEMP_SETPOINT], &error);
+						TRM10_SetTemp(TRM_CH1_ADDR, DataTable[REG_TEMP_SETPOINT], &error);
 						if(error == TRME_None)
-							TRM_Start(TRM_CH1_ADDR, &error);
+							TRM10_Start(TRM_CH1_ADDR, &error);
 
 						HeatingActive = TRUE;
 					}
@@ -399,7 +400,7 @@ void CONTROL_UpdateTRMTemperature()
 	// Условие разрешения считывания температуры
 	if(error == TRME_None && CONTROL_State != DS_Fault && CONTROL_TimeCounter > ReadTimeout)
 	{
-		DataTable[REG_TEMP_CH1] = TRM_ReadTemp(TRM_CH1_ADDR, &error);
+		DataTable[REG_TEMP_CH1] = TRM10_ReadTemp(TRM_CH1_ADDR, &error);
 		ReadTimeout = CONTROL_TimeCounter + TRM_READ_PAUSE;
 	}
 

@@ -25,8 +25,8 @@
 #define ACT_DBG_HOMING 						27	// Считывание состояния пина HOMING и за-пись в регистр REG_DBG (0 – нет напряжения, 1 – 3,3 В на пине)
 #define ACT_DBG_SFT							28	// Считывание состояния пина S3 и запись в регистр REG_DBG (0 – нет напря-жения, 1 – 4,3 В на пине)
 #define ACT_DBG_OPTICAL						29	// Считывание состояния пина S5 и запись в регистр REG_DBG (0 – нет напря-жения, 1 – 4,3 В на пине)
-#define ACT_DBG_TRM_READ					30	// Чтение FLOAT32 из holding-регистра TRM10; REG_DBG_TRM_ADDRESS — slave, REG_DBG — адрес регистра
-#define ACT_DBG_TRM_WRITE					31	// Запись FLOAT32 в holding-регистр TRM10; REG_DBG_TRM_ADDRESS — slave, REG_DBG — адрес, REG_DBG2 — значение
+#define ACT_DBG_TRM_READ					30	// Чтение holding TRM10; REG_DBG_TRM_ADDRESS — slave, REG_DBG — адрес, REG_CNT_NUMBER: 0=UINT16, 1=FLOAT32
+#define ACT_DBG_TRM_WRITE					31	// Запись holding TRM10; REG_DBG2 — значение, REG_CNT_NUMBER: 0=UINT16, 1=FLOAT32
 
 #define ACT_HOMING							100	// Start homing
 #define ACT_GOTO_POSITION					101	// Перемещение в позицию REG_CUSTOM_POS (мм) со скоростями REG_POS_SPEED_MIN/MAX
@@ -108,7 +108,7 @@
 #define REG_TEST_VOLTAGE					66	// Заданный Master предел напряжения для сверки
 // 67-70
 #define REG_DEV_CASE						71	// Код корпуса прибора (задание Master для сверки)
-#define REG_TEMP_SETPOINT					72	// Уставка температуры (С х10)
+#define REG_TEMP_SETPOINT					72	// Уставка температуры (°C)
 // 78-81
 #define REG_USE_ST							82	// Включение самодиагностики
 #define REG_USE_SAFETY						83	// Включение безопастности
