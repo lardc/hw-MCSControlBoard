@@ -98,8 +98,8 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 				Int8U Slave = (Int8U)DataTable[REG_DBG_TRM_ADDRESS];
 				Int16U RegAddress = (Int16U)DataTable[REG_DBG];
 
-				// REG_CNT_NUMBER: 0 — UINT16, 1 — FLOAT32
-				if(DataTable[REG_CNT_NUMBER] != 0)
+				// REG_DBG3: 0 — UINT16, 1 — FLOAT32
+				if(DataTable[REG_DBG3] != 0)
 					DataTable[REG_TRM_DATA] = TRM10_ReadRegFloat(Slave, RegAddress, &error);
 				else
 					DataTable[REG_TRM_DATA] = TRM10_ReadUint16(Slave, RegAddress, &error);
@@ -113,7 +113,7 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 				Int8U Slave = (Int8U)DataTable[REG_DBG_TRM_ADDRESS];
 				Int16U RegAddress = (Int16U)DataTable[REG_DBG];
 
-				if(DataTable[REG_CNT_NUMBER] != 0)
+				if(DataTable[REG_DBG3] != 0)
 					TRM10_WriteRegFloat(Slave, RegAddress, (float)DataTable[REG_DBG2], &error);
 				else
 					TRM10_WriteUint16(Slave, RegAddress, (Int16U)DataTable[REG_DBG2], &error);

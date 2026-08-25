@@ -25,8 +25,8 @@
 #define ACT_DBG_HOMING 						27	// Считывание состояния пина HOMING и за-пись в регистр REG_DBG (0 – нет напряжения, 1 – 3,3 В на пине)
 #define ACT_DBG_SFT							28	// Считывание состояния пина S3 и запись в регистр REG_DBG (0 – нет напря-жения, 1 – 4,3 В на пине)
 #define ACT_DBG_OPTICAL						29	// Считывание состояния пина S5 и запись в регистр REG_DBG (0 – нет напря-жения, 1 – 4,3 В на пине)
-#define ACT_DBG_TRM_READ					30	// Чтение holding TRM10; REG_DBG_TRM_ADDRESS — slave, REG_DBG — адрес, REG_CNT_NUMBER: 0=UINT16, 1=FLOAT32
-#define ACT_DBG_TRM_WRITE					31	// Запись holding TRM10; REG_DBG2 — значение, REG_CNT_NUMBER: 0=UINT16, 1=FLOAT32
+#define ACT_DBG_TRM_READ					30	// Чтение holding TRM10; REG_DBG_TRM_ADDRESS — slave, REG_DBG — адрес, REG_DBG3: 0=UINT16, 1=FLOAT32
+#define ACT_DBG_TRM_WRITE					31	// Запись holding TRM10; REG_DBG2 — значение, REG_DBG3: 0=UINT16, 1=FLOAT32
 
 #define ACT_HOMING							100	// Start homing
 #define ACT_GOTO_POSITION					101	// Перемещение в позицию REG_CUSTOM_POS (мм) со скоростями REG_POS_SPEED_MIN/MAX
@@ -126,6 +126,7 @@
 #define REG_DBG2							93	// Отладочный регистр
 #define REG_CNT_NUMBER						94	// Номер счетчика, в который будет записано значение
 #define REG_CNT_VALUE						95	// Значение, которое будет записано в счетчик
+#define REG_DBG3							REG_CNT_NUMBER	// Алиас для корректного именования
 
 // Регистры только чтение
 #define REG_DEV_STATE						96	// Device state
