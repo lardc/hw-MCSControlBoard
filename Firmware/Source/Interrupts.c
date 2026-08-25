@@ -79,12 +79,12 @@ void TIM7_IRQHandler()
 }
 //-----------------------------------------
 
-void TIM3_IRQHandler(void)
+void TIM3_IRQHandler()
 {
-	if(TIM3->DIER & TIM_DIER_CC4IE && TIM3->SR & TIM_SR_CC4IF)
+	if((TIM3->DIER & TIM_DIER_CC4IE) && TIM_InterruptEventFlagCheck(TIM3, TIM_SR_CC4IF))
 	{
 		SM_TimerHandler();
-		TIM3->SR = ~(TIM_SR_CC4IF | TIM_SR_UIF);
+		TIM_InterruptEventFlagClear(TIM3, TIM_SR_CC4IF | TIM_SR_UIF);
 	}
 }
 //-----------------------------------------
