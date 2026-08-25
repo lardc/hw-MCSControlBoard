@@ -64,7 +64,7 @@ void INITCFG_ConfigGPIO()
 	GPIO_SetState(GPIO_LED, false);
 	GPIO_SetState(GPIO_RS485_CTRL, false);
 	GPIO_SetState(GPIO_STPM_DIR, false);
-	GPIO_SetState(GPIO_STPM_EN, false);
+	GPIO_SetState(GPIO_STPM_EN, true);
 	GPIO_SetState(GPIO_SPI_SS, false);
 	GPIO_SetState(GPIO_TEST, false);
 	GPIO_SetState(GPIO_SPI_LD, false);
@@ -141,15 +141,6 @@ void INITCFG_ConfigTimer7()
 	TIM_Config(TIM7, SYSCLK, TIMER7_uS);
 	TIM_Interupt(TIM7, 2, true);
 	TIM_Start(TIM7);
-}
-//------------------------------------------------
-
-void INITCFG_ConfigTimer1()
-{
-	TIM_Clock_En(TIM_1);
-	TIM_Config(TIM1, SYSCLK, TIMER1_uS);
-	TIM_Interupt(TIM1, 1, true);
-	TIM_Start(TIM1);
 }
 //------------------------------------------------
 

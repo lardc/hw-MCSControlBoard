@@ -176,18 +176,10 @@ void SM_Config(pSM_Params Params, Int16U PositionMm)
 // Переход в новую позицию, мм; скорости в мм/с
 Boolean SM_GoToPosition(pSM_Params Params)
 {
-	Int16U SlowDownDist, AccelLimit;
-	Int32U SpeedChangeStepsByDist, SpeedChangeStepsByAccel, TotalMoveSteps;
+	Int16U AccelLimit;
+	Int32U TotalMoveSteps;
 	Boolean ContinueLog = SM_LogContinue;
-
-	SM_HomingDoneFlag = FALSE;
 	SM_LogContinue = FALSE;
-
-	if(Params->MinSpeed > Params->MaxSpeed)
-	{
-		SM_StopMotion();
-		return FALSE;
-	}
 
 	SM_StartSteps = SM_GlobalStepsCounter;
 	SM_DestSteps = SM_PosToSteps(Params->NewPosition);
@@ -203,33 +195,46 @@ Boolean SM_GoToPosition(pSM_Params Params)
 	SM_MinCycles = SM_SpeedToCycles(Params->MaxSpeed);
 	SM_MaxCycles = SM_SpeedToCycles(Params->MinSpeed);
 	SM_CyclesToToggle = SM_MaxCycles;
-	SlowDownDist = DataTable[REG_SLOW_DOWN_DIST];
-	SpeedChangeStepsByDist = SM_PosToSteps(SlowDownDist);
 	AccelLimit = DataTable[REG_SM_TOGGLE_ACCELERATION];
 	if(AccelLimit == 0)
 		AccelLimit = 1;
 
-	SpeedChangeStepsByAccel = (SM_MaxCycles - SM_MinCycles + AccelLimit - 1) / AccelLimit;
-	SM_SpeedChangeSteps = (SpeedChangeStepsByDist > SpeedChangeStepsByAccel)
-			? SpeedChangeStepsByDist
-			: SpeedChangeStepsByAccel;
-
 	TotalMoveSteps = abs(SM_DestSteps - SM_GlobalStepsCounter);
-	if(SM_SpeedChangeSteps > (TotalMoveSteps / 2))
-		SM_SpeedChangeSteps = TotalMoveSteps / 2;
+	SM_SpeedChangeSteps = (SM_MaxCycles - SM_MinCycles + AccelLimit - 1) / AccelLimit;
 
-	LL_SetStepperEnable(true);
+	if(SM_SpeedChangeSteps > (TotalMoveSteps / 2))
+	{
+		Int32U AvailableSteps = TotalMoveSteps / 2;
+		Int32U MaxDeltaCycles;
+
+		SM_SpeedChangeSteps = AvailableSteps;
+		if(AvailableSteps == 0)
+			SM_MinCycles = SM_MaxCycles;
+		else
+		{
+			MaxDeltaCycles = AvailableSteps * (Int32U)AccelLimit;
+			if((Int32U)(SM_MaxCycles - SM_MinCycles) > MaxDeltaCycles)
+				SM_MinCycles = SM_MaxCycles - (Int16U)MaxDeltaCycles;
+		}
+	}
+
 	T3Ch4PWM_SetPeriodTicks(SM_CyclesToToggle);
 	if(!ContinueLog)
 		SM_MotorLogStart(SM_EstimateMoveMs((Int32U)abs(SM_DestSteps - SM_StartSteps)));
+
 	Motor_State = MS_Movement;
-	T3Ch4PWM_Start();
+	if(!T3Ch4PWM_Start())
+	{
+		SM_StopMotion();
+		return FALSE;
+	}
+
 	return TRUE;
 }
 // ----------------------------------------
 
 // Хоуминг
-void SM_Homing()
+Boolean SM_Homing()
 {
 	Int32U OffsetMs;
 	Int16U OffsetMm;
@@ -253,9 +258,15 @@ void SM_Homing()
 	}
 	SM_CyclesToToggle = SM_MinCycles;
 
-	LL_SetStepperEnable(true);
 	T3Ch4PWM_SetPeriodTicks(SM_CyclesToToggle);
-	T3Ch4PWM_Start();
+	if(!T3Ch4PWM_Start())
+	{
+		SM_LogContinue = FALSE;
+		Motor_State = MS_None;
+		return FALSE;
+	}
+
+	return TRUE;
 }
 // ----------------------------------------
 
@@ -311,7 +322,6 @@ Boolean SM_IsPositioningDone()
 
 void SM_RequestStop()
 {
-	SM_HomingDoneFlag = FALSE;
 	SM_LogContinue = FALSE;
 	Motor_State = MS_Stop;
 }
@@ -410,7 +420,6 @@ Int16U SM_SpeedToCycles(float SpeedMmS)
 
 void SM_ResetZeroPoint()
 {
-	SM_HomingDoneFlag = FALSE;
 	SM_LogContinue = FALSE;
 	SM_DestSteps = SM_GlobalStepsCounter = 0;
 	SM_StopMotion();
@@ -432,7 +441,6 @@ void SM_ToggleCyclesToTarget(Int16U Target)
 void SM_StopMotion()
 {
 	T3Ch4PWM_Stop();
-	LL_SetStepperEnable(false);
 	Motor_State = MS_None;
 }
 // ----------------------------------------

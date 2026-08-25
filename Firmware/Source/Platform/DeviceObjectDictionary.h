@@ -25,11 +25,11 @@
 #define ACT_DBG_HOMING 						27	// Считывание состояния пина HOMING и за-пись в регистр REG_DBG (0 – нет напряжения, 1 – 3,3 В на пине)
 #define ACT_DBG_SFT							28	// Считывание состояния пина S3 и запись в регистр REG_DBG (0 – нет напря-жения, 1 – 4,3 В на пине)
 #define ACT_DBG_OPTICAL						29	// Считывание состояния пина S5 и запись в регистр REG_DBG (0 – нет напря-жения, 1 – 4,3 В на пине)
-#define ACT_DBG_TRM_READ					30	// Чтение FLOAT32 из holding-регистра TRM10; REG_DBG_TRM_ADDRESS — slave, REG_DBG — адрес регистра
-#define ACT_DBG_TRM_WRITE					31	// Запись FLOAT32 в holding-регистр TRM10; REG_DBG_TRM_ADDRESS — slave, REG_DBG — адрес, REG_DBG2 — значение
+#define ACT_DBG_TRM_READ					30	// Чтение holding TRM10; REG_DBG_TRM_ADDRESS — slave, REG_DBG — адрес, REG_DBG3: 0=UINT16, 1=FLOAT32
+#define ACT_DBG_TRM_WRITE					31	// Запись holding TRM10; REG_DBG2 — значение, REG_DBG3: 0=UINT16, 1=FLOAT32
 
 #define ACT_HOMING							100	// Start homing
-// 101
+#define ACT_GOTO_POSITION					101	// Перемещение в позицию REG_CUSTOM_POS (мм) со скоростями REG_POS_SPEED_MIN/MAX
 #define ACT_START_CLAMPING					102 // Star clamping
 // 103
 #define ACT_RELEASE_CLAMPING				104 // Perform unclamp
@@ -40,12 +40,15 @@
 #define ACT_RELEASE_ADAPTER					109	// Release adapter for changing
 #define ACT_HOLD_ADAPTER					110	// Hold adapter
 
+// 111-113
+#define ACT_DBG_STPM_EN						111	// Set GPIO_STPM_EN from REG_DBG (0/1)
+
 #define ACT_DBG_READ_EXT_TEMP				114 // Read actual temperature value from Ext TRM
 #define ACT_DBG_READ_TRM_TEMP				115	// Read temperature value from TRM
 #define ACT_DBG_READ_TRM_POWER				116	// Read TRM output power
 #define ACT_DBG_TRM_START					117	// Start TRM operation
 #define ACT_DBG_TRM_STOP					118	// Stop TRM operation
-#define ACT_DBG_MOTOR_DISTANCE				120	// Перемещение в позицию REG_DBG (мм) со скоростями REG_POS_SPEED_MIN/MAX
+#define ACT_DBG_SELFTEST					119	// Отладочный запуск самодиагностики
 #define ACT_DBG_MOTOR_START					121	// Запуск отладочного вращения моторов
 #define ACT_DBG_MOTOR_STOP					122	// Остановка отладочного вращения моторов
 
@@ -85,30 +88,30 @@
 // Регистры
 // Сохраняемые регистры
 #define REG_CNT_ACTIVE						0	// Включение сохранения счетчиков
-// 1-12
-#define REG_SLOW_DOWN_DIST					13	// Расстояние от таргетной точки для начала замедления (мм)
+// 1-13
 #define REG_HOMING_SPEED					14	// Скорость хоуминга (мм/с)
 #define REG_HOMING_OFFSET					15	// Оффсет хоуминга (мм)
 #define REG_POS_SPEED_MIN					16	// Минимальная скорость перемещения при позиционировании зажатия (мм/с)
 // 17
 #define REG_POS_SPEED_MAX					18	// Максимальная скорость перемещения при позиционировании зажатия (мм/с)
-#define REG_SM_TOGGLE_ACCELERATION			19	// Макс. наклон профиля STEP (тиков TIM3 на шаг); вместе с REG_SLOW_DOWN_DIST задаёт разгон/торможение
+#define REG_SM_TOGGLE_ACCELERATION			19	// Макс. наклон профиля STEP (тиков TIM3 на шаг); задаёт плавность и длину зон разгона/торможения
 #define REG_USE_HEATING						20	// Включение/выключение обработки команд системы нагрева
 // 21-29
 #define REG_PRESSURE_OFFSET 				30	// Смещение давления
 #define REG_PRESSURE_K						31  // Линейный коэффициент давления
 #define REG_PRESSURE_OK						32	// Корректное давление системы бар x1000
-// 33-62
-#define REG_USE_ST							63	// Включение самодиагностики и безопастности
+// 33-63
 
 // Несохраняемые регистры чтения-записи
-// 64
+#define REG_CUSTOM_POS						64	// Mannually configured position (in mm)
 #define REG_TEST_CURRENT					65	// Заданный Master предел тока для сверки
 #define REG_TEST_VOLTAGE					66	// Заданный Master предел напряжения для сверки
 // 67-70
 #define REG_DEV_CASE						71	// Код корпуса прибора (задание Master для сверки)
-#define REG_TEMP_SETPOINT					72	// Уставка температуры (С х10)
-// 78-83
+#define REG_TEMP_SETPOINT					72	// Уставка температуры (°C)
+// 78-81
+#define REG_USE_ST							82	// Включение самодиагностики
+#define REG_USE_SAFETY						83	// Включение безопастности
 #define REG_DBG_TRM_ADDRESS					84	// Адрес ТРМ по RS485 для отладки
 //
 #define REG_DBG_ADAPTER_SERIAL				85	// Серийный номер адаптера
@@ -123,6 +126,7 @@
 #define REG_DBG2							93	// Отладочный регистр
 #define REG_CNT_NUMBER						94	// Номер счетчика, в который будет записано значение
 #define REG_CNT_VALUE						95	// Значение, которое будет записано в счетчик
+#define REG_DBG3							REG_CNT_NUMBER	// Алиас для корректного именования
 
 // Регистры только чтение
 #define REG_DEV_STATE						96	// Device state
@@ -188,6 +192,11 @@
 #define PROBLEM_NO_HOLD_OR_MISMATCH			3	// Не выполнено зажатие или было несовпадение адаптера
 #define PROBLEM_INVALID_SPEED				4	// MinSpeed > MaxSpeed в регистрах позиционирования
 #define PROBLEM_INCORRECT_DEVICE			5	// Установлено не корректное устройство.
+#define PROBLEM_NO_HOMING					6	// Не выполнен хоуминг
+#define PROBLEM_INVALID_POSITION			7	// Задано неверное расстояние для движения
+#define PROBLEM_MOVEMENT_TIMEOUT			8	// Движение превысило макс время для движения
+#define PROBLEM_MOTOR_START					9	// Не удалось синхронизировать/запустить STEP PWM
+#define PROBLEM_SAFETY						10	// Сработал контур безопасности / нет 24 В на катушках
 #define PROBLEM_OW_ERROR_LINE				20	// Проблема подключения на линии OW
 #define PROBLEM_OW_NO_DEVICE				21	// Устройство не найдено / неверный индекс
 #define PROBLEM_OW_VERIFY					22	// Ошибка verify / scratchpad / CRC / copy

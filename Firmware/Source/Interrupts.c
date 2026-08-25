@@ -77,20 +77,14 @@ void TIM7_IRQHandler()
 		TIM_StatusClear(TIM7);
 	}
 }
-
-void TIM1_UP_TIM16_IRQHandler(void)
-{
-	if(TIM_StatusCheck(TIM1))
-		TIM_StatusClear(TIM1);
-}
 //-----------------------------------------
 
-void TIM3_IRQHandler(void)
+void TIM3_IRQHandler()
 {
-	if(TIM_StatusCheck(TIM3))
+	if((TIM3->DIER & TIM_DIER_CC4IE) && TIM_InterruptEventFlagCheck(TIM3, TIM_SR_CC4IF))
 	{
 		SM_TimerHandler();
-		TIM_StatusClear(TIM3);
+		TIM_InterruptEventFlagClear(TIM3, TIM_SR_CC4IF | TIM_SR_UIF);
 	}
 }
 //-----------------------------------------

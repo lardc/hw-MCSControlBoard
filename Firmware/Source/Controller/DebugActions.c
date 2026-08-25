@@ -55,6 +55,9 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 
 			GPIO_InitAltFunction(GPIO_STPM_STEP, AltFn_2);
 			break;
+		case ACT_DBG_STPM_EN:
+			GPIO_SetState(GPIO_STPM_EN, DataTable[REG_DBG]);
+			break;
 		case ACT_DBG_DQ_PWR:
 			{
 				Boolean prev = GPIO_GetState(GPIO_DQ_PWR);
@@ -83,17 +86,38 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 		case ACT_DBG_OPTICAL:
 			DataTable[REG_DBG] = LL_IsSafetyS5Ok();
 			break;
+		case ACT_DBG_SELFTEST:
+			if(CONTROL_State == DS_Ready)
+				CONTROL_SetDeviceState(DS_SelfTest, DSS_None);
+			else
+				*UserError = ERR_DEVICE_NOT_READY;
+			break;
 		case ACT_DBG_TRM_READ:
 			{
 				TRMError error;
-				DataTable[REG_TRM_DATA] = TRM10_ReadReg((Int8U)DataTable[REG_DBG_TRM_ADDRESS], (Int16U)DataTable[REG_DBG], &error);
+				Int8U Slave = (Int8U)DataTable[REG_DBG_TRM_ADDRESS];
+				Int16U RegAddress = (Int16U)DataTable[REG_DBG];
+
+				// REG_DBG3: 0 — UINT16, 1 — FLOAT32
+				if(DataTable[REG_DBG3] != 0)
+					DataTable[REG_TRM_DATA] = TRM10_ReadRegFloat(Slave, RegAddress, &error);
+				else
+					DataTable[REG_TRM_DATA] = TRM10_ReadUint16(Slave, RegAddress, &error);
+
 				DataTable[REG_TRM_ERROR] = error;
 			}
 			break;
 		case ACT_DBG_TRM_WRITE:
 			{
 				TRMError error;
-				TRM10_WriteReg((Int8U)DataTable[REG_DBG_TRM_ADDRESS], (Int16U)DataTable[REG_DBG], (float)DataTable[REG_DBG2], &error);
+				Int8U Slave = (Int8U)DataTable[REG_DBG_TRM_ADDRESS];
+				Int16U RegAddress = (Int16U)DataTable[REG_DBG];
+
+				if(DataTable[REG_DBG3] != 0)
+					TRM10_WriteRegFloat(Slave, RegAddress, (float)DataTable[REG_DBG2], &error);
+				else
+					TRM10_WriteUint16(Slave, RegAddress, (Int16U)DataTable[REG_DBG2], &error);
+
 				DataTable[REG_TRM_ERROR] = error;
 			}
 			break;
@@ -159,17 +183,6 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 
 		case ACT_DBG_MOTOR_START:
 			SMD_ConnectHandler();
-			break;
-
-		case ACT_DBG_MOTOR_DISTANCE:
-			if(SM_IsBusy())
-				*UserError = ERR_OPERATION_BLOCKED;
-			else if(DataTable[REG_DBG] > POS_MAX)
-				*UserError = ERR_OPERATION_BLOCKED;
-			else if(DataTable[REG_POS_SPEED_MIN] > DataTable[REG_POS_SPEED_MAX])
-				CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
-			else if(!SMD_GoToDistanceMm((Int16U)DataTable[REG_DBG]))
-				CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
 			break;
 
 		case ACT_DBG_MOTOR_STOP:

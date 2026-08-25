@@ -9,9 +9,10 @@
 #include "Measurement.h"
 #include "SelfTest.h"
 #include "StepperMotor.h"
-#include "TRM101.h"
+#include "TRM10.h"
 #include "MemLabel.h"
 
+// Variables
 static void LOGIC_AdapterIdPublish(pAdapterIdentifier Id);
 static Int16U LOGIC_ClampHeightMm = 0;
 static Int64U LOGIC_WaitDeadline = 0;
@@ -20,15 +21,17 @@ static Boolean IsHolding = false;
 static Boolean LOGIC_FaultSpiAfterRelease = FALSE;
 AdapterIdentifier LOGIC_Id = {0};
 
+// Forward functions
 static Boolean LOGIC_PrepareClamping(Boolean Clamp);
 static Boolean LOGIC_PrepareHoming();
 static Boolean LOGIC_WaitSpiInBit(Int8U Bit);
 static Boolean LOGIC_ReadAdapterId();
 static void LOGIC_AbortHoldToRelease();
-static void LOGIC_ProcessSelfTest();
 static void LOGIC_MonitorCycleFaults();
 static Int16U LOGIC_GetClampHeightMm();
 
+// Functions
+//
 static Boolean LOGIC_PrepareClamping(Boolean Clamp)
 {
 	SM_Params Params;
@@ -280,6 +283,7 @@ Boolean LOGIC_IsCycleActive()
 		case DS_ClampingRelease:
 		case DS_AdapterHold:
 		case DS_AdapterRelease:
+		case DS_Movement:
 			return TRUE;
 		default:
 			return FALSE;
@@ -292,44 +296,27 @@ static void LOGIC_MonitorCycleFaults()
 	if(!LOGIC_IsCycleActive())
 		return;
 
-	if(!LL_FilterSafetyCircuit(LL_IsSafetyS3Ok()) || !LL_FilterSafetyCircuit(LL_IsSafetyS5Ok()))
+	DataTable[REG_SENSOR_S3] = LL_FilterSafetyCircuit(SC_CH_S3, LL_IsSafetyS3Ok());
+	DataTable[REG_SENSOR_S5] = LL_FilterSafetyCircuit(SC_CH_S5, LL_IsSafetyS5Ok());
+	if(!DataTable[REG_SENSOR_S3] || !DataTable[REG_SENSOR_S5])
 	{
+		CONTROL_FinishedWithProblem(PROBLEM_SAFETY);
 		CONTROL_Halt();
 		return;
 	}
 
 	if(!LL_SPI_IsCoil24VOk())
-		CONTROL_Halt();
-}
-// ----------------------------------------
-
-static void LOGIC_ProcessSelfTest()
-{
-	static DeviceState SelfTestLatch = DS_None;
-
-	if(CONTROL_State != DS_SelfTest)
 	{
-		SelfTestLatch = DS_None;
-		return;
+		CONTROL_FinishedWithProblem(PROBLEM_SAFETY);
+		CONTROL_Halt();
 	}
-
-	if(SelfTestLatch == DS_SelfTest)
-		return;
-
-	SelfTestLatch = DS_SelfTest;
-
-	DataTable[REG_SELFTEST_RESULT] = SELFTEST_Run();
-
-	if(DataTable[REG_SELFTEST_RESULT] == 0)
-		CONTROL_SetDeviceState(DS_Ready, DSS_None);
-	else
-		CONTROL_SwitchToFault(DF_SELFTEST);
 }
 // ----------------------------------------
 
 void LOGIC_Process()
 {
-	LOGIC_MonitorCycleFaults();
+	if(DataTable[REG_USE_SAFETY])
+		LOGIC_MonitorCycleFaults();
 	
 	if(CONTROL_State == DS_Fault || CONTROL_State == DS_Halt)
 		return;
@@ -337,17 +324,70 @@ void LOGIC_Process()
 	switch(CONTROL_State)
 	{
 		case DS_SelfTest:
-			// TODO: требует переделки
-			LOGIC_ProcessSelfTest();
+			{
+				Int16U Result = SELFTEST_Run();
+
+				if(Result == SELFTEST_IN_PROGRESS)
+					break;
+
+				DataTable[REG_SELFTEST_RESULT] = Result;
+				if(Result == 0)
+					CONTROL_SetDeviceState(DS_Ready, DSS_None);
+				else
+					CONTROL_SwitchToFault(DF_SELFTEST);
+			}
+			break;
+
+		case DS_Movement:
+			switch(CONTROL_SubState)
+			{
+				case DSS_MovementStart:
+					{
+						SM_Params Params;
+						SM_Config(&Params, (Int16U)DataTable[REG_CUSTOM_POS]);
+						LOGIC_StateTimeout = CONTROL_TimeCounter + MOVEMENT_TIMEOUT;
+						if(!SM_GoToPosition(&Params))
+						{
+							CONTROL_FinishedWithProblem(PROBLEM_MOTOR_START);
+							CONTROL_SetDeviceState(DS_Ready, DSS_None);
+						}
+						else
+							 CONTROL_SetDeviceState(CONTROL_State, DSS_MovementEnd);
+					}
+					break;
+
+				case DSS_MovementEnd:
+					if(!SM_IsBusy())
+					{
+						DataTable[REG_OP_RESULT] = OPRESULT_OK;
+						CONTROL_SetDeviceState(DS_Ready, DSS_None);
+					}
+					else if(CONTROL_TimeCounter > LOGIC_StateTimeout)
+					{
+						SM_RequestStop();
+						CONTROL_SetDeviceState(DS_Ready, DSS_None);
+						CONTROL_FinishedWithProblem(PROBLEM_MOVEMENT_TIMEOUT);
+					}
+					break;
+				default:
+					break;
+			}
 			break;
 
 		case DS_Homing:
 			switch(CONTROL_SubState)
 			{
 				case DSS_HomingSearchSensor:
-					SM_Homing();
-					LOGIC_StateTimeout = CONTROL_TimeCounter + HOMING_TIMEOUT;
-					CONTROL_SetDeviceState(CONTROL_State, DSS_HomingSearchSensorWait);
+					if(!SM_Homing())
+					{
+						CONTROL_FinishedWithProblem(PROBLEM_MOTOR_START);
+						CONTROL_SetDeviceState(DS_Ready, DSS_None);
+					}
+					else
+					{
+						LOGIC_StateTimeout = CONTROL_TimeCounter + HOMING_TIMEOUT;
+						CONTROL_SetDeviceState(CONTROL_State, DSS_HomingSearchSensorWait);
+					}
 					break;
 
 				case DSS_HomingSearchSensorWait:
@@ -371,7 +411,7 @@ void LOGIC_Process()
 						else
 						{
 							SM_RequestStop();
-							CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
+							CONTROL_FinishedWithProblem(PROBLEM_MOTOR_START);
 							CONTROL_SetDeviceState(DS_Ready, DSS_None);
 						}
 					}
@@ -463,7 +503,7 @@ void LOGIC_Process()
 							CONTROL_SetDeviceState(CONTROL_State, DSS_ClampingOperating);
 						else
 						{
-							CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
+							CONTROL_FinishedWithProblem(PROBLEM_MOTOR_START);
 							CONTROL_SetDeviceState(DS_Ready, DSS_None);
 						}
 					}
@@ -499,7 +539,7 @@ void LOGIC_Process()
 						CONTROL_SetDeviceState(CONTROL_State, DSS_ClampingReleaseOperating);
 					else
 					{
-						CONTROL_FinishedWithProblem(PROBLEM_INVALID_SPEED);
+						CONTROL_FinishedWithProblem(PROBLEM_MOTOR_START);
 						CONTROL_SetDeviceState(DS_Ready, DSS_None);
 					}
 					break;
@@ -550,7 +590,7 @@ void LOGIC_Process()
 					TRMError error = TRME_None;
 
 					if(DataTable[REG_USE_HEATING])
-						TRM_Stop(TRM_CH1_ADDR, &error);
+						TRM10_Stop(TRM_CH1_ADDR, &error);
 
 					IsHolding = false;
 					LOGIC_ClampHeightMm = 0;

@@ -22,7 +22,7 @@ const TableItemConstraint Constraint[DATA_TABLE_WP_START] = {
 	{0, 0, 0},																		// 10
 	{0, 0, 0},																		// 11
 	{0, 0, 0},																		// 12
-	{SLOW_DOWN_MIN, SLOW_DOWN_MAX, SLOW_DOWN_DEF},									// 13
+	{0, 0, 0},																		// 13
 	{SPEED_MIN, SPEED_MAX, SPEED_DEF},												// 14
 	{HOMING_OFFS_MIN, HOMING_OFFS_MAX, HOMING_OFFS_DEF},							// 15
 	{SPEED_MIN, SPEED_MAX, SPEED_DEF},												// 16
@@ -72,8 +72,8 @@ const TableItemConstraint Constraint[DATA_TABLE_WP_START] = {
 	{0, 0, 0},																		// 60
 	{0, 0, 0},																		// 61
 	{0, 0, 0},																		// 62
-	{NO, YES, YES},																	// 63
-	{0, 0, 0},																		// 64
+	{0, 0, 0},																		// 63
+	{0, POS_MAX, 0},																// 64
 	{0, INT16U_MAX, 0},																// 65
 	{0, INT16U_MAX, 0},																// 66
 	{0, 0, 0},																		// 67
@@ -91,8 +91,8 @@ const TableItemConstraint Constraint[DATA_TABLE_WP_START] = {
 	{0, 0, 0},																		// 79
 	{0, 0, 0},																		// 80
 	{0, 0, 0},																		// 81
-	{0, 0, 0},																		// 82
-	{0, 0, 0},																		// 83
+	{NO, YES, YES},																	// 82
+	{NO, YES, YES},																	// 83
 	{0, 255, 0},																	// 84
 	{0, INT16U_MAX, 0},																// 85
 	{ADAPTER_CLAMP_HEIGHT_MIN, ADAPTER_CLAMP_HEIGHT_MAX, ADAPTER_CLAMP_HEIGHT_DEF},	// 86

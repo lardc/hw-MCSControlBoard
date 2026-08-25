@@ -12,12 +12,14 @@
 static uint32_t PWMBase = 0;
 
 // Functions
-static void T3Ch4PWM_WaitUpdateFlag()
+static Boolean T3Ch4PWM_WaitUpdateFlag()
 {
 	uint32_t Timeout = T3CH4PWM_UPDATE_TIMEOUT_LOOPS;
 
 	while(!(TIM3->SR & TIM_SR_UIF) && Timeout > 0)
 		--Timeout;
+
+	return (TIM3->SR & TIM_SR_UIF) != 0;
 }
 
 static void T3Ch4PWM_ApplyPeriod(uint32_t PeriodTicks)
@@ -59,8 +61,8 @@ void T3Ch4PWM_Init(uint32_t SystemClock, uint32_t Period)
 	T3Ch4PWM_WaitUpdateFlag();
 	TIM3->SR = ~TIM_SR_UIF;
 
-	// Разрешение прерывания
 	TIM_Interupt(TIM3, 0, true);
+	TIM3->DIER &= ~(TIM_DIER_UIE | TIM_DIER_CC4IE);
 }
 //------------------------------------------------
 
@@ -89,27 +91,40 @@ void T3Ch4PWM_SetPeriodTicks(uint32_t Cycles)
 }
 //------------------------------------------------
 
-void T3Ch4PWM_Start()
+Boolean T3Ch4PWM_Start()
 {
+	TIM3->DIER &= ~TIM_DIER_CC4IE;
+	TIM3->SR = ~(TIM_SR_CC4IF | TIM_SR_UIF);
+	TIM3->EGR |= TIM_EGR_UG;
+	if(!T3Ch4PWM_WaitUpdateFlag())
+	{
+		TIM3->SR = ~(TIM_SR_CC4IF | TIM_SR_UIF);
+		return FALSE;
+	}
+	TIM3->SR = ~(TIM_SR_CC4IF | TIM_SR_UIF);
+
+	TIM3->DIER |= TIM_DIER_CC4IE;
 	TIM_Start(TIM3);
+	return TRUE;
 }
 //------------------------------------------------
 
-void T3Ch4PWM_Stop()
+Boolean T3Ch4PWM_Stop()
 {
+	// CC4IE остаётся выключенным до следующего Start()
+	TIM3->DIER &= ~TIM_DIER_CC4IE;
+	TIM3->SR = ~(TIM_SR_CC4IF | TIM_SR_UIF);
+
 	T3Ch4PWM_SetPeriodTicks(0);
 	TIM_Stop(TIM3);
 
-	// Запрет прерывания и очистка флага
-	TIM3->DIER &= ~TIM_DIER_UIE;
-	TIM3->SR = ~TIM_SR_UIF;
-
-	// Форсирование обновления регистров таймера
 	TIM3->EGR |= TIM_EGR_UG;
-	T3Ch4PWM_WaitUpdateFlag();
-	TIM3->SR = ~TIM_SR_UIF;
-
-	// Разрешение прерывания
-	TIM3->DIER |= TIM_DIER_UIE;
+	if(!T3Ch4PWM_WaitUpdateFlag())
+	{
+		TIM3->SR = ~(TIM_SR_CC4IF | TIM_SR_UIF);
+		return FALSE;
+	}
+	TIM3->SR = ~(TIM_SR_CC4IF | TIM_SR_UIF);
+	return TRUE;
 }
 //------------------------------------------------

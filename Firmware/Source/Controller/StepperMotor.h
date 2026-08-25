@@ -32,7 +32,7 @@ Boolean SM_IsPositioningDone();
 float SM_GetPositionMm();
 float SM_GetSpeedMmS();
 // Homing
-void SM_Homing();
+Boolean SM_Homing();
 Boolean SM_IsHomingDone();
 void SM_ResetZeroPoint();
 void SM_RequestStop();
