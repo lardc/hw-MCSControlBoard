@@ -121,6 +121,15 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 				DataTable[REG_TRM_ERROR] = error;
 			}
 			break;
+		case ACT_DBG_OFF_OUTPUT:
+			{
+				Int16U Exit = DataTable[REG_DBG];
+				if(DataTable[REG_DBG] > 7)
+					break;
+				LL_SPI_SetOutBit(Exit, false);
+				LL_SPI_FlushOut();
+			}
+			break;
 
 		case ACT_DBG_READ_EXT_TEMP:
 		case ACT_DBG_READ_TRM_TEMP:
