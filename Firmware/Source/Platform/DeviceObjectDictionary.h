@@ -27,6 +27,7 @@
 #define ACT_DBG_OPTICAL						29	// Считывание состояния пина S5 и запись в регистр REG_DBG (0 – нет напря-жения, 1 – 4,3 В на пине)
 #define ACT_DBG_TRM_READ					30	// Чтение holding TRM10; REG_DBG_TRM_ADDRESS — slave, REG_DBG — адрес, REG_DBG3: 0=UINT16, 1=FLOAT32
 #define ACT_DBG_TRM_WRITE					31	// Запись holding TRM10; REG_DBG2 — значение, REG_DBG3: 0=UINT16, 1=FLOAT32
+#define ACT_DBG_OFF_OUTPUT					32	// Отключить напряжение 24 В на универсальном выходе (разъемы P2-P9) равным в регистре REG_DBG (0-7)
 
 #define ACT_HOMING							100	// Start homing
 #define ACT_GOTO_POSITION					101	// Перемещение в позицию REG_CUSTOM_POS (мм) со скоростями REG_POS_SPEED_MIN/MAX
