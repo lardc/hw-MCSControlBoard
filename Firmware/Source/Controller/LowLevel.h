@@ -5,18 +5,18 @@
 #include "stdinc.h"
 
 // --- Выход (1SPI), индекс = бит_ТТ - 1 ---
-#define SPI_OUT_ADAPTER			0
-#define SPI_OUT_BUS				1
+#define SPI_OUT_ADAPTER			1
+#define SPI_OUT_BUS				0
 #define SPI_OUT_FAN1			6
 #define SPI_OUT_FAN2			7
 
 // --- Вход (2SPI), индекс = бит_ТТ - 1 ---
-#define SPI_IN_ADAPTER_COIL_24V	0
-#define SPI_IN_BUS_COIL_24V		1
+#define SPI_IN_ADAPTER_COIL_24V	1
+#define SPI_IN_BUS_COIL_24V		0
 #define SPI_IN_ADAPTER_RELEASED	2
 #define SPI_IN_ADAPTER_HELD		3
-#define SPI_IN_BUS_RELEASED		4
-#define SPI_IN_BUS_HELD			5
+#define SPI_IN_BUS_RELEASED		5
+#define SPI_IN_BUS_HELD			4
 
 #define SPI_IN_MASK_COIL_24V	((1u << SPI_IN_ADAPTER_COIL_24V) | (1u << SPI_IN_BUS_COIL_24V))
 #define COMMUTATION_TABLE_SIZE 3
