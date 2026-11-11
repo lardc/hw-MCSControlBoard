@@ -296,9 +296,8 @@ static void LOGIC_MonitorCycleFaults()
 	if(!LOGIC_IsCycleActive())
 		return;
 
-	DataTable[REG_SENSOR_S3] = LL_FilterSafetyCircuit(SC_CH_S3, LL_IsSafetyS3Ok());
-	DataTable[REG_SENSOR_S5] = LL_FilterSafetyCircuit(SC_CH_S5, LL_IsSafetyS5Ok());
-	if(!DataTable[REG_SENSOR_S3] || !DataTable[REG_SENSOR_S5])
+	if(LL_FilterSafetyTrip(SC_CH_S3, LL_IsSafetyS3Ok())
+			|| LL_FilterSafetyTrip(SC_CH_S5, LL_IsSafetyS5Ok()))
 	{
 		CONTROL_FinishedWithProblem(PROBLEM_SAFETY);
 		CONTROL_Halt();

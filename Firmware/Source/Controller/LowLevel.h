@@ -26,7 +26,8 @@
 
 extern Int32U CycleCounters[COMMUTATION_TABLE_SIZE];
 
-Boolean LL_FilterSafetyCircuit(Int8U Channel, Boolean NewState);
+// TRUE после SC_FILTER_T подряд отсутствия «ОК» на входе
+Boolean LL_FilterSafetyTrip(Int8U Channel, Boolean OkState);
 
 void LL_SPI_SetOutBit(Int8U Bit, Boolean State);
 void LL_SPI_FlushOut();

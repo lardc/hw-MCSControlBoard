@@ -28,16 +28,16 @@ static void LL_SPI_LatchOut()
 }
 //-----------------------------
 
-Boolean LL_FilterSafetyCircuit(Int8U Channel, Boolean NewState)
+Boolean LL_FilterSafetyTrip(Int8U Channel, Boolean OkState)
 {
 	static Int16U Counter[2] = {0, 0};
 
-	if(!NewState)
+	if(OkState)
 		Counter[Channel] = 0;
 	else if(Counter[Channel] < SC_FILTER_T)
 		Counter[Channel]++;
 
-	return (Counter[Channel] >= SC_FILTER_T);
+	return Counter[Channel] >= SC_FILTER_T;
 }
 //-----------------------------
 

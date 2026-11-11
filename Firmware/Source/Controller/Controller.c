@@ -95,6 +95,8 @@ void CONTROL_Idle()
 	CONTROL_UpdateTRMTemperature();
 
 	DataTable[REG_SENSOR_S2] = LL_IsTableSensorOk();
+	DataTable[REG_SENSOR_S3] = LL_IsSafetyS3Ok();
+	DataTable[REG_SENSOR_S5] = LL_IsSafetyS5Ok();
 	DataTable[REG_HOMING_SENSOR] = LL_HomeSensorActuate();
 	DataTable[REG_BUS_TOOLING_SENSOR] = LL_SPI_GetInBit(SPI_IN_BUS_HELD);
 	DataTable[REG_ADAPTER_TOOLING_SENSOR] = LL_SPI_GetInBit(SPI_IN_ADAPTER_HELD);
