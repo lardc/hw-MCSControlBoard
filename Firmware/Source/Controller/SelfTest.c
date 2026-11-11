@@ -95,11 +95,14 @@ Int16U SELFTEST_Run()
 		return SELFTEST_IN_PROGRESS;
 	}
 
-	if(!SELFTEST_CheckOpto(GPIO_SEN_S1, &Passed))
-		return SELFTEST_IN_PROGRESS;
+	if(DataTable[REG_ST_CHECK_OSH2])
+	{
+		if(!SELFTEST_CheckOpto(GPIO_SEN_S1, &Passed))
+			return SELFTEST_IN_PROGRESS;
 
-	if(!Passed)
-		ResultMask |= SELFTEST_FAIL_OSH2;
+		if(!Passed)
+			ResultMask |= SELFTEST_FAIL_OSH2;
+	}
 
 	LL_SetTestLine(false);
 	Int16U Result = ResultMask;
