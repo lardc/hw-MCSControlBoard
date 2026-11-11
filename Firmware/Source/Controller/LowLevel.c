@@ -134,7 +134,7 @@ void LL_RS485_SetTxMode(Boolean State)
 
 void LL_SwitchUpDir(Boolean State)
 {
-	GPIO_SetState(GPIO_STPM_DIR, State);
+	GPIO_SetState(GPIO_STPM_DIR, DataTable[REG_INVERT_DIRECTION] ? !State : State);
 }
 //-----------------------------
 
