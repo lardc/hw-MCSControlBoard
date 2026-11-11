@@ -98,7 +98,15 @@
 #define REG_POS_SPEED_MAX					18	// Максимальная скорость перемещения при позиционировании зажатия (мм/с)
 #define REG_SM_TOGGLE_ACCELERATION			19	// Макс. наклон профиля STEP (тиков TIM3 на шаг); задаёт плавность и длину зон разгона/торможения
 #define REG_USE_HEATING						20	// Включение/выключение обработки команд системы нагрева
-// 21-29
+
+#define REG_HOMING_PAUSE					21	// Пауза хоуминга перед оффсетом, мс
+#define REG_HOMING_REVERSE_PAUSE			22	// Пауза хоуминга после пересечения сенсора, мс
+#define REG_HOMING_TIMEOUT					23	// Таймаут работы хоуминга, мс
+#define REG_MOVEMENT_TIMEOUT				24	// Таймаут при передвижении к точке, мс
+
+#define REG_SM_FULL_ROUND_STEPS				25	// Количество шагов в 1 обороте ШВП
+#define REG_SM_MOVING_RER_ROUND				26	// Мкм в 1 обороте ШВП
+// 27-29
 #define REG_PRESSURE_OFFSET 				30	// Смещение давления
 #define REG_PRESSURE_K						31	// Линейный коэффициент давления
 #define REG_PRESSURE_OK						32	// Корректное давление системы бар x1000

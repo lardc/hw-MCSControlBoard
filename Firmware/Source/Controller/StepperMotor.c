@@ -90,7 +90,7 @@ void SM_LogicHandler()
 			SM_GlobalStepsCounter += (LL_IsDirUp()) ? 1 : -1;
 			if(LL_HomeSensorActuate())
 			{
-				SM_HomingPauseDeadline = CONTROL_TimeCounter + HOMING_REVERSE_PAUSE;
+				SM_HomingPauseDeadline = CONTROL_TimeCounter + DataTable[REG_HOMING_REVERSE_PAUSE];
 				T3Ch4PWM_SetPeriodTicks(0);
 				Motor_State = MS_HomingPause;
 			}
@@ -98,9 +98,9 @@ void SM_LogicHandler()
 		case MS_HomingPause:
 			if(CONTROL_TimeCounter > SM_HomingPauseDeadline)
 			{
-				SM_UpDirection(TRUE);
-				Motor_State = MS_HomingRelease;
-				T3Ch4PWM_SetPeriodTicks(SM_CyclesToToggle);
+				SM_HomingDoneFlag = TRUE;
+				SM_DestSteps = SM_GlobalStepsCounter = 0;
+				SM_StopMotion();
 			}
 			break;
 		case MS_HomingRelease:
@@ -244,7 +244,7 @@ Boolean SM_Homing()
 	SM_SpeedChangeSteps = 0;
 	OffsetMm = (Int16U)DataTable[REG_HOMING_OFFSET];
 	OffsetMs = SM_EstimateMoveMs(SM_PosToSteps(OffsetMm));
-	SM_MotorLogStart(HOMING_TIMEOUT + HOMING_PAUSE + OffsetMs);
+	SM_MotorLogStart(DataTable[REG_HOMING_TIMEOUT] + DataTable[REG_HOMING_PAUSE] + OffsetMs);
 	SM_LogContinue = TRUE;
 	if(LL_HomeSensorActuate())
 	{
@@ -284,8 +284,8 @@ Boolean SM_IsLogging()
 
 float SM_GetPositionMm()
 {
-	return (float)SM_GlobalStepsCounter * (float)SM_MOVING_RER_ROUND
-			/ (1000.0f * (float)SM_FULL_ROUND_STEPS);
+	return (float)SM_GlobalStepsCounter * DataTable[REG_SM_MOVING_RER_ROUND]
+			/ (1000.0f * DataTable[REG_SM_FULL_ROUND_STEPS]);
 }
 // ----------------------------------------
 
@@ -300,8 +300,7 @@ float SM_GetSpeedMmS()
 
 	TimerClk = SYSCLK / (TIM3->PSC + 1);
 	StepsPerSec = TimerClk / SM_CyclesToToggle;
-	Speed = (float)StepsPerSec * (float)SM_MOVING_RER_ROUND
-			/ (1000.0f * (float)SM_FULL_ROUND_STEPS);
+	Speed = (float)StepsPerSec * DataTable[REG_SM_MOVING_RER_ROUND] / (1000.0f * DataTable[REG_SM_FULL_ROUND_STEPS]);
 
 	return LL_IsDirUp() ? Speed : -Speed;
 }
@@ -330,7 +329,7 @@ void SM_RequestStop()
 // Перевод позиции, мм, в шаги
 Int32U SM_PosToSteps(Int16U NewPos)
 {
-	return 1000ul * NewPos * SM_FULL_ROUND_STEPS / SM_MOVING_RER_ROUND;
+	return 1000ul * NewPos * DataTable[REG_SM_FULL_ROUND_STEPS] / DataTable[REG_SM_MOVING_RER_ROUND];
 }
 // ----------------------------------------
 
@@ -401,8 +400,8 @@ Int16U SM_SpeedToCycles(float SpeedMmS)
 		SpeedMmS = 0.1f;
 
 	TimerClk = SYSCLK / (TIM3->PSC + 1);
-	StepsPerSec = (Int32U)(SpeedMmS * 1000.0f * (float)SM_FULL_ROUND_STEPS
-			/ (float)SM_MOVING_RER_ROUND + 0.5f);
+	StepsPerSec = (Int32U)(SpeedMmS * 1000.0f * DataTable[REG_SM_FULL_ROUND_STEPS]
+			/ DataTable[REG_SM_MOVING_RER_ROUND] + 0.5f);
 	if(StepsPerSec == 0)
 		StepsPerSec = 1;
 

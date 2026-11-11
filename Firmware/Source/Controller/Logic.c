@@ -345,7 +345,7 @@ void LOGIC_Process()
 					{
 						SM_Params Params;
 						SM_Config(&Params, (Int16U)DataTable[REG_CUSTOM_POS]);
-						LOGIC_StateTimeout = CONTROL_TimeCounter + MOVEMENT_TIMEOUT;
+						LOGIC_StateTimeout = CONTROL_TimeCounter + DataTable[REG_MOVEMENT_TIMEOUT];
 						if(!SM_GoToPosition(&Params))
 						{
 							CONTROL_FinishedWithProblem(PROBLEM_MOTOR_START);
@@ -385,7 +385,7 @@ void LOGIC_Process()
 					}
 					else
 					{
-						LOGIC_StateTimeout = CONTROL_TimeCounter + HOMING_TIMEOUT;
+						LOGIC_StateTimeout = CONTROL_TimeCounter + DataTable[REG_HOMING_TIMEOUT];
 						CONTROL_SetDeviceState(CONTROL_State, DSS_HomingSearchSensorWait);
 					}
 					break;
@@ -393,7 +393,7 @@ void LOGIC_Process()
 				case DSS_HomingSearchSensorWait:
 					if(SM_IsHomingDone())
 					{
-						LOGIC_StateTimeout = CONTROL_TimeCounter + HOMING_PAUSE;
+						LOGIC_StateTimeout = CONTROL_TimeCounter + DataTable[REG_HOMING_PAUSE];
 						CONTROL_SetDeviceState(CONTROL_State, DSS_HomingPauseBeforeOffset);
 					}
 					else if(CONTROL_TimeCounter > LOGIC_StateTimeout)

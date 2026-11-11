@@ -30,12 +30,12 @@ const TableItemConstraint Constraint[DATA_TABLE_WP_START] = {
 	{SPEED_MIN, SPEED_MAX, SPEED_DEF},												// 18
 	{1, 100, 50},																	// 19
 	{NO, YES, YES},																	// 20
-	{0, 0, 0},																		// 21
-	{0, 0, 0},																		// 22
-	{NO, YES, YES},																	// 23
-	{0, 0, 0},																		// 24
-	{0, 0, 0},																		// 25
-	{0, 0, 0},																		// 26
+	{1, INT16U_MAX, HOMING_PAUSE_DEF},												// 21
+	{1, INT16U_MAX, HOMING_REVERSE_PAUSE_DEF},										// 22
+	{1, INT16U_MAX, HOMING_TIMEOUT_DEF},											// 23
+	{1, INT16U_MAX, MOVEMENT_TIMEOUT_DEF},											// 24
+	{1, INT16U_MAX, FULL_ROUND_STEPS_DEF},											// 25
+	{1, INT16U_MAX, MOVING_PER_ROUND_DEF},											// 26
 	{0, 0, 0},																		// 27
 	{0, 0, 0},																		// 28
 	{0, 0, 0},																		// 29
