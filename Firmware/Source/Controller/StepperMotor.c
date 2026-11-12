@@ -98,9 +98,9 @@ void SM_LogicHandler()
 		case MS_HomingPause:
 			if(CONTROL_TimeCounter > SM_HomingPauseDeadline)
 			{
-				SM_HomingDoneFlag = TRUE;
-				SM_DestSteps = SM_GlobalStepsCounter = 0;
-				SM_StopMotion();
+				SM_UpDirection(TRUE);
+				Motor_State = MS_HomingRelease;
+				T3Ch4PWM_SetPeriodTicks(SM_CyclesToToggle);
 			}
 			break;
 		case MS_HomingRelease:
@@ -329,7 +329,8 @@ void SM_RequestStop()
 // Перевод позиции, мм, в шаги
 Int32U SM_PosToSteps(Int16U NewPos)
 {
-	return 1000ul * NewPos * DataTable[REG_SM_FULL_ROUND_STEPS] / DataTable[REG_SM_MOVING_RER_ROUND];
+	Int64U Steps = 1000ul * (Int64U)NewPos * DataTable[REG_SM_FULL_ROUND_STEPS] / DataTable[REG_SM_MOVING_RER_ROUND];
+	return (Int32U)Steps;
 }
 // ----------------------------------------
 
