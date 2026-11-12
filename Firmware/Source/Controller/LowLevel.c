@@ -10,6 +10,7 @@
 Int32U CycleCounters[COMMUTATION_TABLE_SIZE] = {0};
 
 static Int8U SpiOutShadow = 0;
+Int8U LL_SPI_InRaw = 0;
 //-----------------------------
 
 static void LL_SPI_WriteRaw(Int8U Data)
@@ -66,7 +67,7 @@ void LL_SPI_FlushOut()
 }
 //-----------------------------
 
-Int8U LL_SPI_ReadInRaw()
+static Int8U LL_SPI_HardwareReadIn()
 {
 	Int8U Data;
 
@@ -84,15 +85,21 @@ Int8U LL_SPI_ReadInRaw()
 }
 //-----------------------------
 
+void LL_SPI_SyncInputs()
+{
+	LL_SPI_InRaw = LL_SPI_HardwareReadIn();
+}
+//-----------------------------
+
 Boolean LL_SPI_GetInBit(Int8U Bit)
 {
-	return (LL_SPI_ReadInRaw() & (1u << Bit)) != 0;
+	return (LL_SPI_InRaw & (1u << Bit)) != 0;
 }
 //-----------------------------
 
 Boolean LL_SPI_IsCoil24VOk()
 {
-	return (LL_SPI_ReadInRaw() & SPI_IN_MASK_COIL_24V) == SPI_IN_MASK_COIL_24V;
+	return (LL_SPI_InRaw & SPI_IN_MASK_COIL_24V) == SPI_IN_MASK_COIL_24V;
 }
 //-----------------------------
 

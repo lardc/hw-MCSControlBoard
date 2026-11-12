@@ -39,7 +39,8 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 			}
 			break;
 		case ACT_DBG_MEAS_INPUT:
-			DataTable[REG_DBG] = LL_SPI_ReadInRaw();
+			LL_SPI_SyncInputs();
+			DataTable[REG_DBG] = LL_SPI_InRaw;
 			break;
 		case ACT_DBG_STPM:
 			T3Ch4PWM_Stop();

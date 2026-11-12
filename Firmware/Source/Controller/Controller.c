@@ -39,7 +39,7 @@ volatile float CONTROL_ExtInfoData[VALUES_EXT_INFO_SIZE];
 // Forward functions
 static void CONTROL_FillWPPartDefault();
 static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError);
-static void CONTROL_SetFans(Boolean State);
+static void CONTROL_UpdateFans(void);
 void CONTROL_UpdateTRMTemperature();
 static void CONTROL_InitStoragePointers();
 static Boolean CONTROL_ShouldMonitorPressureFault();
@@ -94,16 +94,19 @@ void CONTROL_Idle()
 	DEVPROFILE_ProcessRequests();
 	CONTROL_UpdateTRMTemperature();
 
+	LL_SPI_SyncInputs();
+
 	DataTable[REG_SENSOR_S2] = LL_IsTableSensorOk();
 	DataTable[REG_SENSOR_S3] = LL_IsSafetyS3Ok();
 	DataTable[REG_SENSOR_S5] = LL_IsSafetyS5Ok();
 	DataTable[REG_HOMING_SENSOR] = LL_HomeSensorActuate();
 	DataTable[REG_BUS_TOOLING_SENSOR] = LL_SPI_GetInBit(SPI_IN_BUS_HELD);
 	DataTable[REG_ADAPTER_TOOLING_SENSOR] = LL_SPI_GetInBit(SPI_IN_ADAPTER_HELD);
-	DataTable[REG_SPI_IN_STATE] = LL_SPI_ReadInRaw();
+	DataTable[REG_SPI_IN_STATE] = LL_SPI_InRaw;
 	DataTable[REG_PRESSURE] = MEAS_GetPressureMilliBar();
 	CONTROL_UpdatePressureOK();
 	LOGIC_Process();
+	CONTROL_UpdateFans();
 
 	if(CONTROL_State == DS_None || CONTROL_State == DS_Fault ||  CONTROL_State == DS_Ready || CONTROL_State == DS_Halt
 	|| CONTROL_State == DS_ClampingDone)
@@ -165,6 +168,25 @@ static void CONTROL_SetFans(Boolean State)
 	LL_SPI_SetOutBit(SPI_OUT_FAN1, State);
 	LL_SPI_SetOutBit(SPI_OUT_FAN2, State);
 	LL_SPI_FlushOut();
+}
+// ----------------------------------------
+
+static void CONTROL_UpdateFans(void)
+{
+	static Boolean PrevHeating = FALSE;
+	static Int64U FanOffDeadline = 0;
+	static Boolean FansState = FALSE;
+
+	if(!HeatingActive && PrevHeating)
+		FanOffDeadline = CONTROL_TimeCounter + DataTable[REG_FAN_OFF_DELAY];
+	PrevHeating = HeatingActive;
+
+	Boolean IsFanOn = HeatingActive || CONTROL_TimeCounter < FanOffDeadline;
+	if(IsFanOn == FansState)
+		return;
+
+	FansState = IsFanOn;
+	CONTROL_SetFans(FansState);
 }
 // ----------------------------------------
 
@@ -317,8 +339,6 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 						DataTable[REG_TRM_ERROR] = error;
 						*UserError = ERR_TRM_COMM_ERR;
 					}
-					else
-						CONTROL_SetFans(HeatingActive);
 				}
 				else
 					DataTable[REG_TEMP_CH1] = DataTable[REG_TEMP_SETPOINT];

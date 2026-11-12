@@ -47,6 +47,7 @@ typedef struct __TableItemConstraint
 #define HOMING_REVERSE_PAUSE_DEF	100
 #define HOMING_TIMEOUT_DEF			45000
 #define MOVEMENT_TIMEOUT_DEF		20000
+#define FAN_OFF_DELAY_DEF			10000
 
 // Параметры ШВП
 #define FULL_ROUND_STEPS_DEF		1000ul	// steps/round

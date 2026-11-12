@@ -603,9 +603,6 @@ void LOGIC_Process()
 						break;
 					}
 
-					LL_SPI_SetOutBit(SPI_OUT_FAN1, false);
-					LL_SPI_SetOutBit(SPI_OUT_FAN2, false);
-					LL_SPI_FlushOut();
 					HeatingActive = FALSE;
 
 					CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterRelease_Done);

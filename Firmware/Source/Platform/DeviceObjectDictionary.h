@@ -112,7 +112,8 @@
 #define REG_PRESSURE_OK						32	// Корректное давление системы бар x1000
 
 #define REG_ST_CHECK_OSH2					33	// Включение проверки ОШ2 при самодиагностике
-// 33-63
+#define REG_FAN_OFF_DELAY					34	// Время работы вентиляторов после выключения нагрева, мс
+// 35-63
 
 // Несохраняемые регистры чтения-записи
 #define REG_CUSTOM_POS						64	// Mannually configured position (in mm)

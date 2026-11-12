@@ -43,7 +43,7 @@ const TableItemConstraint Constraint[DATA_TABLE_WP_START] = {
 	{0, INT16U_MAX, 0},																// 31
 	{0, INT16U_MAX, PRESSURE_OK_DEF},												// 32
 	{NO, YES, YES},																	// 33
-	{0, 0, 0},																		// 34
+	{0, INT16U_MAX, FAN_OFF_DELAY_DEF},												// 34
 	{0, 0, 0},																		// 35
 	{0, 0, 0},																		// 36
 	{0, 0, 0},																		// 37

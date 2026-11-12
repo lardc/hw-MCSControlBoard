@@ -25,15 +25,15 @@
 #define SC_CH_S5				1
 
 extern Int32U CycleCounters[COMMUTATION_TABLE_SIZE];
+extern Int8U LL_SPI_InRaw;
 
-// TRUE после SC_FILTER_T подряд отсутствия «ОК» на входе
 Boolean LL_FilterSafetyTrip(Int8U Channel, Boolean OkState);
 
 void LL_SPI_SetOutBit(Int8U Bit, Boolean State);
 void LL_SPI_FlushOut();
+void LL_SPI_SyncInputs();
 Boolean LL_SPI_GetInBit(Int8U Bit);
 Boolean LL_SPI_IsCoil24VOk();
-Int8U LL_SPI_ReadInRaw();
 
 Boolean LL_IsTableSensorOk();
 Boolean LL_IsSafetyS3Ok();
