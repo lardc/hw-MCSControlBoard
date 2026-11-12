@@ -291,6 +291,15 @@ Boolean LOGIC_IsCycleActive()
 }
 // ----------------------------------------
 
+static Boolean LOGIC_ShouldMonitorCoil24V()
+{
+	if(CONTROL_State == DS_AdapterHold || CONTROL_State == DS_AdapterRelease)
+		return FALSE;
+
+	return IsHolding;
+}
+// ----------------------------------------
+
 static void LOGIC_MonitorCycleFaults()
 {
 	if(!LOGIC_IsCycleActive())
@@ -304,7 +313,7 @@ static void LOGIC_MonitorCycleFaults()
 		return;
 	}
 
-	if(!LL_SPI_IsCoil24VOk())
+	if(LOGIC_ShouldMonitorCoil24V() && !LL_SPI_IsCoil24VOk())
 	{
 		CONTROL_FinishedWithProblem(PROBLEM_SAFETY);
 		CONTROL_Halt();
