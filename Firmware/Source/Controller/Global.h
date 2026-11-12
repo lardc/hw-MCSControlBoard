@@ -31,16 +31,10 @@
 // Таймауты циклов
 #define SC_FILTER_T						100		// 
 #define PNEUMATIC_READ_PAUSE			500		//
-#define HOMING_PAUSE					500		//
-#define HOMING_REVERSE_PAUSE			100		//
-#define HOMING_TIMEOUT					45000	//
-#define MOVEMENT_TIMEOUT				20000	//
 #define TRM_READ_PAUSE					1000	//
 #define SPI_WAIT_TIMEOUT				2000	//
 #define ADAPTER_HOLD_PRESSURE_TIMEOUT	2000	//
 
-// Шаговый привод
-#define SM_FULL_ROUND_STEPS				1000ul	// steps/round
 #define SM_MOVING_RER_ROUND				5000ul	// um/round
 
 #endif // __GLOBAL_H

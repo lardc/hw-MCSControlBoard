@@ -42,6 +42,17 @@ typedef struct __TableItemConstraint
 // Давление (мбар)
 #define PRESSURE_OK_DEF				5000
 
+// Временные параметры (мс)
+#define HOMING_PAUSE_DEF			500
+#define HOMING_REVERSE_PAUSE_DEF	100
+#define HOMING_TIMEOUT_DEF			45000
+#define MOVEMENT_TIMEOUT_DEF		20000
+#define FAN_OFF_DELAY_DEF			10000
+
+// Параметры ШВП
+#define FULL_ROUND_STEPS_DEF		1000ul	// steps/round
+#define MOVING_PER_ROUND_DEF		5000ul	// um/round
+
 // Идентификатор адаптера
 #define ADAPTER_CLAMP_HEIGHT_MIN	1
 #define ADAPTER_CLAMP_HEIGHT_MAX	POS_MAX

@@ -39,7 +39,8 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 			}
 			break;
 		case ACT_DBG_MEAS_INPUT:
-			DataTable[REG_DBG] = LL_SPI_ReadInRaw();
+			LL_SPI_SyncInputs();
+			DataTable[REG_DBG] = LL_SPI_InRaw;
 			break;
 		case ACT_DBG_STPM:
 			T3Ch4PWM_Stop();
@@ -119,6 +120,15 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 					TRM10_WriteUint16(Slave, RegAddress, (Int16U)DataTable[REG_DBG2], &error);
 
 				DataTable[REG_TRM_ERROR] = error;
+			}
+			break;
+		case ACT_DBG_OFF_OUTPUT:
+			{
+				Int16U Exit = DataTable[REG_DBG];
+				if(DataTable[REG_DBG] > 7)
+					break;
+				LL_SPI_SetOutBit(Exit, false);
+				LL_SPI_FlushOut();
 			}
 			break;
 

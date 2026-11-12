@@ -291,21 +291,29 @@ Boolean LOGIC_IsCycleActive()
 }
 // ----------------------------------------
 
+static Boolean LOGIC_ShouldMonitorCoil24V()
+{
+	if(CONTROL_State == DS_AdapterHold || CONTROL_State == DS_AdapterRelease)
+		return FALSE;
+
+	return IsHolding;
+}
+// ----------------------------------------
+
 static void LOGIC_MonitorCycleFaults()
 {
 	if(!LOGIC_IsCycleActive())
 		return;
 
-	DataTable[REG_SENSOR_S3] = LL_FilterSafetyCircuit(SC_CH_S3, LL_IsSafetyS3Ok());
-	DataTable[REG_SENSOR_S5] = LL_FilterSafetyCircuit(SC_CH_S5, LL_IsSafetyS5Ok());
-	if(!DataTable[REG_SENSOR_S3] || !DataTable[REG_SENSOR_S5])
+	if(LL_FilterSafetyTrip(SC_CH_S3, LL_IsSafetyS3Ok())
+			|| LL_FilterSafetyTrip(SC_CH_S5, LL_IsSafetyS5Ok()))
 	{
 		CONTROL_FinishedWithProblem(PROBLEM_SAFETY);
 		CONTROL_Halt();
 		return;
 	}
 
-	if(!LL_SPI_IsCoil24VOk())
+	if(LOGIC_ShouldMonitorCoil24V() && !LL_SPI_IsCoil24VOk())
 	{
 		CONTROL_FinishedWithProblem(PROBLEM_SAFETY);
 		CONTROL_Halt();
@@ -345,7 +353,7 @@ void LOGIC_Process()
 					{
 						SM_Params Params;
 						SM_Config(&Params, (Int16U)DataTable[REG_CUSTOM_POS]);
-						LOGIC_StateTimeout = CONTROL_TimeCounter + MOVEMENT_TIMEOUT;
+						LOGIC_StateTimeout = CONTROL_TimeCounter + DataTable[REG_MOVEMENT_TIMEOUT];
 						if(!SM_GoToPosition(&Params))
 						{
 							CONTROL_FinishedWithProblem(PROBLEM_MOTOR_START);
@@ -385,7 +393,7 @@ void LOGIC_Process()
 					}
 					else
 					{
-						LOGIC_StateTimeout = CONTROL_TimeCounter + HOMING_TIMEOUT;
+						LOGIC_StateTimeout = CONTROL_TimeCounter + DataTable[REG_HOMING_TIMEOUT];
 						CONTROL_SetDeviceState(CONTROL_State, DSS_HomingSearchSensorWait);
 					}
 					break;
@@ -393,7 +401,7 @@ void LOGIC_Process()
 				case DSS_HomingSearchSensorWait:
 					if(SM_IsHomingDone())
 					{
-						LOGIC_StateTimeout = CONTROL_TimeCounter + HOMING_PAUSE;
+						LOGIC_StateTimeout = CONTROL_TimeCounter + DataTable[REG_HOMING_PAUSE];
 						CONTROL_SetDeviceState(CONTROL_State, DSS_HomingPauseBeforeOffset);
 					}
 					else if(CONTROL_TimeCounter > LOGIC_StateTimeout)
@@ -604,9 +612,6 @@ void LOGIC_Process()
 						break;
 					}
 
-					LL_SPI_SetOutBit(SPI_OUT_FAN1, false);
-					LL_SPI_SetOutBit(SPI_OUT_FAN2, false);
-					LL_SPI_FlushOut();
 					HeatingActive = FALSE;
 
 					CONTROL_SetDeviceState(CONTROL_State, DSS_AdapterRelease_Done);

@@ -27,6 +27,7 @@
 #define ACT_DBG_OPTICAL						29	// Считывание состояния пина S5 и запись в регистр REG_DBG (0 – нет напря-жения, 1 – 4,3 В на пине)
 #define ACT_DBG_TRM_READ					30	// Чтение holding TRM10; REG_DBG_TRM_ADDRESS — slave, REG_DBG — адрес, REG_DBG3: 0=UINT16, 1=FLOAT32
 #define ACT_DBG_TRM_WRITE					31	// Запись holding TRM10; REG_DBG2 — значение, REG_DBG3: 0=UINT16, 1=FLOAT32
+#define ACT_DBG_OFF_OUTPUT					32	// Отключить напряжение 24 В на универсальном выходе (разъемы P2-P9) равным в регистре REG_DBG (0-7)
 
 #define ACT_HOMING							100	// Start homing
 #define ACT_GOTO_POSITION					101	// Перемещение в позицию REG_CUSTOM_POS (мм) со скоростями REG_POS_SPEED_MIN/MAX
@@ -88,7 +89,8 @@
 // Регистры
 // Сохраняемые регистры
 #define REG_CNT_ACTIVE						0	// Включение сохранения счетчиков
-// 1-13
+// 1-12
+#define REG_INVERT_DIRECTION				13	// Инвертирование движения
 #define REG_HOMING_SPEED					14	// Скорость хоуминга (мм/с)
 #define REG_HOMING_OFFSET					15	// Оффсет хоуминга (мм)
 #define REG_POS_SPEED_MIN					16	// Минимальная скорость перемещения при позиционировании зажатия (мм/с)
@@ -96,11 +98,22 @@
 #define REG_POS_SPEED_MAX					18	// Максимальная скорость перемещения при позиционировании зажатия (мм/с)
 #define REG_SM_TOGGLE_ACCELERATION			19	// Макс. наклон профиля STEP (тиков TIM3 на шаг); задаёт плавность и длину зон разгона/торможения
 #define REG_USE_HEATING						20	// Включение/выключение обработки команд системы нагрева
-// 21-29
+
+#define REG_HOMING_PAUSE					21	// Пауза хоуминга перед оффсетом, мс
+#define REG_HOMING_REVERSE_PAUSE			22	// Пауза хоуминга после пересечения сенсора, мс
+#define REG_HOMING_TIMEOUT					23	// Таймаут работы хоуминга, мс
+#define REG_MOVEMENT_TIMEOUT				24	// Таймаут при передвижении к точке, мс
+
+#define REG_SM_FULL_ROUND_STEPS				25	// Количество шагов в 1 обороте ШВП
+#define REG_SM_MOVING_RER_ROUND				26	// Мкм в 1 обороте ШВП
+// 27-29
 #define REG_PRESSURE_OFFSET 				30	// Смещение давления
-#define REG_PRESSURE_K						31  // Линейный коэффициент давления
+#define REG_PRESSURE_K						31	// Линейный коэффициент давления
 #define REG_PRESSURE_OK						32	// Корректное давление системы бар x1000
-// 33-63
+
+#define REG_ST_CHECK_OSH2					33	// Включение проверки ОШ2 при самодиагностике
+#define REG_FAN_OFF_DELAY					34	// Время работы вентиляторов после выключения нагрева, мс
+// 35-63
 
 // Несохраняемые регистры чтения-записи
 #define REG_CUSTOM_POS						64	// Mannually configured position (in mm)

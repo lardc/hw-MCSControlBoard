@@ -59,7 +59,7 @@ void INITCFG_ConfigGPIO()
 	GPIO_InitInput(GPIO_SEN_S2, NoPull);
 	GPIO_InitInput(GPIO_SEN_S4, NoPull);
 	GPIO_InitInput(GPIO_SEN_S5, NoPull);
-	GPIO_InitInput(GPIO_HOMING, NoPull);
+	GPIO_InitInput(GPIO_HOMING, Pull_Down);
 
 	GPIO_SetState(GPIO_LED, false);
 	GPIO_SetState(GPIO_RS485_CTRL, false);
@@ -125,7 +125,7 @@ void INITCFG_ConfigCAN()
 
 void INITCFG_ConfigSPI()
 {
-	SPI_Init8b(SPI3, SPI3_BAUDRATE_BITS, SPI_MSB_FIRST);
+	SPI_Init8b(SPI3, SPI3_BAUDRATE_BITS, SPI_LSB_FIRST);
 }
 //------------------------------------------------
 

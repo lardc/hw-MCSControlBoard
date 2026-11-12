@@ -10,6 +10,7 @@
 Int32U CycleCounters[COMMUTATION_TABLE_SIZE] = {0};
 
 static Int8U SpiOutShadow = 0;
+Int8U LL_SPI_InRaw = 0;
 //-----------------------------
 
 static void LL_SPI_WriteRaw(Int8U Data)
@@ -28,16 +29,16 @@ static void LL_SPI_LatchOut()
 }
 //-----------------------------
 
-Boolean LL_FilterSafetyCircuit(Int8U Channel, Boolean NewState)
+Boolean LL_FilterSafetyTrip(Int8U Channel, Boolean OkState)
 {
 	static Int16U Counter[2] = {0, 0};
 
-	if(!NewState)
+	if(OkState)
 		Counter[Channel] = 0;
 	else if(Counter[Channel] < SC_FILTER_T)
 		Counter[Channel]++;
 
-	return (Counter[Channel] >= SC_FILTER_T);
+	return Counter[Channel] >= SC_FILTER_T;
 }
 //-----------------------------
 
@@ -66,7 +67,7 @@ void LL_SPI_FlushOut()
 }
 //-----------------------------
 
-Int8U LL_SPI_ReadInRaw()
+static Int8U LL_SPI_HardwareReadIn()
 {
 	Int8U Data;
 
@@ -84,15 +85,21 @@ Int8U LL_SPI_ReadInRaw()
 }
 //-----------------------------
 
+void LL_SPI_SyncInputs()
+{
+	LL_SPI_InRaw = LL_SPI_HardwareReadIn();
+}
+//-----------------------------
+
 Boolean LL_SPI_GetInBit(Int8U Bit)
 {
-	return (LL_SPI_ReadInRaw() & (1u << Bit)) != 0;
+	return (LL_SPI_InRaw & (1u << Bit)) != 0;
 }
 //-----------------------------
 
 Boolean LL_SPI_IsCoil24VOk()
 {
-	return (LL_SPI_ReadInRaw() & SPI_IN_MASK_COIL_24V) == SPI_IN_MASK_COIL_24V;
+	return (LL_SPI_InRaw & SPI_IN_MASK_COIL_24V) == SPI_IN_MASK_COIL_24V;
 }
 //-----------------------------
 
@@ -134,7 +141,7 @@ void LL_RS485_SetTxMode(Boolean State)
 
 void LL_SwitchUpDir(Boolean State)
 {
-	GPIO_SetState(GPIO_STPM_DIR, State);
+	GPIO_SetState(GPIO_STPM_DIR, DataTable[REG_INVERT_DIRECTION] ? !State : State);
 }
 //-----------------------------
 

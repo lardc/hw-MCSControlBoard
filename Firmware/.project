@@ -40,6 +40,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>Source/Modules</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>System/Core</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -278,6 +283,76 @@
 			<name>Source/Library/ZwWWDG.h</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Library/ZwWWDG.h</locationURI>
+		</link>
+		<link>
+			<name>Source/Modules/DS18B20.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Modules/DS18B20.c</locationURI>
+		</link>
+		<link>
+			<name>Source/Modules/DS18B20.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Modules/DS18B20.h</locationURI>
+		</link>
+		<link>
+			<name>Source/Modules/DS2431.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Modules/DS2431.c</locationURI>
+		</link>
+		<link>
+			<name>Source/Modules/DS2431.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Modules/DS2431.h</locationURI>
+		</link>
+		<link>
+			<name>Source/Modules/MemLabel.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Modules/MemLabel.c</locationURI>
+		</link>
+		<link>
+			<name>Source/Modules/MemLabel.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Modules/MemLabel.h</locationURI>
+		</link>
+		<link>
+			<name>Source/Modules/Modbus.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Modules/Modbus.c</locationURI>
+		</link>
+		<link>
+			<name>Source/Modules/Modbus.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Modules/Modbus.h</locationURI>
+		</link>
+		<link>
+			<name>Source/Modules/OneWire.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Modules/OneWire.c</locationURI>
+		</link>
+		<link>
+			<name>Source/Modules/OneWire.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Modules/OneWire.h</locationURI>
+		</link>
+		<link>
+			<name>Source/Modules/TRM10.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Modules/TRM10.c</locationURI>
+		</link>
+		<link>
+			<name>Source/Modules/TRM10.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Modules/TRM10.h</locationURI>
+		</link>
+		<link>
+			<name>Source/Modules/TRM101.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Modules/TRM101.c</locationURI>
+		</link>
+		<link>
+			<name>Source/Modules/TRM101.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/hw-STM32-libs/Modules/TRM101.h</locationURI>
 		</link>
 		<link>
 			<name>Source/Platform/FirmwareInfo.c</name>

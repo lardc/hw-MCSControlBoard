@@ -22,7 +22,7 @@ const TableItemConstraint Constraint[DATA_TABLE_WP_START] = {
 	{0, 0, 0},																		// 10
 	{0, 0, 0},																		// 11
 	{0, 0, 0},																		// 12
-	{0, 0, 0},																		// 13
+	{NO, YES, NO},																	// 13
 	{SPEED_MIN, SPEED_MAX, SPEED_DEF},												// 14
 	{HOMING_OFFS_MIN, HOMING_OFFS_MAX, HOMING_OFFS_DEF},							// 15
 	{SPEED_MIN, SPEED_MAX, SPEED_DEF},												// 16
@@ -30,20 +30,20 @@ const TableItemConstraint Constraint[DATA_TABLE_WP_START] = {
 	{SPEED_MIN, SPEED_MAX, SPEED_DEF},												// 18
 	{1, 100, 50},																	// 19
 	{NO, YES, YES},																	// 20
-	{0, 0, 0},																		// 21
-	{0, 0, 0},																		// 22
-	{NO, YES, YES},																	// 23
-	{0, 0, 0},																		// 24
-	{0, 0, 0},																		// 25
-	{0, 0, 0},																		// 26
+	{1, INT16U_MAX, HOMING_PAUSE_DEF},												// 21
+	{1, INT16U_MAX, HOMING_REVERSE_PAUSE_DEF},										// 22
+	{1, INT16U_MAX, HOMING_TIMEOUT_DEF},											// 23
+	{1, INT16U_MAX, MOVEMENT_TIMEOUT_DEF},											// 24
+	{1, INT16U_MAX, FULL_ROUND_STEPS_DEF},											// 25
+	{1, INT16U_MAX, MOVING_PER_ROUND_DEF},											// 26
 	{0, 0, 0},																		// 27
 	{0, 0, 0},																		// 28
 	{0, 0, 0},																		// 29
 	{0, INT16U_MAX, 0},																// 30
 	{0, INT16U_MAX, 0},																// 31
 	{0, INT16U_MAX, PRESSURE_OK_DEF},												// 32
-	{0, 0, 0},																		// 33
-	{0, 0, 0},																		// 34
+	{NO, YES, YES},																	// 33
+	{0, INT16U_MAX, FAN_OFF_DELAY_DEF},												// 34
 	{0, 0, 0},																		// 35
 	{0, 0, 0},																		// 36
 	{0, 0, 0},																		// 37
