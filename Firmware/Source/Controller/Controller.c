@@ -311,6 +311,7 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 			break;
 
 		case ACT_SET_TEMPERATURE:
+			if(CONTROL_State == DS_None || CONTROL_State == DS_Ready)
 			{
 				if(DataTable[REG_USE_HEATING])
 				{
@@ -343,6 +344,8 @@ static Boolean CONTROL_DispatchAction(Int16U ActionID, pInt16U UserError)
 				else
 					DataTable[REG_TEMP_CH1] = DataTable[REG_TEMP_SETPOINT];
 			}
+			else
+				*UserError = ERR_OPERATION_BLOCKED;
 			break;
 
 		case ACT_CLR_FAULT:
