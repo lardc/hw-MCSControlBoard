@@ -111,9 +111,10 @@
 #define REG_PRESSURE_K						31	// Линейный коэффициент давления
 #define REG_PRESSURE_OK						32	// Корректное давление системы бар x1000
 
-#define REG_ST_CHECK_OSH2					33	// Включение проверки ОШ2 при самодиагностике
-#define REG_FAN_OFF_DELAY					34	// Время работы вентиляторов после выключения нагрева, мс
-// 35-63
+#define REG_ST_CHECK_OSH1					33	// Включение проверки ОШ1 при самодиагностике
+#define REG_ST_CHECK_OSH2					34	// Включение проверки ОШ2 при самодиагностике
+#define REG_FAN_OFF_DELAY					35	// Время работы вентиляторов после выключения нагрева, мс
+// 36-63
 
 // Несохраняемые регистры чтения-записи
 #define REG_CUSTOM_POS						64	// Mannually configured position (in mm)
@@ -159,7 +160,7 @@
 #define REG_ADAPTER_TOOLING_SENSOR			109	// SPI: датчик подключения адаптера
 //
 #define REG_DEV_SUBSTATE					110	// Device substate
-#define REG_SELFTEST_RESULT					111	// Маска ошибок самодиагностики ОШ (бит0=ОШ1, бит1=ОШ2)
+#define REG_SELFTEST_RESULT					111	// Маска ошибок самодиагностики ОШ (1-ОШ1, 2-ОШ2, 3-Оба датчика)
 //
 #define REG_ADAPTER_MATCH					112	// Результат сверки идентификатора
 #define REG_ADAPTER_MISMATCH_CODE			113 // Показатель того, что разошлось при сверке (1 - код, 2 - ток, 3 - напряжение, 4 -высота)

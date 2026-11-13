@@ -76,10 +76,10 @@ static Int8U LL_SPI_HardwareReadIn()
 	GPIO_SetState(GPIO_SPI_LD, true);
 	DELAY_US(TIME_SPI_DELAY_US);
 
+	// OE должен быть low . Не поднимаем в true — иначе FAN гаснут до следующего sync.
 	GPIO_SetState(GPIO_SPI_OE, false);
 	DELAY_US(TIME_SPI_DELAY_US);
 	Data = (Int8U)SPI_ReadByte8b(SPI3);
-	GPIO_SetState(GPIO_SPI_OE, true);
 
 	return Data;
 }
@@ -88,6 +88,7 @@ static Int8U LL_SPI_HardwareReadIn()
 void LL_SPI_SyncInputs()
 {
 	LL_SPI_InRaw = LL_SPI_HardwareReadIn();
+	LL_SPI_FlushOut();
 }
 //-----------------------------
 

@@ -16,6 +16,7 @@
 #include "Timer3_Ch4PWM.h"
 #include "Logic.h"
 #include "StepperMotor.h"
+#include "SysConfig.h"
 
 // Variables
 static Int8U DS2431DeviceIndex = 0;
@@ -168,9 +169,13 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 				if(DataTable[REG_USE_HEATING])
 				{
 					TRMError error;
+					Int8U Addr = (Int8U)DataTable[REG_DBG_TRM_ADDRESS];
+					if(Addr == 0)
+						Addr = TRM_CH1_ADDR;
 
-					TRM10_Start((Int8U)DataTable[REG_DBG_TRM_ADDRESS], &error);
+					TRM10_Start(Addr, &error);
 					DataTable[REG_TRM_ERROR] = error;
+					HeatingActive = TRUE;
 				}
 				else
 					*UserError = ERR_OPERATION_BLOCKED;
@@ -182,9 +187,13 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 				if(DataTable[REG_USE_HEATING])
 				{
 					TRMError error;
+					Int8U Addr = (Int8U)DataTable[REG_DBG_TRM_ADDRESS];
+					if(Addr == 0)
+						Addr = TRM_CH1_ADDR;
 
-					TRM10_Stop((Int8U)DataTable[REG_DBG_TRM_ADDRESS], &error);
+					TRM10_Stop(Addr, &error);
 					DataTable[REG_TRM_ERROR] = error;
+					HeatingActive = FALSE;
 				}
 				else
 					*UserError = ERR_OPERATION_BLOCKED;

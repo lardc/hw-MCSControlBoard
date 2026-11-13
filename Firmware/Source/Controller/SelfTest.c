@@ -83,7 +83,7 @@ Int16U SELFTEST_Run()
 	if(STState == STS_None)
 		STState = STS_FirstCheck;
 
-	if(!TestingOSH2)
+	if(DataTable[REG_ST_CHECK_OSH1] && !TestingOSH2)
 	{
 		if(!SELFTEST_CheckOpto(GPIO_SEN_S4, &Passed))
 			return SELFTEST_IN_PROGRESS;

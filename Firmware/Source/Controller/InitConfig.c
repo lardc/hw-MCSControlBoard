@@ -68,7 +68,8 @@ void INITCFG_ConfigGPIO()
 	GPIO_SetState(GPIO_SPI_SS, false);
 	GPIO_SetState(GPIO_TEST, false);
 	GPIO_SetState(GPIO_SPI_LD, false);
-	GPIO_SetState(GPIO_SPI_OE, true);
+	// OE active-low для выходов 595: true (Hi-Z) гасит FAN/реле → пульсация при каждом SyncInputs
+	GPIO_SetState(GPIO_SPI_OE, false);
 }
 //------------------------------------------------
 

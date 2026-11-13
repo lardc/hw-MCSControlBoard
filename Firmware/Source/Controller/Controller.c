@@ -94,6 +94,7 @@ void CONTROL_Idle()
 	DEVPROFILE_ProcessRequests();
 	CONTROL_UpdateTRMTemperature();
 
+	CONTROL_UpdateFans();
 	LL_SPI_SyncInputs();
 
 	DataTable[REG_SENSOR_S2] = LL_IsTableSensorOk();
@@ -106,7 +107,6 @@ void CONTROL_Idle()
 	DataTable[REG_PRESSURE] = MEAS_GetPressureMilliBar();
 	CONTROL_UpdatePressureOK();
 	LOGIC_Process();
-	CONTROL_UpdateFans();
 
 	if(CONTROL_State == DS_None || CONTROL_State == DS_Fault ||  CONTROL_State == DS_Ready || CONTROL_State == DS_Halt
 	|| CONTROL_State == DS_ClampingDone)
@@ -163,30 +163,33 @@ void CONTROL_SetDeviceState(DeviceState NewState, DeviceSubState NewSubState)
 }
 // ----------------------------------------
 
-static void CONTROL_SetFans(Boolean State)
-{
-	LL_SPI_SetOutBit(SPI_OUT_FAN1, State);
-	LL_SPI_SetOutBit(SPI_OUT_FAN2, State);
-	LL_SPI_FlushOut();
-}
-// ----------------------------------------
-
 static void CONTROL_UpdateFans(void)
 {
 	static Boolean PrevHeating = FALSE;
-	static Int64U FanOffDeadline = 0;
+	static Boolean FanCooldownActive = FALSE;
 	static Boolean FansState = FALSE;
+	static Int64U FanOffDeadline = 0;
 
-	if(!HeatingActive && PrevHeating)
-		FanOffDeadline = CONTROL_TimeCounter + DataTable[REG_FAN_OFF_DELAY];
+	if(HeatingActive && !PrevHeating)
+		FanCooldownActive = FALSE;
+	else if(!HeatingActive && PrevHeating)
+	{
+		FanCooldownActive = TRUE;
+		FanOffDeadline = CONTROL_TimeCounter + (Int64U)DataTable[REG_FAN_OFF_DELAY];
+	}
 	PrevHeating = HeatingActive;
 
-	Boolean IsFanOn = HeatingActive || CONTROL_TimeCounter < FanOffDeadline;
-	if(IsFanOn == FansState)
-		return;
+	if(FanCooldownActive && CONTROL_TimeCounter >= FanOffDeadline)
+		FanCooldownActive = FALSE;
 
-	FansState = IsFanOn;
-	CONTROL_SetFans(FansState);
+	Boolean IsFanOn = HeatingActive || FanCooldownActive;
+	LL_SPI_SetOutBit(SPI_OUT_FAN1, IsFanOn);
+	LL_SPI_SetOutBit(SPI_OUT_FAN2, IsFanOn);
+	if(IsFanOn != FansState)
+	{
+		FansState = IsFanOn;
+		LL_SPI_FlushOut();
+	}
 }
 // ----------------------------------------
 
