@@ -148,7 +148,7 @@ void LL_SwitchUpDir(Boolean State)
 
 Boolean LL_IsDirUp()
 {
-	return GPIO_GetState(GPIO_STPM_DIR);
+	return DataTable[REG_INVERT_DIRECTION] ? !GPIO_GetState(GPIO_STPM_DIR) : GPIO_GetState(GPIO_STPM_DIR);
 }
 //-----------------------------
 

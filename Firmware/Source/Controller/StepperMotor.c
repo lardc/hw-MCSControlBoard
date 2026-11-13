@@ -33,6 +33,7 @@ static xTimerAlterHandler AlterHandler = NULL;
 
 static volatile Boolean SM_HomingDoneFlag = FALSE;
 static volatile Int32S SM_GlobalStepsCounter = 0, SM_DestSteps = 0, SM_StartSteps = 0;
+static volatile Int16S SM_StepSign = 1;	//
 static volatile Int16U SM_CyclesToToggle;
 static Int16U SM_MinCycles, SM_MaxCycles;	// MinCycles — быстрый ход, MaxCycles — медленный ход
 static Int32U SM_SpeedChangeSteps = 0;
@@ -114,8 +115,7 @@ void SM_LogicHandler()
 			}
 			break;
 		case MS_Movement:
-			// Счёт шагов позиционирования
-			SM_GlobalStepsCounter += (LL_IsDirUp()) ? 1 : -1;
+			SM_GlobalStepsCounter += SM_StepSign;
 
 			if(SM_IsPositioningDone())
 			{
@@ -190,7 +190,8 @@ Boolean SM_GoToPosition(pSM_Params Params)
 		return TRUE;
 	}
 
-	SM_UpDirection(SM_DestSteps > SM_GlobalStepsCounter);
+	SM_StepSign = (SM_DestSteps > SM_GlobalStepsCounter) ? 1 : -1;
+	SM_UpDirection(SM_StepSign < 0);
 
 	SM_MinCycles = SM_SpeedToCycles(Params->MaxSpeed);
 	SM_MaxCycles = SM_SpeedToCycles(Params->MinSpeed);
@@ -301,6 +302,9 @@ float SM_GetSpeedMmS()
 	TimerClk = SYSCLK / (TIM3->PSC + 1);
 	StepsPerSec = TimerClk / SM_CyclesToToggle;
 	Speed = (float)StepsPerSec * DataTable[REG_SM_MOVING_RER_ROUND] / (1000.0f * DataTable[REG_SM_FULL_ROUND_STEPS]);
+
+	if(Motor_State == MS_Movement)
+		return (SM_StepSign > 0) ? Speed : -Speed;
 
 	return LL_IsDirUp() ? Speed : -Speed;
 }

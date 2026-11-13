@@ -50,7 +50,7 @@ typedef struct __TableItemConstraint
 #define FAN_OFF_DELAY_DEF			10000
 
 // Параметры ШВП
-#define FULL_ROUND_STEPS_DEF		1000ul	// steps/round
+#define FULL_ROUND_STEPS_DEF		400ul	// steps/round
 #define MOVING_PER_ROUND_DEF		5000ul	// um/round
 
 // Идентификатор адаптера
