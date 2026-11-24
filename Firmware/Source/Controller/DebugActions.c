@@ -132,6 +132,22 @@ bool DEBUG_HandleDiagnosticAction(uint16_t ActionID, uint16_t *UserError)
 				LL_SPI_FlushOut();
 			}
 			break;
+		case ACT_DBG_ADPT_HOLD:
+			{
+				LL_SPI_SetOutBit(SPI_OUT_ADAPTER, true);
+				LL_SPI_FlushOut();
+				LL_SPI_SetOutBit(SPI_OUT_BUS, true);
+				LL_SPI_FlushOut();
+			}
+			break;
+		case ACT_DBG_ADPT_ACT_RELEASE:
+			{
+				LL_SPI_SetOutBit(SPI_OUT_BUS, false);
+				LL_SPI_FlushOut();
+				LL_SPI_SetOutBit(SPI_OUT_ADAPTER, false);
+				LL_SPI_FlushOut();
+			}
+			break;
 
 		case ACT_DBG_READ_EXT_TEMP:
 		case ACT_DBG_READ_TRM_TEMP:
